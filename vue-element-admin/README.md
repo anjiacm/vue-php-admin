@@ -1,4 +1,6 @@
-# # vue-php-admin 项目说明
+# vue-php-admin 项目说明
+
+通用的角色权限管理模板，没有动态切换角色功能，动态切换角色见 [vue-php-admin-V3](https://github.com/emacle/vue-php-admin-V3.git)
 
 基于 vue-element-admin 和 PHP CodeIgniter RESTful 实现，
 采用前后端分离架构的权限管理系统，PHP快速开发平台，目标是搭建一
@@ -17,7 +19,7 @@
 3. 角色管理：新建角色，修改角色，删除角色，查询角色
 4. 菜单管理：新建菜单，修改菜单，删除菜单，查询菜单
 5. 图标管理：vue-element-admin 原有封装组件
-6. ......
+6. TODO: 图形验证码, 微信登录, 界面主题优化...
 
 ## 开发环境 
 - phpstudy  php 5.6.27 nts + Apache
@@ -49,7 +51,8 @@
 
 ### 后端
 1. 下载PHP后端代码(CodeIgniter-3.1.10目录)解压
-2. 创建数据库 vueadmin, 导入 **vueadmin.sql** 文件，尽量使用命令行导入，navcat-for-mysql导入有时会出错
+2. 创建数据库 vueadmin, 导入 **vueadmin.sql** 文件，navcat-for-mysql导入有时会出错时, 修改 mysql my.ini配置文件参数 mysqld 节点下添加 max_allowed_packet = 500M
+
 3. 后端数据库连接配置 修改配置文件
 
     cat application\config\database.php
@@ -93,4 +96,11 @@
  - vscode
  
  ## 截图
- menu.png menu_add.png menu_search.png role.png role2.png user.png user_add.png
+ 
+ ![菜单](vue-element-admin/static/screenshot/menu.png)
+ ![菜单新增](vue-element-admin/static/screenshot/menu_add.png)
+ ![菜单查询](vue-element-admin/static/screenshot/menu_search.png) 
+ ![角色/授权](vue-element-admin/static/screenshot/role.png)
+ ![角色新增](vue-element-admin/static/screenshot/role2.png)
+ ![用户管理](vue-element-admin/static/screenshot/user.png)
+ ![用户新增](vue-element-admin/static/screenshot/user_add.png)
