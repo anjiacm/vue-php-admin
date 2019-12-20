@@ -1,4 +1,4 @@
-# # vue-php-admin 项目说明
+# vue-php-admin 项目说明
 
 通用的角色权限管理模板，没有动态切换角色功能，动态切换角色见 [vue-php-admin-V3](https://github.com/emacle/vue-php-admin-V3.git)
 
@@ -19,7 +19,7 @@
 3. 角色管理：新建角色，修改角色，删除角色，查询角色
 4. 菜单管理：新建菜单，修改菜单，删除菜单，查询菜单
 5. 图标管理：vue-element-admin 原有封装组件
-6. ......
+6. TODO: 图形验证码, 微信登录, 界面主题优化...
 
 ## 开发环境 
 - phpstudy  php 5.6.27 nts + Apache
@@ -51,7 +51,8 @@
 
 ### 后端
 1. 下载PHP后端代码(CodeIgniter-3.1.10目录)解压
-2. 创建数据库 vueadmin, 导入 **vueadmin.sql** 文件，尽量使用命令行导入，navcat-for-mysql导入有时会出错
+2. 创建数据库 vueadmin, 导入 **vueadmin.sql** 文件，navcat-for-mysql导入有时会出错时, 修改 mysql my.ini配置文件参数 mysqld 节点下添加 max_allowed_packet = 500M
+
 3. 后端数据库连接配置 修改配置文件
 
     cat application\config\database.php
