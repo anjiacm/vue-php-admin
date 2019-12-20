@@ -75,7 +75,8 @@
     http://www.cirest.com:8889/api/v2/sys/menu/testapi
     http://www.cirest.com:8889/index.php/api/v2/sys/menu/testapi
     
-    request header 配置 X-API-KEY: oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks  
+    ~~request header 配置 X-API-KEY: oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks~~ 默认禁用API-KEY 可在CodeIgniter-3.1.10/config/rest.php中 $config['rest_enable_keys'] = TRUE 开启;
+    
     ```
     带有 index.php 若要去掉 修改根目录下 CodeIgniter-3.1.10/.htaccess 文件(Apache), 注意不是 CodeIgniter-3.1.10/application/ 目录下
     Nginx的话需要对应的配置
