@@ -75,14 +75,6 @@ export default {
     ThemePicker,
     Search
   },
-  computed: {
-    ...mapGetters([
-      'sidebar',
-      'name',
-      'avatar',
-      'device'
-    ])
-  },
   data() {
     return {
       options: [{
@@ -95,6 +87,14 @@ export default {
       value: '1'
     }
   },
+  computed: {
+    ...mapGetters([
+      'sidebar',
+      'name',
+      'avatar',
+      'device'
+    ])
+  },
   methods: {
     toggleSideBar() {
       this.$store.dispatch('toggleSideBar')
@@ -103,7 +103,7 @@ export default {
       this.$store.dispatch('LogOut').then(() => {
         location.reload()// In order to re-instantiate the vue-router object to avoid bugs
       })
-    },
+    }
     // roleChange() {
     //   const loginForm = {
     //     username: 'qiaokun',
