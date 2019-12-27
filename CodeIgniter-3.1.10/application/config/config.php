@@ -525,3 +525,11 @@ $config['proxy_ips'] = '';
 
 // pocoyo
 $config['jwt_key'] = 'pocoyo';
+
+// 自定义jwt token 过期或异常返回值,根据前端需要可以分开
+// SignatureInvalidException 签名不正确
+// BeforeValidException签名在某个时间点之后才能用
+// ExpiredException token过期
+// Exception 其他错误
+$config['jwt_token_expired'] = ["code" => 50014, "message" => "Token 过期了oo"];
+$config['jwt_token_exception'] = ['code' => 50008, 'message' => "非法的token"];
