@@ -337,9 +337,9 @@ class Menu extends REST_Controller
             $this->set_response($message, REST_Controller::HTTP_OK);
 
         } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-            echo $e->getMessage();
+            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
         } catch (Exception $e) {  //其他错误
-            echo $e->getMessage();
+            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
         }
         //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
     }

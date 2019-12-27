@@ -27,3 +27,10 @@ export function getUserInfo(token) {
   })
 }
 
+export function checkRefreshToken(refresh_token) {
+  return request({
+    url: '/sys/user/refreshtoken',
+    method: 'get',
+    params: { refresh_token }
+  })
+}

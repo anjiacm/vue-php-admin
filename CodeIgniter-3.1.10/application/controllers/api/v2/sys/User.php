@@ -187,7 +187,6 @@ class User extends REST_Controller
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
         try {
-            JWT::$leeway = 60;// 当前时间减去60，把时间留点余地,防止客户端与服务器时间不太同步, 相当于过期时间延长了60s
             $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
             $userId = $decoded->user_id;
 
@@ -501,11 +500,11 @@ class User extends REST_Controller
                 'iat' => $time, //签发时间
                 'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
                 'user_id' => $userInfo['id'], //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
-             ];
+            ];
 
             $access_token = $payload;
             $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
-            $access_token['exp'] = $time + 60; //access_token过期时间,这里设置2个小时
+            $access_token['exp'] = $time + 15; //access_token过期时间,这里设置2个小时
 
             $refresh_token = $payload;
             $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
@@ -536,7 +535,6 @@ class User extends REST_Controller
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
         try {
-            JWT::$leeway = 60;// 当前时间减去60，把时间留点余地,防止客户端与服务器时间不太同步, 相当于过期时间延长了60s
             $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
             //     print_r($decoded);
             //            stdClass Object
@@ -678,6 +676,43 @@ class User extends REST_Controller
         }
         //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
 
+    }
+
+    function refreshtoken_get()
+    {
+        $parms = $this->get();
+
+        try {
+            $decoded = JWT::decode($parms['refresh_token'], config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+
+            $time = time(); //当前时间
+            // 公用信息
+            $payload = [
+                'iss' => 'http://pocoyo.org', //签发者 可选
+                'aud' => 'http://emacs.org', //接收该JWT的一方，可选
+                'iat' => $time, //签发时间
+                'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+                'user_id' => $decoded->user_id, //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
+            ];
+
+            $access_token = $payload;
+            $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
+            $access_token['exp'] = $time + 15; //access_token过期时间,这里设置2个小时
+
+            $message = [
+                "code" => 20000,
+                "data" => [
+                    "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
+                    "refresh_token" => $parms['refresh_token'], // TODO: 这里可以根据需要重新生成 refresh_token
+                ]
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
+
+        } catch (\Firebase\JWT\ExpiredException $e) {  // refresh_token 过期
+            $this->set_response(["code" => 50015, "message" => "refresh_token 过期了,请重新登录"], REST_Controller::HTTP_OK);
+        } catch (Exception $e) {  //其他错误
+            echo $e->getMessage();
+        }
     }
 
     //    async router test get

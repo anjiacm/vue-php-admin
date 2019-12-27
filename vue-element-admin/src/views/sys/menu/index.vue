@@ -177,7 +177,7 @@ export default {
     }
   },
   created() {
-    // console.log('this.$route.path...', this.$route.path)
+    console.log('this.$route.path...', this.$route.path)
     // console.log('this.$store.state.user.ctrlperm', this.$store.state.user.ctrlperm)
     this.getData()
   },

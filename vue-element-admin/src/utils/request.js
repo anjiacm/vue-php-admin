@@ -2,6 +2,7 @@ import axios from 'axios'
 import { Message, MessageBox } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
+import router from '@/router'
 
 // create an axios instance
 const service = axios.create({
@@ -37,15 +38,45 @@ service.interceptors.response.use(
    * 以下代码均为样例，请结合自生需求加以修改，若不需要，则可删除
    */
   response => {
+    console.log('respponse', response)
+    console.log('router', router.currentRoute.fullPath)
+
     const res = response.data
     if (res.code !== 20000) {
-      Message({
-        message: res.message,
-        type: 'error',
-        duration: 5 * 1000
-      })
-      // 50008:非法的token; 50012:其他客户端登录了;  50014:Token 过期了;
-      if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
+      // Message({
+      //   message: res.message,
+      //   type: 'error',
+      //   duration: 5 * 1000
+      // })
+      // 如果 accessToken 超时
+      if (res.code === 50014) {
+        console.log(' accessToken 超时......')
+        store.dispatch('handleCheckRefreshToken').then(res => {
+          console.log('handleCheckRefreshToken res......', res)
+          // 重新刷新当前页面
+          // let config = response.config
+          // config.headers['X-Token'] = getToken()
+          console.log('router.currentRoute.fullPath', router.currentRoute.fullPath)
+          router.replace({
+            // path: '/redirect' + router.currentRoute.fullPath,
+            // query: { redirect: router.currentRoute.fullPath }
+            query: { e: '1' } // TODO: 任意参数,9527/#/sys/menu?e=1 保证重新取得token后会刷新当前页面
+          })
+
+          // router.push({
+          //    path: router.currentRoute.fullPath ,
+          //    query: { redirect: router.currentRoute.fullPath }//登录成功后跳入浏览的当前页面
+          // })
+          // router.replace({
+          //   // path: router.currentRoute.fullPath ,
+          //   query: { redirect: '/redirect' + router.currentRoute.fullPath }//登录成功后跳入浏览的当前页面
+          // })
+
+          // history.go(0) // 浏览器自带的刷新功能，window.history.go(0)，这里的window可以省略不写
+        }, error => { return Promise.reject(error) })
+      }
+      // 50008:非法的token; 50012:其他客户端登录了;  50014:Token 过期了;  50015: refresh_token过期
+      if (res.code === 50008 || res.code === 50012 || res.code === 50015) {
         // 请自行在引入 MessageBox
         // import { Message, MessageBox } from 'element-ui'
         MessageBox.confirm('你已被登出，可以取消继续留在该页面，或者重新登录', '确定登出', {

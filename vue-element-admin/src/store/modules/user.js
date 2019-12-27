@@ -1,5 +1,5 @@
-import { loginByUsername, logout, getUserInfo } from '@/api/login'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import { loginByUsername, logout, getUserInfo, checkRefreshToken } from '@/api/login'
+import { getToken, setToken, removeToken, getRefreshToken, setRefreshToken, removeRefreshToken } from '@/utils/auth'
 
 const user = {
   state: {
@@ -7,6 +7,7 @@ const user = {
     status: '',
     code: '',
     token: getToken(),
+    refresh_token: getRefreshToken(),
     name: '',
     avatar: '',
     introduction: '',
@@ -23,6 +24,9 @@ const user = {
     },
     SET_TOKEN: (state, token) => {
       state.token = token
+    },
+    SET_REFRESH_TOKEN: (state, token) => {
+      state.refresh_token = token
     },
     SET_INTRODUCTION: (state, introduction) => {
       state.introduction = introduction
@@ -63,7 +67,9 @@ const user = {
         loginByUsername(username, userInfo.password).then(response => {
           const data = response.data
           commit('SET_TOKEN', data.token)
-          setToken(response.data.token)
+          commit('SET_REFRESH_TOKEN', data.refresh_token)
+          setToken(data.token)
+          setRefreshToken(data.refresh_token)
           resolve()
         }).catch(error => {
           reject(error)
@@ -119,8 +125,10 @@ const user = {
       return new Promise((resolve, reject) => {
         logout(state.token).then(() => {
           commit('SET_TOKEN', '')
+          commit('SET_REFRESH_TOKEN', '')
           commit('SET_ROLES', [])
           removeToken()
+          removeRefreshToken()
           resolve()
         }).catch(error => {
           reject(error)
@@ -132,8 +140,22 @@ const user = {
     FedLogOut({ commit }) {
       return new Promise(resolve => {
         commit('SET_TOKEN', '')
+        commit('SET_REFRESH_TOKEN', '')
         removeToken()
+        removeRefreshToken()
         resolve()
+      })
+    },
+
+    // accessToken超时
+    handleCheckRefreshToken({ state, commit }) {
+      return new Promise((resolve, reject) => {
+        checkRefreshToken(state.refresh_token).then(res => {
+          const data = res.data
+          commit('SET_TOKEN', data.token)
+          setToken(data.token)
+          resolve(res)
+        }).catch(err => { reject(err) })
       })
     },
 
