@@ -69,11 +69,11 @@ class Permission
     }
 
     /**
-     * 根据 $token ， 权限类型 获取该 token->userid->role 对应的所有权限
+     * 根据 $userId ， 权限类型 获取该 userid->role 对应的所有权限
      * @parms，$type 根据$perm_type = 'menu'时，判断是否菜单带有功能控件
      * return array
      */
-    function getPermission($token, $perm_type, $menuCtrl = true)
+    function getPermission($userId, $perm_type, $menuCtrl = true)
     {
         $CI = &get_instance();
         $CI->load->model('Base_model');
@@ -85,20 +85,20 @@ class Permission
         }
         $tblname = $BasetblArr[0]['r_table'];
 
-        $PermArr = $CI->Base_model->getPerm($tblname, $token, $perm_type, $menuCtrl);
+        $PermArr = $CI->Base_model->getPerm($tblname, $userId, $perm_type, $menuCtrl);
 
         return $PermArr;
     }
 
     /**
-     * @parms， 根据$token获取拥有的菜单功能按钮控件权限 与vue前台perm.js 配合判断按钮隐藏与否
+     * @parms， 根据$userId 获取拥有的菜单功能按钮控件权限 与vue前台perm.js 配合判断按钮隐藏与否
      * return array
      */
-    function getMenuCtrlPerm($token)
+    function getMenuCtrlPerm($userId)
     {
         $CI = &get_instance();
         $CI->load->model('Base_model');
-        $PermArr = $CI->Base_model->getCtrlPerm($token);
+        $PermArr = $CI->Base_model->getCtrlPerm($userId);
         // 返回样例
         //        array(2) {
         //        [0]=>
@@ -116,27 +116,27 @@ class Permission
     }
 
     /**
-     * 后端根据 $token,$uri 判断是否该用户是否过期及拥有的功能按钮控件操作权限
+     * 后端根据 $userId,$uri 判断是否该用户是否过期及拥有的功能按钮控件操作权限
      * 增/删/改/查 控制器引用
-     * @parms $token,$uri
+     * @parms $userId,$uri
      * return Array
      * return ['code' => 50008, 'message' => "非法的token"];
      * return ['code' => 50014, 'message' => "Token 过期了"];
      * return ['code' => 50016, 'message' => "无操作权限"];
      * return ['code' => 50000, 'message' => "有操作权限"];
      */
-    function HasPermit($token, $uri)
+    function HasPermit($userId, $uri)
     {
         $CI = &get_instance();
         $CI->load->model('Base_model');
         // 50008:非法的token; 50012:其他客户端登录了;  50014:Token 过期了;
-        $tokenArr = $CI->Base_model->TokenExpired($token);
+        //        $tokenArr = $CI->Base_model->TokenExpired($userId);
+        //
+        //        if ($tokenArr['code'] != 20000) {
+        //            return $tokenArr;
+        //        }
 
-        if ($tokenArr['code'] != 20000) {
-            return $tokenArr;
-        }
-
-        $PermArr = $CI->Base_model->getCtrlPerm($token);
+        $PermArr = $CI->Base_model->getCtrlPerm($userId);
         // getCtrlPerm 返回样例
         //        array(2) {
         //        [0]=>

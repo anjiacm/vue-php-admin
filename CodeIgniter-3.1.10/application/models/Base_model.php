@@ -124,10 +124,10 @@ class Base_model extends CI_Model
     }
 
     /**
-     *  根据token, perm_type 获取 perm_id,perm_type,r_id
+     *  根据$userId, perm_type 获取 perm_id,perm_type,r_id
      * @return array
      */
-    function getPerm($basetable, $token, $perm_type, $menuCtrl)
+    function getPerm($basetable, $userId, $perm_type, $menuCtrl)
     {
         $hasCtrl = $menuCtrl ? "" : " WHERE basetbl.type != 2";
 
@@ -139,14 +139,12 @@ class Base_model extends CI_Model
                             SELECT
                                 p.*
                             FROM
-                                sys_user_token ut,
                                 sys_user_role ur,
                                 sys_role_perm rp,
                                 sys_perm p,
 			                    sys_role r
                             WHERE
-                                ut.token = '" . $token . "'
-                            AND ur.user_id = ut.user_id
+                                ur.user_id = $userId
                             AND rp.role_id = ur.role_id
                             AND p.id = rp.perm_id
                             AND r.id = ur.role_id
@@ -160,7 +158,7 @@ class Base_model extends CI_Model
 
     }
 
-    function getCtrlPerm($token)
+    function getCtrlPerm($userId)
     {
         $sql = "SELECT
                         basetbl.path
@@ -175,8 +173,7 @@ class Base_model extends CI_Model
                                 sys_perm p,
 			                    sys_role r
                             WHERE
-                                ut.token = '" . $token . "'
-                            AND ur.user_id = ut.user_id
+                                ur.user_id = $userId
                             AND rp.role_id = ur.role_id
                             AND p.id = rp.perm_id
                             AND r.id = ur.role_id
