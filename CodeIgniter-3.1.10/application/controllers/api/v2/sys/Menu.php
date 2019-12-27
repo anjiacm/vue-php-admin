@@ -1,6 +1,7 @@
 <?php
 
 use Restserver\Libraries\REST_Controller;
+use \Firebase\JWT\JWT;
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
@@ -281,19 +282,29 @@ class Menu extends REST_Controller
         $uri = $this->uri->uri_string;
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
+        try {
+            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+            $userId = $decoded->user_id;
+
+            $retPerm = $this->permission->HasPermit($userId, $uri);
+            if ($retPerm['code'] != 50000) {
+                $this->set_response($retPerm, REST_Controller::HTTP_OK);
+                return;
+            }
+
+            $MenuTreeArr = $this->permission->getPermission($userId, 'menu', true);
+            $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', 0);
+            $message = [
+                "code" => 20000,
+                "data" => $MenuTree,
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
+        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
+            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
+        } catch (Exception $e) {  //其他错误
+            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
         }
 
-        $MenuTreeArr = $this->permission->getPermission($Token, 'menu', true);
-        $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', 0);
-        $message = [
-            "code" => 20000,
-            "data" => $MenuTree,
-        ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
     // 根据token拉取 treeselect 下拉选项菜单
@@ -311,15 +322,26 @@ class Menu extends REST_Controller
 
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
-        $MenuTreeArr = $this->permission->getPermission($Token, 'menu', false);
-        array_unshift($MenuTreeArr, ['id' => 0, 'pid' => -1, 'title' => '顶级菜单']);
-        $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', -1);
+        try {
+            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+            $userId = $decoded->user_id;
 
-        $message = [
-            "code" => 20000,
-            "data" => $MenuTree,
-        ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+            $MenuTreeArr = $this->permission->getPermission($userId, 'menu', false);
+            array_unshift($MenuTreeArr, ['id' => 0, 'pid' => -1, 'title' => '顶级菜单']);
+            $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', -1);
+
+            $message = [
+                "code" => 20000,
+                "data" => $MenuTree,
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
+
+        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
+            echo $e->getMessage();
+        } catch (Exception $e) {  //其他错误
+            echo $e->getMessage();
+        }
+        //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
     }
 
 

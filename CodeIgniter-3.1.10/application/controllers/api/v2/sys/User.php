@@ -1,6 +1,7 @@
 <?php
 
 use Restserver\Libraries\REST_Controller;
+use \Firebase\JWT\JWT;
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
@@ -19,6 +20,7 @@ class User extends REST_Controller
         $this->load->model('Base_model');
         $this->load->model('User_model');
         // $this->config->load('config', true);
+        JWT::$leeway = 60;
     }
 
     public function index_get()
@@ -26,8 +28,58 @@ class User extends REST_Controller
         $this->load->view('login_view');
     }
 
+    //签发Token
+    public function issue_get()
+    {
+        var_dump(JWT::$leeway);
+        $key = '344'; //key
+        $time = time(); //当前时间
+        $payload = [
+            'iss' => 'http://www.helloweba.net', //签发者 可选
+            'aud' => 'http://www.helloweba.net', //接收该JWT的一方，可选
+            'iat' => $time, //签发时间
+            'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+            'exp' => $time, //过期时间,这里设置2个小时
+            'data' => [ //自定义信息，不要定义敏感信息
+                'userid' => 2,
+                'username' => '李小龙'
+            ]
+        ];
+        echo JWT::encode($payload, $key); //输出Token
+    }
+
+    public function verification_get()
+    {
+        $key = '344'; //key要和签发的时候一样
+
+        //签发的Token header.payload.signature 前两部分可以base64解密
+        $jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC93d3cuaGVsbG93ZWJhLm5ldCIsImF1ZCI6Imh0dHA6XC9cL3d3dy5oZWxsb3dlYmEubmV0IiwiaWF0IjoxNTc3MzQzNTc1LCJuYmYiOjE1NzczNDM1NzUsImV4cCI6MTU3NzM0MzU3NSwiZGF0YSI6eyJ1c2VyaWQiOjIsInVzZXJuYW1lIjoiXHU2NzRlXHU1YzBmXHU5Zjk5In19.LwMOP3uBUC6ENEuVtWseOWUvhR5Z9VtClVCZpmi0p1I";
+        $arr = explode('.', $jwt);
+        var_dump($arr);
+        var_dump(base64_decode($arr[1]));
+        $object = json_decode(base64_decode($arr[1]));
+        var_dump($object->data);
+        // var_dump($object->data->username);
+        return;
+        try {
+            $decoded = JWT::decode($jwt, $key, ['HS256']); //HS256方式，这里要和签发的时候对应
+            $arr = (array)$decoded;
+            print_r($arr);
+        } catch (\Firebase\JWT\SignatureInvalidException $e) {  //签名不正确
+            echo $e->getMessage();
+        } catch (\Firebase\JWT\BeforeValidException $e) {  // 签名在某个时间点之后才能用
+            echo $e->getMessage();
+        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
+            echo $e->getMessage();
+        } catch (Exception $e) {  //其他错误
+            echo $e->getMessage();
+        }
+        //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
+    }
+
     public function testapi_get()
     {
+        phpinfo();
         echo "test api ok...";
 
         echo APPPATH . "\n";
@@ -134,46 +186,59 @@ class User extends REST_Controller
         $uri = $this->uri->uri_string;
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
+        try {
+            JWT::$leeway = 60;// 当前时间减去60，把时间留点余地,防止客户端与服务器时间不太同步, 相当于过期时间延长了60s
+            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+            $userId = $decoded->user_id;
 
-        $parms = $this->post();
-        //  $type = $parms['type'];
-        $filters = $parms['filters'];
-        $sort = $parms['sort'];
-        $page = $parms['page'];
-        $pageSize = $parms['pageSize'];
-
-        $UserArr = $this->User_model->getUserList($filters, $sort, $page, $pageSize);
-
-        $total = $this->User_model->getUserListCnt($filters);
-
-        // 遍历该用户所属角色信息
-        foreach ($UserArr as $k => $v) {
-            $UserArr[$k]['role'] = [];
-            $RoleArr = $this->User_model->getUserRoles($v['id']);
-            foreach ($RoleArr as $kk => $vv) {
-                array_push($UserArr[$k]['role'], $vv['id']);
+            $retPerm = $this->permission->HasPermit($userId, $uri);
+            if ($retPerm['code'] != 50000) {
+                $this->set_response($retPerm, REST_Controller::HTTP_OK);
+                return;
             }
+
+            $parms = $this->post();
+            //  $type = $parms['type'];
+            $filters = $parms['filters'];
+            $sort = $parms['sort'];
+            $page = $parms['page'];
+            $pageSize = $parms['pageSize'];
+
+            $UserArr = $this->User_model->getUserList($filters, $sort, $page, $pageSize);
+
+            $total = $this->User_model->getUserListCnt($filters);
+
+            // 遍历该用户所属角色信息
+            foreach ($UserArr as $k => $v) {
+                $UserArr[$k]['role'] = [];
+                $RoleArr = $this->User_model->getUserRoles($v['id']);
+                foreach ($RoleArr as $kk => $vv) {
+                    array_push($UserArr[$k]['role'], $vv['id']);
+                }
+            }
+            $message = [
+                "code" => 20000,
+                "data" => [
+                    'items' => $UserArr,
+                    'total' => intval($total)
+                ]
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
+        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
+            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
+        } catch (Exception $e) {  //其他错误
+            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
         }
-        $message = [
-            "code" => 20000,
-            "data" => [
-                'items' => $UserArr,
-                'total' => intval($total)
-            ]
-        ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
     function getroleoptions_get()
     {
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
-        $RoleArr = $this->User_model->getRoleOptions($Token);
+        $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+        $userId = $decoded->user_id;
+
+        $RoleArr = $this->User_model->getRoleOptions($userId);
         // string to boolean
         foreach ($RoleArr as $k => $v) {
             $v['isDisabled'] === 'true' ? ($RoleArr[$k]['isDisabled'] = true) : ($RoleArr[$k]['isDisabled'] = false);
@@ -407,29 +472,50 @@ class User extends REST_Controller
 
         // 用户名密码正确 生成token 返回
         if ($result['success']) {
-            $Token = $this->_generate_token();
-            $create_time = time();
-            $expire_time = $create_time + 2 * 60 * 60;  // 2小时过期
+//            $Token = $this->_generate_token();
+//            $create_time = time();
+//            $expire_time = $create_time + 2 * 60 * 60;  // 2小时过期
+//
+//            $data = [
+//                'user_id' => $result['userinfo']['id'],
+//                'expire_time' => $expire_time,
+//                'create_time' => $create_time
+//            ];
+//
+//            if (!$this->_insert_token($Token, $data)) {
+//                $message = [
+//                    "code" => 20000,
+//                    "message" => 'Token 创建失败, 请联系管理员.'
+//                ];
+//                $this->set_response($message, REST_Controller::HTTP_OK);
+//                return;
+//            }
+            $userInfo = $result['userinfo'];
 
-            $data = [
-                'user_id' => $result['userinfo']['id'],
-                'expire_time' => $expire_time,
-                'create_time' => $create_time
-            ];
+            $time = time(); //当前时间
 
-            if (!$this->_insert_token($Token, $data)) {
-                $message = [
-                    "code" => 20000,
-                    "message" => 'Token 创建失败, 请联系管理员.'
-                ];
-                $this->set_response($message, REST_Controller::HTTP_OK);
-                return;
-            }
+            // 公用信息
+            $payload = [
+                'iss' => 'http://pocoyo.org', //签发者 可选
+                'aud' => 'http://emacs.org', //接收该JWT的一方，可选
+                'iat' => $time, //签发时间
+                'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+                'user_id' => $userInfo['id'], //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
+             ];
+
+            $access_token = $payload;
+            $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
+            $access_token['exp'] = $time + 60; //access_token过期时间,这里设置2个小时
+
+            $refresh_token = $payload;
+            $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
+            $refresh_token['exp'] = $time + (86400 * 30); //refresh_token,这里设置30天
 
             $message = [
                 "code" => 20000,
                 "data" => [
-                    "token" => $Token
+                    "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
+                    "refresh_token" => JWT::encode($refresh_token, config_item('jwt_key')) //生成refresh_token,
                 ]
             ];
             $this->set_response($message, REST_Controller::HTTP_OK);
@@ -449,20 +535,40 @@ class User extends REST_Controller
         $result['success'] = TRUE;
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
-        $MenuTreeArr = $this->permission->getPermission($Token, 'menu', false);
-        $asyncRouterMap = $this->permission->genVueRouter($MenuTreeArr, 'id', 'pid', 0);
-        $CtrlPerm = $this->permission->getMenuCtrlPerm($Token);
+        try {
+            JWT::$leeway = 60;// 当前时间减去60，把时间留点余地,防止客户端与服务器时间不太同步, 相当于过期时间延长了60s
+            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+            //     print_r($decoded);
+            //            stdClass Object
+            //            (
+            //                [iss] => http://pocoyo.org
+            //    [aud] => http://emacs.org
+            //    [iat] => 1577348490
+            //    [nbf] => 1577348490
+            //    [data] => stdClass Object
+            //            (
+            //                [user_id] => 1
+            //            [username] => admin
+            //        )
+            //
+            //    [scopes] => role_access
+            //            [exp] => 1577355690
+            //)
+            $userId = $decoded->user_id;
+            $MenuTreeArr = $this->permission->getPermission($userId, 'menu', false);
+            $asyncRouterMap = $this->permission->genVueRouter($MenuTreeArr, 'id', 'pid', 0);
+            $CtrlPerm = $this->permission->getMenuCtrlPerm($userId);
 
-        // 获取用户信息成功
-        if ($result['success']) {
-            $info = [
-                "roles" => ["admin", "editor"],
-                "introduction" => "I am a super administrator",
-                "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
-                "name" => "Super Admin",
-                "identify" => "410000000000000000",
-                "phone" => "13633838282",
-                "ctrlperm" => $CtrlPerm,
+            // 获取用户信息成功
+            if ($result['success']) {
+                $info = [
+                    "roles" => ["admin", "editor"],
+                    "introduction" => "I am a super administrator",
+                    "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
+                    "name" => "Super Admin",
+                    "identify" => "410000000000000000",
+                    "phone" => "13633838282",
+                    "ctrlperm" => $CtrlPerm,
 //                "ctrlperm" => [
 //                    [
 //                        "path" => "/sys/menu/view"
@@ -480,7 +586,7 @@ class User extends REST_Controller
 //                        "path" => "/sys/menu/download"
 //                    ]
 //                ],
-                "asyncRouterMap" => $asyncRouterMap
+                    "asyncRouterMap" => $asyncRouterMap
 //                "asyncRouterMap" => [
 //                [
 //                    "path" => '/sys',
@@ -547,23 +653,30 @@ class User extends REST_Controller
 //                        ]
 //                    ]
 //                ]
-            ];
+                ];
 
-            $message = [
-                "code" => 20000,
-                "data" => $info,
-                "_SERVER" => $_SERVER,
-                "_GET" => $_GET
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-        } else {
-            $message = [
-                "code" => 50008,
-                "message" => 'Login failed, unable to get user details.'
-            ];
+                $message = [
+                    "code" => 20000,
+                    "data" => $info,
+                    "_SERVER" => $_SERVER,
+                    "_GET" => $_GET
+                ];
+                $this->set_response($message, REST_Controller::HTTP_OK);
+            } else {
+                $message = [
+                    "code" => 50008,
+                    "message" => 'Login failed, unable to get user details.'
+                ];
 
-            $this->set_response($message, REST_Controller::HTTP_OK);
+                $this->set_response($message, REST_Controller::HTTP_OK);
+            }
+        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
+            echo $e->getMessage();
+            // TODO: refresh_token...
+        } catch (Exception $e) {  //其他错误
+            echo $e->getMessage();
         }
+        //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
 
     }
 
@@ -686,374 +799,4 @@ class User extends REST_Controller
 
     }
 
-    function login()
-    {
-        $this->SET_HEADER;   // 设置php CI 处理 CORS 自定义头部
-
-
-        if ($_SERVER["REQUEST_METHOD"] == 'POST') {   // 只处理post请求，否则options请求 500错误
-            $json_params = file_get_contents('php://input');
-            $data = json_decode($json_params, true);
-
-            if (!empty($data)) {
-                if (!empty($data['username']) && !empty($data['password'])) {
-                    $username = $data['username'];
-                    $password = $data['password'];
-                    $input_account = $username;
-                    $input_password = md5($password);
-                    // $results = $this->phpIonicLoginAuthValidateLogin($username, $password);
-                    $result = $this->Api_model->app_user_login_validate($input_account, $input_password);
-
-                    //        $token=$_SERVER['x-auth-token'];
-                    // 用户名密码正确 生成token 返回
-                    $token = $this->createToken(10000);
-
-                    $data = array(
-                        "code" => 20000,
-                        "data" => array(
-                            "token" => "admin-token"
-//                    "token" => $token
-                        ),
-                        "params" => $json_params
-                    );
-
-                    echo json_encode($data);
-                    // 用户名密码不正确
-//        return {
-//        code:
-//        60204,
-//      message: 'Account and password are incorrect.'
-//    }
-
-
-                    if ($result['success']) {
-                        echo json_encode($this->saveLoginInfo($result['userinfo']));
-                    } else {
-                        // 校验失败，写入token
-                        $this->output->set_status_header(300);
-                        echo '{"success": false,"message": "用户名或密码错误","jump":"","user":"' . $username . '"}';
-                    }
-
-                } else {
-                    $results = array(
-                        "result" => "Error - data incomplete!",
-                    );
-
-                    $jsonData = json_encode($results);
-                    echo $jsonData;
-                }
-            } else { // no data post
-                $results = array(
-                    "result" => "Error - no data!",
-                );
-                $jsonData = json_encode($results);
-                echo $jsonData;
-            }
-        }
-    }
-
-    // 根据token拉取用户信息 get
-    function info()
-    {
-        $this->SET_HEADER;   // 设置php CI 处理 CORS 自定义头部
-
-        if ($_SERVER["REQUEST_METHOD"] == 'GET') {   // 只处理post请求，否则options请求 500错误
-            $json_params = file_get_contents('php://input');
-            $data = json_decode($json_params, true);
-
-//        $token=$_SERVER['x-auth-token'];
-
-//   获取用户信息成功
-            $info = array(
-                "roles" => array(
-                    "admin"
-                ),
-                "introduction" => "I am a super administrator",
-                "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
-                "name" => "Super Admin",
-            );
-
-            echo json_encode(
-                array(
-                    "code" => 20000,
-                    "data" => $info,
-                    "_SERVER" => $_SERVER,
-                    "_GET" => $_GET
-                )
-            );
-
-// 获取用户信息失败
-//        return {
-//        code: 50008,
-//      message: 'Login failed, unable to get user details.'
-//    }
-//        echo json_encode(
-//            array(
-//                "code" => 50008,
-//                "message" => "Login failed, unable to get user details."
-//            )
-//        );
-
-            return;
-
-            if (!empty($data)) {
-                if (!empty($data['username']) && !empty($data['password'])) {
-                    $username = $data['username'];
-                    $password = $data['password'];
-                    $input_account = $username;
-                    $input_password = md5($password);
-                    // $results = $this->phpIonicLoginAuthValidateLogin($username, $password);
-                    $result = $this->Api_model->app_user_login_validate($input_account, $input_password);
-
-                    if ($result['success']) {
-                        echo json_encode($this->saveLoginInfo($result['userinfo']));
-                    } else {
-                        // 校验失败，写入token
-                        $this->output->set_status_header(300);
-                        echo '{"success": false,"message": "用户名或密码错误","jump":"","user":"' . $username . '"}';
-                    }
-
-                } else {
-                    $results = array(
-                        "result" => "Error - data incomplete!",
-                    );
-
-                    $jsonData = json_encode($results);
-                    echo $jsonData;
-                }
-            } else { // no data post
-                $results = array(
-                    "result" => "Error - no data!",
-                );
-                $jsonData = json_encode($results);
-                echo $jsonData;
-            }
-        }
-    }
-
-    function logout()
-    {
-        $this->SET_HEADER;   // 设置php CI 处理 CORS 自定义头部
-        if ($_SERVER["REQUEST_METHOD"] == 'POST') {   // 只处理post请求，否则options请求 500错误
-            echo json_encode(array(
-                "code" => 20000,
-                "data" => 'sucess'
-            ));
-        }
-    }
-
-    /*
-     * For 微信认证及全登录时保留登录日志信息
-     */
-    function saveLoginInfo($userinfo)
-    {
-        $token = md5($userinfo["name"] . date('y-m-d H:i:s', time()));
-        $arr2 = array('token' => $token);
-        $userinfo["token"] = $token;
-        $this->Bas->saveAdd(
-            'auth',
-            array(
-                'token' => $token,
-                'expiredAt' => date('Y-m-d H:i:s', strtotime('+1 day')),
-                'onlineIp' => $this->input->ip_address(),
-                'userLoginInfo' => json_encode($userinfo),
-                'creatorId' => $userinfo["name"],
-                'createdAt' => date('Y-m-d H:i:s')
-            )
-        );
-
-        // 返回信息
-        $results = array(
-            "success" => true,
-            "message" => "APP登陆成功",
-            "user" => $userinfo,
-            'session' => $_SESSION,
-        );
-
-        $this->Bas->saveEdit('userinfo', array('LASTLOGIN' => date('y-m-d H:i:s', time()), 'LASTIP' => $this->input->ip_address()), array('USERNAME' => $userinfo["name"]));
-        return $results;
-    }
-
-    /**
-     * 执行CURL请求，并封装返回对象
-     */
-    private function execCURL($ch)
-    {
-        $response = curl_exec($ch);
-        $error = curl_error($ch);
-        $result = array('header' => '',
-            'content' => '',
-            'curl_error' => '',
-            'http_code' => '',
-            'last_url' => '');
-
-        if ($error != "") {
-            $result['curl_error'] = $error;
-            return $result;
-        }
-
-        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $result['header'] = str_replace(array("\r\n", "\r", "\n"), "<br/>", substr($response, 0, $header_size));
-        $result['content'] = substr($response, $header_size);
-        $result['http_code'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $result['last_url'] = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-        $result["base_resp"] = array();
-        $result["base_resp"]["ret"] = $result['http_code'] == 200 ? 0 : $result['http_code'];
-        $result["base_resp"]["err_msg"] = $result['http_code'] == 200 ? "ok" : $result["curl_error"];
-
-        return $result;
-    }
-
-    /**
-     * GET 请求
-     * @param string $url
-     */
-    private function http_get($url)
-    {
-        $oCurl = curl_init();
-        if (stripos($url, "https://") !== FALSE) {
-            curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, FALSE);
-            curl_setopt($oCurl, CURLOPT_SSLVERSION, 1); //CURL_SSLVERSION_TLSv1
-        }
-        curl_setopt($oCurl, CURLOPT_URL, $url);
-        curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($oCurl, CURLOPT_VERBOSE, 1);
-        curl_setopt($oCurl, CURLOPT_HEADER, 1);
-
-        // $sContent = curl_exec($oCurl);
-        // $aStatus = curl_getinfo($oCurl);
-        $sContent = $this->execCURL($oCurl);
-        curl_close($oCurl);
-
-        return $sContent;
-    }
-
-    /**
-     * POST 请求
-     * @param string $url
-     * @param array $param
-     * @param boolean $post_file 是否文件上传
-     * @return string content
-     */
-    private function http_post($url, $param, $post_file = false)
-    {
-        $oCurl = curl_init();
-
-        if (stripos($url, "https://") !== FALSE) {
-            curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($oCurl, CURLOPT_SSLVERSION, 1); //CURL_SSLVERSION_TLSv1
-        }
-        if (PHP_VERSION_ID >= 50500 && class_exists('\CURLFile')) {
-            $is_curlFile = true;
-        } else {
-            $is_curlFile = false;
-            if (defined('CURLOPT_SAFE_UPLOAD')) {
-                curl_setopt($oCurl, CURLOPT_SAFE_UPLOAD, false);
-            }
-        }
-
-        if ($post_file) {
-            if ($is_curlFile) {
-                foreach ($param as $key => $val) {
-                    if (isset($val["tmp_name"])) {
-                        $param[$key] = new \CURLFile(realpath($val["tmp_name"]), $val["type"], $val["name"]);
-                    } else if (substr($val, 0, 1) == '@') {
-                        $param[$key] = new \CURLFile(realpath(substr($val, 1)));
-                    }
-                }
-            }
-            $strPOST = $param;
-        } else {
-            $strPOST = json_encode($param);
-        }
-
-        curl_setopt($oCurl, CURLOPT_URL, $url);
-        curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($oCurl, CURLOPT_POST, true);
-        curl_setopt($oCurl, CURLOPT_POSTFIELDS, $strPOST);
-        curl_setopt($oCurl, CURLOPT_VERBOSE, 1);
-        curl_setopt($oCurl, CURLOPT_HEADER, 1);
-
-        // $sContent = curl_exec($oCurl);
-        // $aStatus  = curl_getinfo($oCurl);
-
-        $sContent = $this->execCURL($oCurl);
-        curl_close($oCurl);
-
-        return $sContent;
-    }
-
-    function weixinAuth()
-    {
-        session_start();
-        if ($_SERVER["REQUEST_METHOD"] == 'OPTIONS') {
-            echo "options";
-            die();
-        }
-        $corpId = "ww89579c6928205114";
-        // $localAuthUrl = "http://dj.cttha.com:7000/hotcode/";
-        $agentId = "1000003";
-        $appSecret = "9f-VZWi6agTDgPXZQF3o0pLDkVAj0SXSO-ptfsTu7s4";
-        $localAuthUrl = "http://dj.cttha.com:7000/hotcode/";
-        if (!array_key_exists("code", $_REQUEST)) {
-            $redirectUri = urlencode("http://yw.cttha.com/ksh/get-corp-weixin-code.html?redirect_uri=" . urlencode($localAuthUrl));
-            $authUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" . $corpId . "&redirect_uri=" . $redirectUri . "&response_type=code&scope=snsapi_privateinfo&agentid=" . $agentId . "&state=STATE#wechat_redirect";
-            echo json_encode(array("success" => false, "authUrl" => $authUrl));
-            die();
-        }
-        $getCorpAccessTokenUrl = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=" . $corpId . "&corpsecret=" . $appSecret;
-        $accessToken = "";
-        if (false && $_SESSION["weixinAuth_accessToken"] && $_SESSION["weixinAuth_tokenTime"] && $_SESSION["weixinAuth_tokenExpires"] && time() - intval($_SESSION["weixinAuth_tokenTime"]) < intval($_SESSION["tokenExpires"])) {
-            $accessToken = $_SESSION["weixinAuth_accessToken"];
-        } else {
-            $tokenInfo = $this->http_get($getCorpAccessTokenUrl);
-            $tokenInfo = json_decode($tokenInfo["content"], true);
-            if ($tokenInfo["errcode"] == 0) {
-                $accessToken = $tokenInfo["access_token"];
-                $_SESSION["weixinAuth_accessToke"] = $accessToken;
-                $_SESSION["weixinAuth_tokenTime"] = time();
-                $_SESSION["weixinAuth_tokenExpires"] = $tokenInfo["expires_in"];
-            } else {
-                echo json_encode(array("success" => false, "msg" => $tokenInfo["errmsg"] ? $tokenInfo["errmsg"] : "企业认证失败!"));
-                die();
-            }
-        }
-        $getUserIdUrl = "https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=" . $accessToken . "&code=" . $_REQUEST["code"];
-        $ajaxUserIdInfo = $this->http_get($getUserIdUrl);
-        // var_dump($ajaxUserIdInfo);die();
-        $userIdInfo = json_decode($ajaxUserIdInfo["content"], true);
-        if ($userIdInfo["errcode"] == 0) {
-            if (array_key_exists("OpenId", $userIdInfo)) {
-                echo json_encode(array("success" => false, "msg" => "不是企业成员!请联系企业管理员,添加您的账号的企业通讯录!"));
-                die();
-                // next(U.error("不是企业成员!请联系企业管理员,添加您的账号的企业通讯录!"));
-            } else if (array_key_exists("UserId", $userIdInfo)) {
-                $getUserInfoUrl = "https://qyapi.weixin.qq.com/cgi-bin/user/getuserdetail?access_token=" . $accessToken;
-                // 44468cd93cdfefb8a7f911b5e1f7dfd0
-                $data = array("user_ticket" => $userIdInfo["user_ticket"]);
-                $ajaxUserInfo = $this->http_post($getUserInfoUrl, $data);
-                $userInfo = json_decode($ajaxUserInfo["content"], true);
-                if ($userInfo["errcode"] == 0) {
-                    $user = $this->Api_model->getUserByWxUserId($userIdInfo["UserId"]);
-                    if ($user["success"]) {
-                        echo json_encode($this->saveLoginInfo($user['userinfo']));
-                        die();
-                    } else {
-                        $_SESSION["wxUserInfo"] = $userInfo;
-                        echo json_encode(array("sessionid" => session_id(), "status" => -1, "success" => false, "msg" => "此微信账号(" . $userInfo["name"] . ")没有与系统账号关联,请用您的账号密码登录一次，完成首次绑定!"));
-                        die();
-                    }
-                    return;
-                } else {
-                    echo json_encode(array("success" => false, "msg" => $userInfo["errmsg"]));
-                    die();
-                }
-            }
-        } else {
-            echo json_encode(array("success" => false, "msg" => $userIdInfo["errmsg"]));
-            die();
-        }
-    }
 }

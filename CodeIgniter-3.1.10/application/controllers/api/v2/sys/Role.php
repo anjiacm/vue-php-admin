@@ -1,6 +1,7 @@
 <?php
 
 use Restserver\Libraries\REST_Controller;
+use \Firebase\JWT\JWT;
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
@@ -281,18 +282,27 @@ class Role extends REST_Controller
         $uri = $this->uri->uri_string;
         $Token = $this->input->get_request_header('X-Token', TRUE);
 
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
+        try {
+            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+            $userId = $decoded->user_id;
 
-        $RoleArr = $this->Role_model->getRoleList();
-        $message = [
-            "code" => 20000,
-            "data" => $RoleArr,
-        ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+            $retPerm = $this->permission->HasPermit($userId, $uri);
+            if ($retPerm['code'] != 50000) {
+                $this->set_response($retPerm, REST_Controller::HTTP_OK);
+                return;
+            }
+
+            $RoleArr = $this->Role_model->getRoleList();
+            $message = [
+                "code" => 20000,
+                "data" => $RoleArr,
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
+        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
+            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
+        } catch (Exception $e) {  //其他错误
+            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
+        }
     }
 
     // 获取所有菜单 不需权限验证

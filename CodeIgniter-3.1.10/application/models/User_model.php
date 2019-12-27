@@ -128,12 +128,12 @@ class User_model extends CI_Model
 
     /**
      * 获取所有角色列表
-     * 并且根据$token 获取对应Token用户所拥有的角色类权限选项
+     * 并且根据$userId 获取对应$userId用户所拥有的角色类权限选项
      * 当用户含有未拥有的角色类权限时 设置 isDisabled 禁用选择
      * 新增编辑时使用
      *
      */
-    function getRoleOptions($Token)
+    function getRoleOptions($userId)
     {
         $sql = "SELECT
                     r.id,
@@ -155,16 +155,12 @@ class User_model extends CI_Model
                     r.remark,
                     r.status
                 FROM
-                    sys_user_token ut,
-                    sys_user u,
                     sys_user_role ur,
                     sys_role_perm rp,
                     sys_perm p,
                     sys_role r
                 WHERE
-                    ut.token = '" . $Token . "'
-                AND ut.user_id = u.id
-                AND u.id = ur.user_id
+                    ur.user_id= $userId
                 AND ur.role_id = rp.role_id
                 AND rp.perm_id = p.id
                 AND p.perm_type = 'role'
