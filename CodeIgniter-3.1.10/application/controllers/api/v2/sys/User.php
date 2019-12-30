@@ -53,14 +53,14 @@ class User extends REST_Controller
         $key = '344'; //key要和签发的时候一样
 
         //签发的Token header.payload.signature 前两部分可以base64解密
-        $jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC93d3cuaGVsbG93ZWJhLm5ldCIsImF1ZCI6Imh0dHA6XC9cL3d3dy5oZWxsb3dlYmEubmV0IiwiaWF0IjoxNTc3MzQzNTc1LCJuYmYiOjE1NzczNDM1NzUsImV4cCI6MTU3NzM0MzU3NSwiZGF0YSI6eyJ1c2VyaWQiOjIsInVzZXJuYW1lIjoiXHU2NzRlXHU1YzBmXHU5Zjk5In19.LwMOP3uBUC6ENEuVtWseOWUvhR5Z9VtClVCZpmi0p1I";
-        $arr = explode('.', $jwt);
-        var_dump($arr);
-        var_dump(base64_decode($arr[1]));
-        $object = json_decode(base64_decode($arr[1]));
-        var_dump($object->data);
-        // var_dump($object->data->username);
-        return;
+        $jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC93d3cuaGVsbG93ZWJhLm5ldCIsImF1ZCI6Imh0dHA6XC9cL3d3dy5oZWxsb3dlYmEubmV0IiwiaWF0IjoxNTc3NjY4MDk0LCJuYmYiOjE1Nzc2NjgwOTQsImV4cCI6MTU3NzY2ODA5NCwiZGF0YSI6eyJ1c2VyaWQiOjIsInVzZXJuYW1lIjoiXHU2NzRlXHU1YzBmXHU5Zjk5In19.EM9G8aW7DCpRYW7L0vjTgTt7UevwIyocVaouq0rdn0I";
+//        $arr = explode('.', $jwt);
+//        var_dump($arr);
+//        var_dump(base64_decode($arr[1]));
+//        $object = json_decode(base64_decode($arr[1]));
+//        var_dump($object->data);
+//        // var_dump($object->data->username);
+//        return;
         try {
             $decoded = JWT::decode($jwt, $key, ['HS256']); //HS256方式，这里要和签发的时候对应
             $arr = (array)$decoded;
@@ -504,11 +504,12 @@ class User extends REST_Controller
 
             $access_token = $payload;
             $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
-            $access_token['exp'] = $time + 15; //access_token过期时间,这里设置2个小时
+            $access_token['exp'] = $time + config_item('jwt_access_token_exp'); //access_token过期时间,这里设置2个小时
 
             $refresh_token = $payload;
             $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
-            $refresh_token['exp'] = $time + (86400 * 30); //refresh_token,这里设置30天
+            $refresh_token['exp'] = $time + config_item('jwt_refresh_token_exp'); //refresh_token,这里设置30天
+            $refresh_token['count'] = 0; // 刷新TOKEN计数, 在刷新token期间多次请求刷新token则表示活跃,可以重新生成刷新token以免刷新token过期后登录
 
             $message = [
                 "code" => 20000,
@@ -524,6 +525,64 @@ class User extends REST_Controller
                 "message" => 'Account and password are incorrect.'
             ];
             $this->set_response($message, REST_Controller::HTTP_OK);
+        }
+    }
+
+    function refreshtoken_post()
+    {
+        // 此处 $Token 应为refresh token 在前端request 拦截器中做了修改
+        $Token = $this->input->get_request_header('X-Token', TRUE);
+        try {
+            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+            //            stdClass Object
+            //            (
+            //                [iss] => http://www.helloweba.net
+            //                [aud] => http://www.helloweba.net
+            //                [iat] => 1577668094
+            //                [nbf] => 1577668094
+            //                [exp] => 1577668094
+            //                [user_id] => 2
+            //                [count] => 0
+            //            )
+
+            $time = time(); //当前时间
+            // 公用信息
+            $payload = [
+                'iss' => 'http://pocoyo.org', //签发者 可选
+                'aud' => 'http://emacs.org', //接收该JWT的一方，可选
+                'iat' => $time, //签发时间
+                'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+                'user_id' => $decoded->user_id, //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
+            ];
+
+            $access_token = $payload;
+            $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
+            $access_token['exp'] = $time + config_item('jwt_access_token_exp'); //access_token过期时间,这里设置2个小时
+
+            $new_refresh_token = $Token;
+            $count = $decoded->count + 1;
+            if ($count > config_item('jwt_refresh_count')) { // 在刷新token期间 {多次} 请求刷新token则表示活跃,可以重新生成刷新token以免刷新token过期后登录
+                $refresh_token = $payload;
+                $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
+                $refresh_token['exp'] = $time + config_item('jwt_refresh_token_exp');
+                $refresh_token['count'] = 0; // 重置刷新TOKEN计数
+                $new_refresh_token = JWT::encode($refresh_token, config_item('jwt_key')); // 这里可以根据需要重新生成 refresh_token
+            }
+
+            $message = [
+                "code" => 20000,
+                "data" => [
+                    "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
+                    "refresh_token" => $new_refresh_token,
+                ]
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
+
+        } catch (\Firebase\JWT\ExpiredException $e) {  // refresh_token 过期
+            $this->set_response(["code" => 50015, "message" => "refresh_token 过期了,请重新登录"], REST_Controller::HTTP_OK);
+        } catch (Exception $e) {  //其他错误
+//            echo $e->getMessage();
+            $this->set_response(["code" => 20000, "message" => "oooooo  " . $e->getMessage()], REST_Controller::HTTP_OK);
         }
     }
 
@@ -573,12 +632,6 @@ class User extends REST_Controller
 //                    ],
 //                    [
 //                        "path" => "/sys/menu/add"
-//                    ],
-//                    [
-//                        "path" => "/sys/menu/edit"
-//                    ],
-//                    [
-//                        "path" => "/sys/menu/del"
 //                    ],
 //                    [
 //                        "path" => "/sys/menu/download"
@@ -669,50 +722,12 @@ class User extends REST_Controller
                 $this->set_response($message, REST_Controller::HTTP_OK);
             }
         } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-            echo $e->getMessage();
-            // TODO: refresh_token...
+            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
         } catch (Exception $e) {  //其他错误
-            echo $e->getMessage();
+            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
         }
         //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
 
-    }
-
-    function refreshtoken_get()
-    {
-        $parms = $this->get();
-
-        try {
-            $decoded = JWT::decode($parms['refresh_token'], config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-
-            $time = time(); //当前时间
-            // 公用信息
-            $payload = [
-                'iss' => 'http://pocoyo.org', //签发者 可选
-                'aud' => 'http://emacs.org', //接收该JWT的一方，可选
-                'iat' => $time, //签发时间
-                'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
-                'user_id' => $decoded->user_id, //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
-            ];
-
-            $access_token = $payload;
-            $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
-            $access_token['exp'] = $time + 15; //access_token过期时间,这里设置2个小时
-
-            $message = [
-                "code" => 20000,
-                "data" => [
-                    "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
-                    "refresh_token" => $parms['refresh_token'], // TODO: 这里可以根据需要重新生成 refresh_token
-                ]
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-
-        } catch (\Firebase\JWT\ExpiredException $e) {  // refresh_token 过期
-            $this->set_response(["code" => 50015, "message" => "refresh_token 过期了,请重新登录"], REST_Controller::HTTP_OK);
-        } catch (Exception $e) {  //其他错误
-            echo $e->getMessage();
-        }
     }
 
     //    async router test get

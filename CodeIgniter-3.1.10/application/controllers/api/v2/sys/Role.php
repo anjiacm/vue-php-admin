@@ -1,7 +1,6 @@
 <?php
 
 use Restserver\Libraries\REST_Controller;
-use \Firebase\JWT\JWT;
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
@@ -279,18 +278,18 @@ class Role extends REST_Controller
     // 查
     function view_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-
-        try {
-            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-            $userId = $decoded->user_id;
-
-            $retPerm = $this->permission->HasPermit($userId, $uri);
-            if ($retPerm['code'] != 50000) {
-                $this->set_response($retPerm, REST_Controller::HTTP_OK);
-                return;
-            }
+//        $uri = $this->uri->uri_string;
+//        $Token = $this->input->get_request_header('X-Token', TRUE);
+//        var_dump(base64_decode($Token));
+//        try {
+//            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+//            $userId = $decoded->user_id;
+//
+//            $retPerm = $this->permission->HasPermit($userId, $uri);
+//            if ($retPerm['code'] != 50000) {
+//                $this->set_response($retPerm, REST_Controller::HTTP_OK);
+//                return;
+//            }
 
             $RoleArr = $this->Role_model->getRoleList();
             $message = [
@@ -298,11 +297,11 @@ class Role extends REST_Controller
                 "data" => $RoleArr,
             ];
             $this->set_response($message, REST_Controller::HTTP_OK);
-        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
-        } catch (Exception $e) {  //其他错误
-            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
-        }
+//        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
+//            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
+//        } catch (Exception $e) {  //其他错误
+//            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
+//        }
     }
 
     // 获取所有菜单 不需权限验证
@@ -365,15 +364,15 @@ class Role extends REST_Controller
     // 获取角色拥有的角色权限 不需权限验证
     function rolerole_post()
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
-        $RoleId = $parms['roleId'];
+            $parms = $this->post();  // 获取表单参数，类型为数组
+            $RoleId = $parms['roleId'];
 
-        $RoleRoleArr = $this->Role_model->getRoleRole($RoleId);
-        $message = [
-            "code" => 20000,
-            "data" => $RoleRoleArr,
-        ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+            $RoleRoleArr = $this->Role_model->getRoleRole($RoleId);
+            $message = [
+                "code" => 20000,
+                "data" => $RoleRoleArr,
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
     // 保存角色对应权限

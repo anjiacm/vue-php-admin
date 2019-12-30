@@ -52,7 +52,7 @@ $config['index_page'] = 'index.php';
 |
 | WARNING: If you set this to 'PATH_INFO', URIs will always be URL-decoded!
 */
-$config['uri_protocol']	= 'REQUEST_URI';
+$config['uri_protocol'] = 'REQUEST_URI';
 
 /*
 |--------------------------------------------------------------------------
@@ -76,7 +76,7 @@ $config['url_suffix'] = '';
 | than english.
 |
 */
-$config['language']	= 'english';
+$config['language'] = 'english';
 
 /*
 |--------------------------------------------------------------------------
@@ -100,7 +100,8 @@ $config['charset'] = 'UTF-8';
 | setting this variable to TRUE (boolean).  See the user guide for details.
 |
 */
-$config['enable_hooks'] = FALSE;
+//$config['enable_hooks'] = FALSE;
+$config['enable_hooks'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------
@@ -401,11 +402,11 @@ $config['sess_regenerate_destroy'] = FALSE;
 |       'cookie_httponly') will also affect sessions.
 |
 */
-$config['cookie_prefix']	= '';
-$config['cookie_domain']	= '';
-$config['cookie_path']		= '/';
-$config['cookie_secure']	= FALSE;
-$config['cookie_httponly'] 	= FALSE;
+$config['cookie_prefix'] = '';
+$config['cookie_domain'] = '';
+$config['cookie_path'] = '/';
+$config['cookie_secure'] = FALSE;
+$config['cookie_httponly'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------
@@ -523,8 +524,22 @@ $config['rewrite_short_tags'] = FALSE;
 */
 $config['proxy_ips'] = '';
 
-// pocoyo
+// JWT 自定义配置
 $config['jwt_key'] = 'pocoyo';
+$config['jwt_access_token_exp'] = 180; // 单位秒
+$config['jwt_refresh_token_exp'] = 1200; // 单位秒
+$config['jwt_refresh_count'] = 3;
+
+$config['jwt_api_prefix'] = 'api/v2';
+// 白名单里的uri不认证
+$config['jwt_white_list'] = [
+    '/sys/user/login',
+    '/sys/user/logout',
+    '/sys/user/info',
+    '/sys/role/allroles',
+    '/sys/role/allmenus',
+    '/sys/menu/treeoptions'
+];
 
 // 自定义jwt token 过期或异常返回值,根据前端需要可以分开
 // SignatureInvalidException 签名不正确

@@ -167,7 +167,6 @@ class Base_model extends CI_Model
                             SELECT
                                 p.*
                             FROM
-                                sys_user_token ut,
                                 sys_user_role ur,
                                 sys_role_perm rp,
                                 sys_perm p,

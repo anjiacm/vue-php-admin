@@ -156,13 +156,14 @@ class Permission
             return ['code' => 50016, 'message' => "无操作权限 " . $uri, 'data' => $PermArr];
         }
 
-        // var_dump($this->uri->uri_string); // string(19) "api/v2/sys/menu/add"
+//          var_dump($uri); // string(19) "api/v2/sys/menu/add"
+//        var_dump($PermArr);
         foreach ($PermArr as $k => $v) {
             if (strpos($uri, $v['path'])) {
                 return ['code' => 50000, 'message' => "有操作权限 " . $uri, 'data' => $PermArr];
             }
         }
-        return ['code' => 50016, 'message' => "无操作权限 " . $uri, 'data' => $PermArr];
+        return ['code' => 50016, 'message' => "无操作权限1 " . $uri, 'data' => $PermArr];
     }
 
     /**
