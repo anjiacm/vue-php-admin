@@ -263,6 +263,8 @@ export default {
         this.list = res.data.items
         this.total = res.data.total
         this.listLoading = false
+      }).catch(() => {
+        // console.log(err)
       })
 
       // 菜单类权限列表
@@ -270,11 +272,15 @@ export default {
         // console.log('getAllMenus', res)
         this.menuData = res.data
         this.menuLoading = false
+      }).catch(() => {
+        // console.log(err)
       })
       // 角色类权限列表
       getAllRoles().then(res => {
         this.roleData = res.data.items
         this.roleLoading = false
+      }).catch(() => {
+        // console.log(err)
       })
     },
     handleTabClick(tab, event) {
@@ -282,24 +288,30 @@ export default {
     },
     // 角色选择改变监听
     handleRoleSelectChange(val) {
-      console.log(val)
+      console.log('handleRoleSelectChange', val)
       if (val === null || val.id === null) {
         return
       }
       this.selectRole = val
       getRoleMenu({ 'roleId': this.selectRole.id }).then((res) => {
-        this.currentRoleMenus = res.data
-        this.$refs.menuTree.setCheckedNodes(res.data)
+        console.log('getRoleRole res', res)
+        if (res.code !== 50014) { // accesstoken 超时则不需要处理.
+          this.currentRoleMenus = res.data
+          this.$refs.menuTree.setCheckedNodes(res.data)
+        }
       })
 
       getRoleRole({ 'roleId': this.selectRole.id }).then((res) => {
-        this.currentRoleRoles = res.data
-        console.log('currentRoleRoles', this.currentRoleRoles)
-        this.$refs.roleTable.$refs.elTable.clearSelection()
-        for (let i = 0; i < this.currentRoleRoles.length; i++) {
-          for (let index = 0; index < this.roleData.length; index++) {
-            if (this.currentRoleRoles[i].perm_id === this.roleData[index].perm_id) { // 服务端返回需选中项的id
-              this.$refs.roleTable.$refs.elTable.toggleRowSelection(this.roleData[index], true) // row.ndex 选中
+        console.log('getRoleRole res', res)
+        if (res.code !== 50014) { // accesstoken 超时则不需要处理.
+          this.currentRoleRoles = res.data
+          console.log('currentRoleRoles', this.currentRoleRoles)
+          this.$refs.roleTable.$refs.elTable.clearSelection()
+          for (let i = 0; i < this.currentRoleRoles.length; i++) {
+            for (let index = 0; index < this.roleData.length; index++) {
+              if (this.currentRoleRoles[i].perm_id === this.roleData[index].perm_id) { // 服务端返回需选中项的id
+                this.$refs.roleTable.$refs.elTable.toggleRowSelection(this.roleData[index], true) // row.ndex 选中
+              }
             }
           }
         }
