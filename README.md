@@ -96,6 +96,17 @@
 ## 编辑器 
  - phpstrom
  - vscode
+
+## jwt无缝刷新测试配置
+
+CodeIgniter-3.1.10\application\config\config.php   // access_token/refresh_token 过期时间配置
+
+```
+$config['jwt_access_token_exp'] = 15; // 单位秒
+$config['jwt_refresh_token_exp'] = 180; // 单位秒
+```
+
+
 ## jwt无痛刷新效果
  ![删除](vue-element-admin/static/screenshot/del_jwt.gif)
  ![编辑](vue-element-admin/static/screenshot/edit_jwt.gif)
