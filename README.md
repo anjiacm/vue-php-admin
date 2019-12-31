@@ -7,19 +7,20 @@
 套简洁易用的快速解决方案，可以帮助用户有效降低项目开发难度和成本。
 
 以vue-element-admin@3.10.0 前端模板为基础，修改动态路由部分，实现菜单路由
-可根据后端角色进行动态加载。
+可根据后端角色进行动态加载. 后端路由权限基于 php-jwt 使用 hook 做token及权限认证
 
 将vue-element-admin前端原来样例模板除首页、文档外，其余样例模板
 归档集中在 **样例模板** 菜单下，见 @router/index.js constantRouterMap，
 其余组件如 tags-views等，全部未做变化，可根据需要具体需求进行删减。 
 
 ## 功能介绍
-1. 系统登录：系统用户登录，系统登录认证（token方式）
+1. 系统登录：系统用户登录，系统登录认证（jwt token方式） 
 2. 用户管理：新建用户，修改用户，删除用户，查询用户
 3. 角色管理：新建角色，修改角色，删除角色，查询角色
 4. 菜单管理：新建菜单，修改菜单，删除菜单，查询菜单
 5. 图标管理：vue-element-admin 原有封装组件
 6. TODO: 图形验证码, 微信登录, 界面主题优化...
+7. **使用jwt token 前后端实现 access_token过期后无痛无缝在刷新, refreshtoken 加入计数器,在有效期内接口调用超过一定次数自动续期, CI模式使用hooks做控制器方法调用前的token及权限认证功能** 
 
 ## 开发环境 
 - phpstudy  php 5.6.27 nts + Apache
@@ -95,8 +96,12 @@
 ## 编辑器 
  - phpstrom
  - vscode
- 
- ## 截图
+## jwt无痛刷新效果
+ ![删除](vue-element-admin/static/screenshot/del_jwt.gif)
+ ![编辑](vue-element-admin/static/screenshot/edit_jwt.gif)
+ ![查看](vue-element-admin/static/screenshot/view_jwt.gif)
+
+## 截图
  
  ![菜单](vue-element-admin/static/screenshot/menu.png)
  ![菜单新增](vue-element-admin/static/screenshot/menu_add.png)
