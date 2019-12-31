@@ -50,7 +50,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">确定</el-button>
+        <el-button :loading="updateLoading" type="primary" @click="dialogStatus==='create'?createData():updateData()">确定</el-button>
       </div>
     </el-dialog>
 
@@ -212,6 +212,7 @@ export default {
       roleData: [],
       roleLoading: false,
       authLoading: false,
+      updateLoading: false,
       checkAll: false,
       currentRoleMenus: [], // 服务端获取当前角色的菜单类权限
       currentRoleRoles: [], // 服务端获取当前角色的角色类权限
@@ -299,7 +300,7 @@ export default {
           this.currentRoleMenus = res.data
           this.$refs.menuTree.setCheckedNodes(res.data)
         }
-      })
+      }).catch(() => { })
 
       getRoleRole({ 'roleId': this.selectRole.id }).then((res) => {
         console.log('getRoleRole res', res)
@@ -315,7 +316,7 @@ export default {
             }
           }
         }
-      })
+      }).catch(() => { })
     },
     // 树节点选择监听
     handleMenuCheckChange(data, check, subCheck) {
@@ -440,8 +441,10 @@ export default {
           console.log('createData valid done...', this.temp)
 
           // 调用api创建数据入库
+          this.updateLoading = true
           createRole(this.temp).then(res => {
             // 成功后 关闭窗口
+            this.updateLoading = false
             console.log('createRole...', res)
             this.fetchData()
             this.dialogFormVisible = false
@@ -465,7 +468,9 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           // 调用api编辑数据入库
+          this.updateLoading = true
           updateRole(this.temp).then(res => {
+            this.updateLoading = false
             if (res.type === 'success') {
               // 后台重新更新数据
               this.fetchData()
@@ -482,27 +487,55 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$confirm('确认删除选中记录吗？[角色: ' + row.name + ']', '提示', {
-        type: 'warning'
-      }).then(() => {
-        const tempData = {
-          'id': row.id,
-          'name': row.name
-        }
-
-        // 调用api删除数据
-        deleteRole(tempData).then(res => {
-          // 如果删除成功，后台重新更新数据,否则不更新数据
-          if (res.type === 'success') {
-            this.fetchData()
+      const h = this.$createElement
+      this.$msgbox({
+        title: '提示',
+        message: h('p', null, [
+          h('span', null, '确认删除选中记录吗？[角色:  '),
+          h('i', { style: 'color: teal' }, row.name),
+          h('span', null, ' ]')
+        ]),
+        showCancelButton: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            instance.confirmButtonLoading = true
+            instance.confirmButtonText = '执行中...'
+            const tempData = {
+              'id': row.id,
+              'name': row.name
+            }
+            // 调用api删除数据
+            deleteRole(tempData).then(res => {
+              // 如果删除成功，后台重新更新数据,否则不更新数据
+              done()
+              instance.confirmButtonLoading = false
+              if (res.type === 'success') {
+                this.fetchData()
+              }
+              this.$notify({
+                //  title: '错误',
+                message: res.message,
+                type: res.type
+              })
+            }).catch(err => {
+              console.log(err)
+              instance.confirmButtonLoading = false
+            })
+          } else {
+            done()
+            instance.confirmButtonLoading = false
           }
-          this.dialogFormVisible = false
-          this.$notify({
-            //  title: '错误',
-            message: res.message,
-            type: res.type
-          })
-        })
+        }
+        // }).then(action => {
+      }).then(() => {
+        // this.$message({
+        //   type: 'info',
+        //   message: 'action: ' + action // confirm
+        // })
+      }).catch(() => {
+        // console.log(err)  // cancel
       })
     },
     handleFilter() {

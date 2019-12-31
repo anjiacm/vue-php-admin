@@ -102,18 +102,7 @@ class Menu extends REST_Controller
     // 增
     function add_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
-        // $id = $this->post('id'); // POST param
         $parms = $this->post();  // 获取表单参数，类型为数组
-        //         var_dump($parms);
-        //         var_dump($parms['path']);
 
         // 参数检验/数据预处理
         // 菜单类型为目录
@@ -286,70 +275,18 @@ class Menu extends REST_Controller
     function treeoptions_get()
     {
         // 此 uri 可不做权限/token过期验证，则在菜单里，可以不加入此项路由path /sys/menu/treeoptions。
-        //
-        //        $uri = $this->uri->uri_string;
-        //        $Token = $this->input->get_request_header('X-Token', TRUE);
-        //        $retPerm = $this->permission->HasPermit($Token, $uri);
-        //        if ($retPerm['code'] != 50000) {
-        //            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-        //            return;
-        //        }
-
         $Token = $this->input->get_request_header('X-Token', TRUE);
+        $jwt_obj = $this->permission->parseJWT($Token);
 
-        try {
-            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-            $userId = $decoded->user_id;
+        $MenuTreeArr = $this->permission->getPermission($jwt_obj->user_id, 'menu', false);
+        array_unshift($MenuTreeArr, ['id' => 0, 'pid' => -1, 'title' => '顶级菜单']);
+        $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', -1);
 
-            $MenuTreeArr = $this->permission->getPermission($userId, 'menu', false);
-            array_unshift($MenuTreeArr, ['id' => 0, 'pid' => -1, 'title' => '顶级菜单']);
-            $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', -1);
-
-            $message = [
-                "code" => 20000,
-                "data" => $MenuTree,
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-
-        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
-        } catch (Exception $e) {  //其他错误
-            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
-        }
-        //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
-    }
-
-
-    function list_get()
-    {
-//        $result = $this->some_model();
-        $result['success'] = TRUE;
-
-        if ($result['success']) {
-            $List = array(
-                array('order_no' => '201805138451313131', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
-                array('order_no' => '300000000000000000', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
-                array('order_no' => '444444444444444444', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
-                array('order_no' => '888888888888888888', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
-            );
-
-            $message = [
-                "code" => 20000,
-                "data" => [
-                    "total" => count($List),
-                    "items" => $List
-                ]
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-        } else {
-            $message = [
-                "code" => 50008,
-                "message" => 'Login failed, unable to get user details.'
-            ];
-
-            $this->set_response($message, REST_Controller::HTTP_OK);
-        }
-
+        $message = [
+            "code" => 20000,
+            "data" => $MenuTree,
+        ];
+        $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
 }

@@ -153,16 +153,16 @@ const user = {
         // console.log('state.token', state.token)
         // console.log('state.refresh_token', state.refresh_token)
         checkRefreshToken().then(res => {
-          console.log('checkRefreshToken', state.refresh_token, res)
+          // console.log('checkRefreshToken', state.refresh_token, res)
           const data = res.data
           commit('SET_TOKEN', data.token)
           commit('SET_REFRESH_TOKEN', data.refresh_token)
           setToken(data.token)
           setRefreshToken(data.refresh_token)
           resolve()
-        }).catch(error => {
-          console.log('error.......', error)
-          reject(error)
+        }).catch(() => {
+          // console.log('error.......', error)
+          // reject(error)
         })
       })
     },

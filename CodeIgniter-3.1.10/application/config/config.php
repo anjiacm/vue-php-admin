@@ -526,18 +526,27 @@ $config['proxy_ips'] = '';
 
 // JWT 自定义配置
 $config['jwt_key'] = 'pocoyo';
-$config['jwt_access_token_exp'] = 180; // 单位秒
-$config['jwt_refresh_token_exp'] = 1200; // 单位秒
-$config['jwt_refresh_count'] = 3;
+$config['jwt_access_token_exp'] = 7200; // 单位秒
+$config['jwt_refresh_token_exp'] = 604800; // 单位秒
+$config['jwt_refresh_count'] = 7; // 调用refresh_token接口超过此次数时, 会重置刷新token过期时间
 
 $config['jwt_api_prefix'] = 'api/v2';
+
 // 白名单里的uri不认证
 $config['jwt_white_list'] = [
     '/sys/user/login',
     '/sys/user/logout',
+    '/sys/user/refreshtoken', // 刷新token接口需要在控制器内作权限验证,比较特殊
+    // 下面接口uri 可以在菜单权限里面添加,再分配给对应角色即可, 方便/安全?
+    // 如果不想在前端菜单里添加,也可以直接在后端在控制器里单独做token验证,不用做权限认证
+    // 参考/sys/user/refreshtoken
     '/sys/user/info',
+    '/sys/user/list',
+    '/sys/user/getroleoptions',
     '/sys/role/allroles',
     '/sys/role/allmenus',
+    '/sys/role/rolemenu',
+    '/sys/role/rolerole',
     '/sys/menu/treeoptions'
 ];
 

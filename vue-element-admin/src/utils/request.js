@@ -19,7 +19,7 @@ service.interceptors.request.use(
     if (store.getters.token) {
       // 让每个请求携带token-- ['X-Token']为自定义key 请根据实际情况自行修改
       config.headers['X-Token'] = getToken()
-      console.log('getToken', getToken())
+      // console.log('getToken', getToken())
     }
     // 监听 是否 /sys/user/refreshtoken 是则重置token为刷新token
     const url = config.url

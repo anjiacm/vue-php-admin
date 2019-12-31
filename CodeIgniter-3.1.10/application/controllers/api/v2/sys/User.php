@@ -214,11 +214,9 @@ class User extends REST_Controller
     function getroleoptions_get()
     {
         $Token = $this->input->get_request_header('X-Token', TRUE);
+        $jwt_object = $this->permission->parseJWT($Token);
 
-        $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-        $userId = $decoded->user_id;
-
-        $RoleArr = $this->User_model->getRoleOptions($userId);
+        $RoleArr = $this->User_model->getRoleOptions($jwt_object->user_id);
         // string to boolean
         foreach ($RoleArr as $k => $v) {
             $v['isDisabled'] === 'true' ? ($RoleArr[$k]['isDisabled'] = true) : ($RoleArr[$k]['isDisabled'] = false);
@@ -234,15 +232,7 @@ class User extends REST_Controller
     // 增
     function add_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
-        $parms = $this->post();  // 获取表单参数，类型为数组
+         $parms = $this->post();  // 获取表单参数，类型为数组
 
         // 参数数据预处理
         $RoleArr = $parms['role'];
@@ -294,17 +284,7 @@ class User extends REST_Controller
     // 改
     function edit_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
-        // $id = $this->post('id'); // POST param
         $parms = $this->post();  // 获取表单参数，类型为数组
-        // var_dump($parms['path']);
 
         // 参数检验/数据预处理
         // 超级管理员角色不允许修改
@@ -397,14 +377,6 @@ class User extends REST_Controller
     // 删
     function del_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
         $parms = $this->post();  // 获取表单参数，类型为数组
         // var_dump($parms['path']);
 

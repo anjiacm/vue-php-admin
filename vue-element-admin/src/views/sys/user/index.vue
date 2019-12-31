@@ -56,7 +56,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">确定</el-button>
+        <el-button :loading="updateLoading" type="primary" @click="dialogStatus==='create'?createData():updateData()">确定</el-button>
       </div>
     </el-dialog>
 
@@ -135,6 +135,7 @@ export default {
       list: [],
       total: 0,
       listLoading: true,
+      updateLoading: false,
       titles: [
         {
           prop: 'id',
@@ -224,7 +225,7 @@ export default {
       getRoleOptions().then(res => {
         console.log('getRoleOptions', res)
         this.roleOptions = res.data
-      })
+      }).catch(() => { })
     },
     resetTemp() {
       this.temp = {
@@ -253,8 +254,10 @@ export default {
           console.log('createData valid done...', this.temp)
 
           // 调用api创建数据入库
+          this.updateLoading = true
           createUser(this.temp).then(res => {
             // 成功后 关闭窗口
+            this.updateLoading = false
             console.log('createUser...', res)
             this.fetchData()
             this.dialogFormVisible = false
@@ -281,7 +284,9 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           // 调用api编辑数据入库
+          this.updateLoading = true
           updateUser(this.temp).then(res => {
+            this.updateLoading = false
             if (res.type === 'success') {
               // 后台重新更新数据
               this.fetchData()
@@ -298,26 +303,57 @@ export default {
       })
     },
     handleDelete(row) {
-      this.$confirm('确认删除选中记录吗？[用户: ' + row.username + ']', '提示', {
-        type: 'warning'
-      }).then(() => {
-        const tempData = {
-          'id': row.id,
-          'username': row.username
-        }
-        // 调用api删除数据
-        deleteUser(tempData).then(res => {
-          // 如果删除成功，后台重新更新数据,否则不更新数据
-          if (res.type === 'success') {
-            this.fetchData()
+      const h = this.$createElement
+      this.$msgbox({
+        title: '提示',
+        message: h('p', null, [
+          h('span', null, '确认删除选中记录吗？[用户:  '),
+          h('i', { style: 'color: teal' }, row.username),
+          h('span', null, ' ]')
+        ]),
+        showCancelButton: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            instance.confirmButtonLoading = true
+            instance.confirmButtonText = '执行中...'
+
+            const tempData = {
+              'id': row.id,
+              'username': row.username
+            }
+            // 调用api删除数据
+            deleteUser(tempData).then(res => {
+              // 如果删除成功，后台重新更新数据,否则不更新数据
+              done()
+              instance.confirmButtonLoading = false
+              if (res.type === 'success') {
+                this.fetchData()
+              }
+              this.$notify({
+                //  title: '错误',
+                message: res.message,
+                type: res.type
+              })
+            }).catch(err => {
+              console.log(err)
+              instance.confirmButtonLoading = false
+            })
+          } else {
+            done()
+            console.log('click cancel.....')
+            instance.confirmButtonLoading = false
           }
-          this.dialogFormVisible = false
-          this.$notify({
-            //  title: '错误',
-            message: res.message,
-            type: res.type
-          })
-        })
+        }
+        // }).then(action => {
+      }).then(() => {
+        // this.$message({
+        //   type: 'info',
+        //   message: 'action: ' + action // confirm
+        // })
+      }).catch(() => {
+        // console.log(err)  // cancel
       })
     },
     handleFilter() {

@@ -20,7 +20,7 @@ class ManageAuth
 
     // var_dump(uri_string()); => api/v2/sys/user/login
 
-    //权限认证
+    //token及权限认证
     public function auth()
     {
         $uri_no_prefix = str_replace(config_item('jwt_api_prefix'), '', uri_string());  // /sys/user/login 不带 api/v2 前缀

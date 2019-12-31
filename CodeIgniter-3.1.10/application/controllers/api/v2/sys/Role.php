@@ -102,14 +102,6 @@ class Role extends REST_Controller
     // 增
     function add_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
         $parms = $this->post();  // 获取表单参数，类型为数组
 
         if ($this->Base_model->_key_exists('sys_role', ['name' => $parms['name']])) {
@@ -163,17 +155,7 @@ class Role extends REST_Controller
     // 改
     function edit_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
-        // $id = $this->post('id'); // POST param
         $parms = $this->post();  // 获取表单参数，类型为数组
-        // var_dump($parms['path']);
 
         // 参数检验/数据预处理
         // 超级管理员角色不允许修改
@@ -215,16 +197,7 @@ class Role extends REST_Controller
     // 删
     function del_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
         $parms = $this->post();  // 获取表单参数，类型为数组
-        // var_dump($parms['path']);
 
         // 参数检验/数据预处理
         // 超级管理员角色不允许删除
@@ -252,8 +225,11 @@ class Role extends REST_Controller
         }
 
         $perm_id = $arr[0]['id']; // 正常只有一条记录
-        $this->Base_model->_delete_key('sys_role_perm', ['perm_id' => $perm_id]);
+        $this->Base_model->_delete_key('sys_role_perm', ['perm_id' => $perm_id]); // 必须删除权限id 因为超级管理员角色自动拥有该权限否则会造成删除关联错误
+        $this->Base_model->_delete_key('sys_role_perm', ['role_id' => $parms['id']]); // 再删除该角色对应的权限id（原有的菜单）
         $this->Base_model->_delete_key('sys_perm', ['id' => $perm_id]);
+
+        $this->Base_model->_delete_key('sys_user_role', ['role_id' => $parms['id']]);
 
         // 删除基础表 sys_role
         if (!$this->Base_model->_delete_key('sys_role', $parms)) {
