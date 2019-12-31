@@ -20,7 +20,6 @@ class User extends REST_Controller
         $this->load->model('Base_model');
         $this->load->model('User_model');
         // $this->config->load('config', true);
-        JWT::$leeway = 60;
     }
 
     public function index_get()
@@ -183,51 +182,33 @@ class User extends REST_Controller
     // 查
     function view_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
+        $parms = $this->post();
+        //  $type = $parms['type'];
+        $filters = $parms['filters'];
+        $sort = $parms['sort'];
+        $page = $parms['page'];
+        $pageSize = $parms['pageSize'];
 
-        try {
-            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-            $userId = $decoded->user_id;
+        $UserArr = $this->User_model->getUserList($filters, $sort, $page, $pageSize);
 
-            $retPerm = $this->permission->HasPermit($userId, $uri);
-            if ($retPerm['code'] != 50000) {
-                $this->set_response($retPerm, REST_Controller::HTTP_OK);
-                return;
+        $total = $this->User_model->getUserListCnt($filters);
+
+        // 遍历该用户所属角色信息
+        foreach ($UserArr as $k => $v) {
+            $UserArr[$k]['role'] = [];
+            $RoleArr = $this->User_model->getUserRoles($v['id']);
+            foreach ($RoleArr as $kk => $vv) {
+                array_push($UserArr[$k]['role'], $vv['id']);
             }
-
-            $parms = $this->post();
-            //  $type = $parms['type'];
-            $filters = $parms['filters'];
-            $sort = $parms['sort'];
-            $page = $parms['page'];
-            $pageSize = $parms['pageSize'];
-
-            $UserArr = $this->User_model->getUserList($filters, $sort, $page, $pageSize);
-
-            $total = $this->User_model->getUserListCnt($filters);
-
-            // 遍历该用户所属角色信息
-            foreach ($UserArr as $k => $v) {
-                $UserArr[$k]['role'] = [];
-                $RoleArr = $this->User_model->getUserRoles($v['id']);
-                foreach ($RoleArr as $kk => $vv) {
-                    array_push($UserArr[$k]['role'], $vv['id']);
-                }
-            }
-            $message = [
-                "code" => 20000,
-                "data" => [
-                    'items' => $UserArr,
-                    'total' => intval($total)
-                ]
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
-        } catch (Exception $e) {  //其他错误
-            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
         }
+        $message = [
+            "code" => 20000,
+            "data" => [
+                'items' => $UserArr,
+                'total' => intval($total)
+            ]
+        ];
+        $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
     function getroleoptions_get()
@@ -530,10 +511,13 @@ class User extends REST_Controller
 
     function refreshtoken_post()
     {
-        // 此处 $Token 应为refresh token 在前端request 拦截器中做了修改
+        // 此处 $Token 应为refresh token 在前端 request 拦截器中做了修改
+        // 刷新token接口需要在控制器内作权限验证,比较特殊,不能使用hook ManageAuth来验证
         $Token = $this->input->get_request_header('X-Token', TRUE);
         try {
             $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+
+            // $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
             //            stdClass Object
             //            (
             //                [iss] => http://www.helloweba.net
@@ -558,8 +542,18 @@ class User extends REST_Controller
             $access_token = $payload;
             $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
             $access_token['exp'] = $time + config_item('jwt_access_token_exp'); //access_token过期时间,这里设置2个小时
+            $new_access_token = JWT::encode($access_token, config_item('jwt_key')); //生成access_tokenToken
+            //        {
+            //          "iss": "http://pocoyo.org",
+            //          "aud": "http://emacs.org",
+            //          "iat": 1577757920,
+            //          "nbf": 1577757920,
+            //          "user_id": "1",
+            //          "scopes": "role_refresh",
+            //          "exp": 1577758100,
+            //          "count": 0
+            //        }
 
-            $new_refresh_token = $Token;
             $count = $decoded->count + 1;
             if ($count > config_item('jwt_refresh_count')) { // 在刷新token期间 {多次} 请求刷新token则表示活跃,可以重新生成刷新token以免刷新token过期后登录
                 $refresh_token = $payload;
@@ -567,65 +561,75 @@ class User extends REST_Controller
                 $refresh_token['exp'] = $time + config_item('jwt_refresh_token_exp');
                 $refresh_token['count'] = 0; // 重置刷新TOKEN计数
                 $new_refresh_token = JWT::encode($refresh_token, config_item('jwt_key')); // 这里可以根据需要重新生成 refresh_token
+            } else { // 保持refresh_token过期时间及其他共公用信息,仅自增计数器
+                $decoded->count++;
+                $new_refresh_token = JWT::encode($decoded, config_item('jwt_key'));
             }
 
             $message = [
                 "code" => 20000,
                 "data" => [
-                    "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
-                    "refresh_token" => $new_refresh_token,
+                    "token" => $new_access_token,
+                    "refresh_token" => $new_refresh_token
                 ]
             ];
             $this->set_response($message, REST_Controller::HTTP_OK);
-
-        } catch (\Firebase\JWT\ExpiredException $e) {  // refresh_token 过期
-            $this->set_response(["code" => 50015, "message" => "refresh_token 过期了,请重新登录"], REST_Controller::HTTP_OK);
+        } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
+            $message = [
+                "code" => 50015,
+                "message" => 'refresh_token过期, 请重新登录'
+            ];
+            $this->set_response($message, REST_Controller::HTTP_UNAUTHORIZED);
         } catch (Exception $e) {  //其他错误
-//            echo $e->getMessage();
-            $this->set_response(["code" => 20000, "message" => "oooooo  " . $e->getMessage()], REST_Controller::HTTP_OK);
+            $message = [
+                "code" => 50015,
+                "message" => $e->getMessage()
+            ];
+            $this->set_response($message, REST_Controller::HTTP_UNAUTHORIZED);
         }
+
     }
 
     // 根据token拉取用户信息 get
     function info_get()
     {
-//        $result = $this->some_model();
+        // $result = $this->some_model();
         $result['success'] = TRUE;
+        // /sys/user/info 不用认证但是需要提取出 access_token 中的 user_id 来拉取用户信息
         $Token = $this->input->get_request_header('X-Token', TRUE);
+        $jwt_obj = $this->permission->parseJWT($Token);
 
-        try {
-            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-            //     print_r($decoded);
-            //            stdClass Object
-            //            (
-            //                [iss] => http://pocoyo.org
-            //    [aud] => http://emacs.org
-            //    [iat] => 1577348490
-            //    [nbf] => 1577348490
-            //    [data] => stdClass Object
-            //            (
-            //                [user_id] => 1
-            //            [username] => admin
-            //        )
-            //
-            //    [scopes] => role_access
-            //            [exp] => 1577355690
-            //)
-            $userId = $decoded->user_id;
-            $MenuTreeArr = $this->permission->getPermission($userId, 'menu', false);
-            $asyncRouterMap = $this->permission->genVueRouter($MenuTreeArr, 'id', 'pid', 0);
-            $CtrlPerm = $this->permission->getMenuCtrlPerm($userId);
+        //    $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+        //     print_r($decoded);
+        //            stdClass Object
+        //            (
+        //                [iss] => http://pocoyo.org
+        //    [aud] => http://emacs.org
+        //    [iat] => 1577348490
+        //    [nbf] => 1577348490
+        //    [data] => stdClass Object
+        //            (
+        //                [user_id] => 1
+        //            [username] => admin
+        //        )
+        //
+        //    [scopes] => role_access
+        //            [exp] => 1577355690
+        //)
+        $MenuTreeArr = $this->permission->getPermission($jwt_obj->user_id, 'menu', false);
+        $asyncRouterMap = $this->permission->genVueRouter($MenuTreeArr, 'id', 'pid', 0);
+        $CtrlPerm = $this->permission->getMenuCtrlPerm($jwt_obj->user_id);
 
-            // 获取用户信息成功
-            if ($result['success']) {
-                $info = [
-                    "roles" => ["admin", "editor"],
-                    "introduction" => "I am a super administrator",
-                    "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
-                    "name" => "Super Admin",
-                    "identify" => "410000000000000000",
-                    "phone" => "13633838282",
-                    "ctrlperm" => $CtrlPerm,
+        // 获取用户信息成功
+        if ($result['success']) {
+            $info = [
+                "roles" => ["admin", "editor"],
+                "introduction" => "I am a super administrator",
+                "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
+                "name" => "Super Admin",
+                "identify" => "410000000000000000",
+                "phone" => "13633838282",
+                "ctrlperm" => $CtrlPerm,
 //                "ctrlperm" => [
 //                    [
 //                        "path" => "/sys/menu/view"
@@ -637,7 +641,7 @@ class User extends REST_Controller
 //                        "path" => "/sys/menu/download"
 //                    ]
 //                ],
-                    "asyncRouterMap" => $asyncRouterMap
+                "asyncRouterMap" => $asyncRouterMap
 //                "asyncRouterMap" => [
 //                [
 //                    "path" => '/sys',
@@ -704,29 +708,23 @@ class User extends REST_Controller
 //                        ]
 //                    ]
 //                ]
-                ];
+            ];
 
-                $message = [
-                    "code" => 20000,
-                    "data" => $info,
-                    "_SERVER" => $_SERVER,
-                    "_GET" => $_GET
-                ];
-                $this->set_response($message, REST_Controller::HTTP_OK);
-            } else {
-                $message = [
-                    "code" => 50008,
-                    "message" => 'Login failed, unable to get user details.'
-                ];
+            $message = [
+                "code" => 20000,
+                "data" => $info,
+                "_SERVER" => $_SERVER,
+                "_GET" => $_GET
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
+        } else {
+            $message = [
+                "code" => 50008,
+                "message" => 'Login failed, unable to get user details.'
+            ];
 
-                $this->set_response($message, REST_Controller::HTTP_OK);
-            }
-        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
-        } catch (Exception $e) {  //其他错误
-            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
+            $this->set_response($message, REST_Controller::HTTP_OK);
         }
-        //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
 
     }
 

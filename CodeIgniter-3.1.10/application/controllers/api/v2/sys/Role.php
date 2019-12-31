@@ -278,30 +278,12 @@ class Role extends REST_Controller
     // 查
     function view_post()
     {
-//        $uri = $this->uri->uri_string;
-//        $Token = $this->input->get_request_header('X-Token', TRUE);
-//        var_dump(base64_decode($Token));
-//        try {
-//            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-//            $userId = $decoded->user_id;
-//
-//            $retPerm = $this->permission->HasPermit($userId, $uri);
-//            if ($retPerm['code'] != 50000) {
-//                $this->set_response($retPerm, REST_Controller::HTTP_OK);
-//                return;
-//            }
-
-            $RoleArr = $this->Role_model->getRoleList();
-            $message = [
-                "code" => 20000,
-                "data" => $RoleArr,
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-//        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-//            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
-//        } catch (Exception $e) {  //其他错误
-//            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
-//        }
+        $RoleArr = $this->Role_model->getRoleList();
+        $message = [
+            "code" => 20000,
+            "data" => $RoleArr,
+        ];
+        $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
     // 获取所有菜单 不需权限验证
@@ -364,15 +346,15 @@ class Role extends REST_Controller
     // 获取角色拥有的角色权限 不需权限验证
     function rolerole_post()
     {
-            $parms = $this->post();  // 获取表单参数，类型为数组
-            $RoleId = $parms['roleId'];
+        $parms = $this->post();  // 获取表单参数，类型为数组
+        $RoleId = $parms['roleId'];
 
-            $RoleRoleArr = $this->Role_model->getRoleRole($RoleId);
-            $message = [
-                "code" => 20000,
-                "data" => $RoleRoleArr,
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+        $RoleRoleArr = $this->Role_model->getRoleRole($RoleId);
+        $message = [
+            "code" => 20000,
+            "data" => $RoleRoleArr,
+        ];
+        $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
     // 保存角色对应权限
@@ -446,39 +428,6 @@ class Role extends REST_Controller
             "message" => '授权操作成功',
         ];
         $this->set_response($message, REST_Controller::HTTP_OK);
-    }
-
-
-    function list_get()
-    {
-//        $result = $this->some_model();
-        $result['success'] = TRUE;
-
-        if ($result['success']) {
-            $List = array(
-                array('order_no' => '201805138451313131', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
-                array('order_no' => '300000000000000000', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
-                array('order_no' => '444444444444444444', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
-                array('order_no' => '888888888888888888', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
-            );
-
-            $message = [
-                "code" => 20000,
-                "data" => [
-                    "total" => count($List),
-                    "items" => $List
-                ]
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-        } else {
-            $message = [
-                "code" => 50008,
-                "message" => 'Login failed, unable to get user details.'
-            ];
-
-            $this->set_response($message, REST_Controller::HTTP_OK);
-        }
-
     }
 
 }

@@ -159,14 +159,6 @@ class Menu extends REST_Controller
     // 改
     function edit_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
         // $id = $this->post('id'); // POST param
         $parms = $this->post();  // 获取表单参数，类型为数组
         // var_dump($parms['path']);
@@ -215,14 +207,6 @@ class Menu extends REST_Controller
     // 删
     function del_post()
     {
-        $uri = $this->uri->uri_string;
-        $Token = $this->input->get_request_header('X-Token', TRUE);
-        $retPerm = $this->permission->HasPermit($Token, $uri);
-        if ($retPerm['code'] != 50000) {
-            $this->set_response($retPerm, REST_Controller::HTTP_OK);
-            return;
-        }
-
         $parms = $this->post();  // 获取表单参数，类型为数组
         // var_dump($parms['path']);
 
@@ -247,8 +231,15 @@ class Menu extends REST_Controller
         $where = 'perm_type="menu" and r_id=' . $parms['id'];
         $arr = $this->Base_model->_get_key('sys_perm', '*', $where);
         if (empty($arr)) {
-            var_dump($this->uri->uri_string . ' 未查找到 sys_perm 表中记录');
-            var_dump($where);
+//            var_dump($this->uri->uri_string . ' 未查找到 sys_perm 表中记录');
+//            var_dump($where);
+
+            $message = [
+                "code" => 20000,
+                "type" => 'error',
+                "message" => '数据库未查找到该菜单'
+            ];
+            $this->set_response($message, REST_Controller::HTTP_OK);
             return;
         }
 
@@ -279,32 +270,16 @@ class Menu extends REST_Controller
     // 查
     function view_post()
     {
-        $uri = $this->uri->uri_string;
         $Token = $this->input->get_request_header('X-Token', TRUE);
+        $jwt_object = $this->permission->parseJWT($Token);
 
-        try {
-            $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
-            $userId = $decoded->user_id;
-
-            $retPerm = $this->permission->HasPermit($userId, $uri);
-            if ($retPerm['code'] != 50000) {
-                $this->set_response($retPerm, REST_Controller::HTTP_OK);
-                return;
-            }
-
-            $MenuTreeArr = $this->permission->getPermission($userId, 'menu', true);
-            $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', 0);
-            $message = [
-                "code" => 20000,
-                "data" => $MenuTree,
-            ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
-        } catch (\Firebase\JWT\ExpiredException $e) {  // token过期
-            $this->set_response(config_item('jwt_token_expired'), REST_Controller::HTTP_OK);
-        } catch (Exception $e) {  //其他错误
-            $this->set_response(config_item('jwt_token_exception'), REST_Controller::HTTP_OK);
-        }
-
+        $MenuTreeArr = $this->permission->getPermission($jwt_object->user_id, 'menu', true);
+        $MenuTree = $this->permission->genVueMenuTree($MenuTreeArr, 'id', 'pid', 0);
+        $message = [
+            "code" => 20000,
+            "data" => $MenuTree,
+        ];
+        $this->set_response($message, REST_Controller::HTTP_OK);
     }
 
     // 根据token拉取 treeselect 下拉选项菜单
