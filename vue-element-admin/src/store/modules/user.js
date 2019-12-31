@@ -150,12 +150,20 @@ const user = {
     // accessToken超时
     handleCheckRefreshToken({ state, commit }) {
       return new Promise((resolve, reject) => {
-        checkRefreshToken(state.refresh_token).then(res => {
+        // console.log('state.token', state.token)
+        // console.log('state.refresh_token', state.refresh_token)
+        checkRefreshToken().then(res => {
+          console.log('checkRefreshToken', state.refresh_token, res)
           const data = res.data
           commit('SET_TOKEN', data.token)
+          commit('SET_REFRESH_TOKEN', data.refresh_token)
           setToken(data.token)
-          resolve(res)
-        }).catch(err => { reject(err) })
+          setRefreshToken(data.refresh_token)
+          resolve()
+        }).catch(error => {
+          console.log('error.......', error)
+          reject(error)
+        })
       })
     },
 
