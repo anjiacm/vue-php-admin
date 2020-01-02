@@ -1,13 +1,8 @@
 <?php
-
-use \Firebase\JWT\JWT;
-
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-// TODO: Hook 里不知道使用 REST_Controller 出错, 暂以原始方法替代
-//use Restserver\Libraries\REST_Controller;
-//require_once APPPATH . 'libraries/REST_Controller.php';
-//require_once APPPATH . 'libraries/Format.php';
+use \Firebase\JWT\JWT;
+use chriskacerguis\RestServer\RestController;
 
 class ManageAuth
 {
@@ -34,27 +29,21 @@ class ManageAuth
                 $userId = $decoded->user_id;
                 $retPerm = $this->CI->permission->HasPermit($userId, uri_string());
                 if ($retPerm['code'] != 50000) {
-                    set_status_header(200);
-                    echo json_encode($retPerm);
-                    die(); // 必须加die 否则会继续执行钩子后面的控制器方法
+                    $this->CI->response($retPerm, RestController::HTTP_OK);
                 }
             } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
                 $message = [
                     "code" => 50014,
                     "message" => $e->getMessage()
                 ];
-                set_status_header(401);
-                echo json_encode($message);
-                die(); // 必须加die 否则会继续执行钩子后面的控制器方法
+                $this->CI->response($message, RestController::HTTP_UNAUTHORIZED);
             } catch (Exception $e) {  //其他错误
                 $message = [
                     "code" => 50015,
                     "message" => $e->getMessage()
                 ];
-                set_status_header(401);
-                echo json_encode($message);
-                die(); // 必须加die 否则会继续执行钩子后面的控制器方法
+                $this->CI->response($message, RestController::HTTP_UNAUTHORIZED);
             }
         }
-    }
+    } // auth() end
 }

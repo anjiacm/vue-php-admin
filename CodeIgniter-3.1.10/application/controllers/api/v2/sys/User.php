@@ -1,17 +1,10 @@
 <?php
-
-use Restserver\Libraries\REST_Controller;
-use \Firebase\JWT\JWT;
-
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-// This can be removed if you use __autoload() in config.php OR use Modular Extensions
-/** @noinspection PhpIncludeInspection */
-//To Solve File REST_Controller not found
-require APPPATH . 'libraries/REST_Controller.php';
-require APPPATH . 'libraries/Format.php';
+use \Firebase\JWT\JWT;
+use chriskacerguis\RestServer\RestController;
 
-class User extends REST_Controller
+class User extends RestController
 {
 
     function __construct()
@@ -208,7 +201,7 @@ class User extends REST_Controller
                 'total' => intval($total)
             ]
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     function getroleoptions_get()
@@ -226,7 +219,7 @@ class User extends REST_Controller
             "code" => 20000,
             "data" => $RoleArr,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 增
@@ -248,7 +241,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['username'] . ' - 用户新增失败'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -269,7 +262,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => '用户关联角色失败 ' . json_encode($failedArr)
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -278,7 +271,7 @@ class User extends REST_Controller
             "type" => 'success',
             "message" => $parms['username'] . ' - 用户新增成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 改
@@ -294,7 +287,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['username'] . ' - 超级管理员用户不允许修改'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -316,7 +309,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['username'] . ' - 用户更新错误'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -340,7 +333,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => '用户关联角色失败 ' . json_encode($failedArr)
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -362,7 +355,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => '用户关联角色失败 ' . json_encode($failedArr)
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -371,7 +364,7 @@ class User extends REST_Controller
             "type" => 'success',
             "message" => $parms['username'] . ' - 用户更新成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 删
@@ -388,7 +381,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['username'] . ' - 超级管理员不允许删除'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -402,7 +395,7 @@ class User extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['username'] . ' - 用户删除错误'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -411,7 +404,7 @@ class User extends REST_Controller
             "type" => 'success',
             "message" => $parms['username'] . ' - 用户删除成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
 
     }
 
@@ -439,7 +432,7 @@ class User extends REST_Controller
 //                    "code" => 20000,
 //                    "message" => 'Token 创建失败, 请联系管理员.'
 //                ];
-//                $this->set_response($message, REST_Controller::HTTP_OK);
+//                $this->set_response($message, RestController::HTTP_OK);
 //                return;
 //            }
             $userInfo = $result['userinfo'];
@@ -471,13 +464,13 @@ class User extends REST_Controller
                     "refresh_token" => JWT::encode($refresh_token, config_item('jwt_key')) //生成refresh_token,
                 ]
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         } else {
             $message = [
                 "code" => 60204,
                 "message" => 'Account and password are incorrect.'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         }
     }
 
@@ -545,19 +538,19 @@ class User extends REST_Controller
                     "refresh_token" => $new_refresh_token
                 ]
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
             $message = [
                 "code" => 50015,
                 "message" => 'refresh_token过期, 请重新登录'
             ];
-            $this->set_response($message, REST_Controller::HTTP_UNAUTHORIZED);
+            $this->set_response($message, RestController::HTTP_UNAUTHORIZED);
         } catch (Exception $e) {  //其他错误
             $message = [
                 "code" => 50015,
                 "message" => $e->getMessage()
             ];
-            $this->set_response($message, REST_Controller::HTTP_UNAUTHORIZED);
+            $this->set_response($message, RestController::HTTP_UNAUTHORIZED);
         }
 
     }
@@ -688,14 +681,14 @@ class User extends REST_Controller
                 "_SERVER" => $_SERVER,
                 "_GET" => $_GET
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         } else {
             $message = [
                 "code" => 50008,
                 "message" => 'Login failed, unable to get user details.'
             ];
 
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         }
 
     }
@@ -766,14 +759,14 @@ class User extends REST_Controller
                 ],
 
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         } else {
             $message = [
                 "code" => 50008,
                 "message" => 'Login failed, unable to get user details.'
             ];
 
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         }
 
     }
@@ -784,7 +777,7 @@ class User extends REST_Controller
             "code" => 20000,
             "data" => 'success'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     function list_get()
@@ -807,14 +800,14 @@ class User extends REST_Controller
                     "items" => $List
                 ]
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         } else {
             $message = [
                 "code" => 50008,
                 "message" => 'Login failed, unable to get user details.'
             ];
 
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         }
 
     }

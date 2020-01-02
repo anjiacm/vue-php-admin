@@ -1,16 +1,9 @@
 <?php
-
-use Restserver\Libraries\REST_Controller;
-
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-// This can be removed if you use __autoload() in config.php OR use Modular Extensions
-/** @noinspection PhpIncludeInspection */
-//To Solve File REST_Controller not found
-require APPPATH . 'libraries/REST_Controller.php';
-require APPPATH . 'libraries/Format.php';
+use chriskacerguis\RestServer\RestController;
 
-class Role extends REST_Controller
+class Role extends RestController
 {
 
     function __construct()
@@ -110,7 +103,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['name'] . ' - 角色名重复'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -124,7 +117,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['name'] . ' - 角色新增失败'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -149,7 +142,7 @@ class Role extends REST_Controller
             "type" => 'success',
             "message" => $parms['name'] . ' - 角色新增成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 改
@@ -165,7 +158,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['name'] . ' - 角色不允许修改'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -182,7 +175,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['name'] . ' - 角色更新错误'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -191,7 +184,7 @@ class Role extends REST_Controller
             "type" => 'success',
             "message" => $parms['name'] . ' - 角色更新成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 删
@@ -207,7 +200,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['name'] . ' - 角色不允许删除'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -238,7 +231,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['name'] . ' - 角色删除错误'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -247,7 +240,7 @@ class Role extends REST_Controller
             "type" => 'success',
             "message" => $parms['name'] . ' - 角色删除成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
 
     }
 
@@ -259,7 +252,7 @@ class Role extends REST_Controller
             "code" => 20000,
             "data" => $RoleArr,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 获取所有菜单 不需权限验证
@@ -272,7 +265,7 @@ class Role extends REST_Controller
                 "data" => $MenuTreeArr,
                 "message" => "数据库表中没有菜单"
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -281,7 +274,7 @@ class Role extends REST_Controller
             "code" => 20000,
             "data" => $MenuTree,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 获取所有角色带perm_id 不需权限验证
@@ -294,7 +287,7 @@ class Role extends REST_Controller
                 "data" => $AllRolesArr,
                 "message" => "数据库表中没有角色"
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -302,7 +295,7 @@ class Role extends REST_Controller
             "code" => 20000,
             "data" => $AllRolesArr,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     //  获取角色拥有的菜单权限 不需权限验证
@@ -316,7 +309,7 @@ class Role extends REST_Controller
             "code" => 20000,
             "data" => $MenuTreeArr,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 获取角色拥有的角色权限 不需权限验证
@@ -330,7 +323,7 @@ class Role extends REST_Controller
             "code" => 20000,
             "data" => $RoleRoleArr,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 保存角色对应权限
@@ -347,7 +340,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => '超级管理员角色拥有所有权限，不允许修改！'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -371,7 +364,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => '授权失败 ' . json_encode($failedArr)
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -393,7 +386,7 @@ class Role extends REST_Controller
                 "type" => 'error',
                 "message" => '授权失败 ' . json_encode($failedArr)
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -403,7 +396,7 @@ class Role extends REST_Controller
             "data" => $parms,
             "message" => '授权操作成功',
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
 }

@@ -22,7 +22,7 @@
 6. TODO: 图形验证码, 微信登录, 界面主题优化...
 7. **使用jwt token 前后端实现 access_token过期后无痛无缝在刷新, refreshtoken 加入计数器,在有效期内接口调用超过一定次数自动续期, CI模式使用hooks做控制器方法调用前的token及权限认证功能** 
 
-## 开发环境 
+## 开发环境
 - phpstudy  php 5.6.27 nts + Apache
 - vue.js
 
@@ -67,7 +67,14 @@
         'database' => 'vueadmin',
         ...
     ```
-4. 使用 phpstudy 配置站点域名管理, 同时修改hosts文件（可选）
+4. CodeIgniter-3.1.10目录 composer 安装相关依赖 php-jwt 与 codeigniter-restserver
+    ```php
+    composer install  // 根据composer.json 初始安装所有插件包
+    或
+    composer require firebase/php-jwt
+    composer require chriskacerguis/codeigniter-restserver
+    ```
+5. 使用 phpstudy 配置站点域名管理, 同时修改hosts文件（可选）
 
     www.cirest.com:8889  **注意与前端接口配置一致** BASE_API: '"http://www.cirest.com:8889/api/v2/"'
 
@@ -93,7 +100,7 @@
       </IfModule>
     ```
 
-## 编辑器 
+## 编辑器
  - phpstrom
  - vscode
 

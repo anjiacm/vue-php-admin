@@ -1,17 +1,9 @@
 <?php
-
-use Restserver\Libraries\REST_Controller;
-use \Firebase\JWT\JWT;
-
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-// This can be removed if you use __autoload() in config.php OR use Modular Extensions
-/** @noinspection PhpIncludeInspection */
-//To Solve File REST_Controller not found
-require APPPATH . 'libraries/REST_Controller.php';
-require APPPATH . 'libraries/Format.php';
+use chriskacerguis\RestServer\RestController;
 
-class Menu extends REST_Controller
+class Menu extends RestController
 {
 
     function __construct()
@@ -117,7 +109,7 @@ class Menu extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 菜单添加失败'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -142,7 +134,7 @@ class Menu extends REST_Controller
             "type" => 'success',
             "message" => $parms['title'] . ' - 菜单添加成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 改
@@ -159,7 +151,7 @@ class Menu extends REST_Controller
                 "type" => 'error',
                 "message" => '父节点不能是自己'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
         }
         // 菜单类型为目录
         if ($parms['type'] == 0) {
@@ -181,7 +173,7 @@ class Menu extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 菜单更新错误'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -190,7 +182,7 @@ class Menu extends REST_Controller
             "type" => 'success',
             "message" => $parms['title'] . ' - 菜单更新成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 删
@@ -208,7 +200,7 @@ class Menu extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 存在子节点不能删除'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -228,7 +220,7 @@ class Menu extends REST_Controller
                 "type" => 'error',
                 "message" => '数据库未查找到该菜单'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -243,7 +235,7 @@ class Menu extends REST_Controller
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 菜单删除错误'
             ];
-            $this->set_response($message, REST_Controller::HTTP_OK);
+            $this->set_response($message, RestController::HTTP_OK);
             return;
         }
 
@@ -252,7 +244,7 @@ class Menu extends REST_Controller
             "type" => 'success',
             "message" => $parms['title'] . ' - 菜单删除成功'
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
 
     }
 
@@ -268,7 +260,7 @@ class Menu extends REST_Controller
             "code" => 20000,
             "data" => $MenuTree,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
     // 根据token拉取 treeselect 下拉选项菜单
@@ -286,7 +278,7 @@ class Menu extends REST_Controller
             "code" => 20000,
             "data" => $MenuTree,
         ];
-        $this->set_response($message, REST_Controller::HTTP_OK);
+        $this->set_response($message, RestController::HTTP_OK);
     }
 
 }
