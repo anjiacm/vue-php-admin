@@ -300,14 +300,14 @@ class Uploadimg extends RestController
                 "message" => '写入数据库表成功,请请待审核通知!',
                 "data" => array_merge($where, $data)
             ];
-            $this->set_response($message, RestController::HTTP_OK);
+            $this->response($message, RestController::HTTP_OK);
         } else {
             $message = [
                 "code" => 20000,
                 "message" => '写入数据库表失败!',
                 "data" => array_merge($where, $data)
             ];
-            $this->set_response($message, RestController::HTTP_OK);
+            $this->response($message, RestController::HTTP_OK);
         }
     }
 }

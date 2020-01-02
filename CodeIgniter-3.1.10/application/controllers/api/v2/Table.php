@@ -69,7 +69,7 @@ class Table extends RestController
             ]
         ];
 
-        $this->set_response($message, RestController::HTTP_OK);
+        $this->response($message, RestController::HTTP_OK);
 
     }
 
@@ -104,7 +104,7 @@ class Table extends RestController
             ]
         ];
 
-        $this->set_response($message, RestController::HTTP_OK);
+        $this->response($message, RestController::HTTP_OK);
 
     }
 

@@ -109,8 +109,7 @@ class Menu extends RestController
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 菜单添加失败'
             ];
-            $this->set_response($message, RestController::HTTP_OK);
-            return;
+            $this->response($message, RestController::HTTP_OK);
         }
 
         // 生成该菜单对应的权限: sys_perm, 权限类型为: menu, 生成唯一的 perm_id
@@ -134,7 +133,7 @@ class Menu extends RestController
             "type" => 'success',
             "message" => $parms['title'] . ' - 菜单添加成功'
         ];
-        $this->set_response($message, RestController::HTTP_OK);
+        $this->response($message, RestController::HTTP_OK);
     }
 
     // 改
@@ -151,7 +150,7 @@ class Menu extends RestController
                 "type" => 'error',
                 "message" => '父节点不能是自己'
             ];
-            $this->set_response($message, RestController::HTTP_OK);
+            $this->response($message, RestController::HTTP_OK);
         }
         // 菜单类型为目录
         if ($parms['type'] == 0) {
@@ -173,8 +172,7 @@ class Menu extends RestController
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 菜单更新错误'
             ];
-            $this->set_response($message, RestController::HTTP_OK);
-            return;
+            $this->response($message, RestController::HTTP_OK);
         }
 
         $message = [
@@ -182,7 +180,7 @@ class Menu extends RestController
             "type" => 'success',
             "message" => $parms['title'] . ' - 菜单更新成功'
         ];
-        $this->set_response($message, RestController::HTTP_OK);
+        $this->response($message, RestController::HTTP_OK);
     }
 
     // 删
@@ -200,8 +198,7 @@ class Menu extends RestController
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 存在子节点不能删除'
             ];
-            $this->set_response($message, RestController::HTTP_OK);
-            return;
+            $this->response($message, RestController::HTTP_OK);
         }
 
         // 删除外键关联表 sys_role_perm , sys_perm, sys_menu
@@ -220,8 +217,7 @@ class Menu extends RestController
                 "type" => 'error',
                 "message" => '数据库未查找到该菜单'
             ];
-            $this->set_response($message, RestController::HTTP_OK);
-            return;
+            $this->response($message, RestController::HTTP_OK);
         }
 
         $perm_id = $arr[0]['id']; // 正常只有一条记录
@@ -235,8 +231,7 @@ class Menu extends RestController
                 "type" => 'error',
                 "message" => $parms['title'] . ' - 菜单删除错误'
             ];
-            $this->set_response($message, RestController::HTTP_OK);
-            return;
+            $this->response($message, RestController::HTTP_OK);
         }
 
         $message = [
@@ -244,7 +239,7 @@ class Menu extends RestController
             "type" => 'success',
             "message" => $parms['title'] . ' - 菜单删除成功'
         ];
-        $this->set_response($message, RestController::HTTP_OK);
+        $this->response($message, RestController::HTTP_OK);
 
     }
 
@@ -260,7 +255,7 @@ class Menu extends RestController
             "code" => 20000,
             "data" => $MenuTree,
         ];
-        $this->set_response($message, RestController::HTTP_OK);
+        $this->response($message, RestController::HTTP_OK);
     }
 
     // 根据token拉取 treeselect 下拉选项菜单
@@ -278,7 +273,7 @@ class Menu extends RestController
             "code" => 20000,
             "data" => $MenuTree,
         ];
-        $this->set_response($message, RestController::HTTP_OK);
+        $this->response($message, RestController::HTTP_OK);
     }
 
 }
