@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 use \Firebase\JWT\JWT;
 use chriskacerguis\RestServer\RestController;
@@ -137,7 +137,7 @@ class User extends RestController
             $salt = base_convert(bin2hex($this->security->get_random_bytes(64)), 16, 36);
 
             // If an error occurred, then fall back to the previous method
-            if ($salt === FALSE) {
+            if ($salt === false) {
                 $salt = hash('sha256', time() . mt_rand());
             }
 
@@ -152,8 +152,8 @@ class User extends RestController
     private function _token_exists($token)
     {
         return $this->rest->db
-                ->where('token', $token)
-                ->count_all_results('sys_user_token') > 0;
+            ->where('token', $token)
+            ->count_all_results('sys_user_token') > 0;
     }
 
     private function _insert_token($token, $data)
@@ -206,7 +206,7 @@ class User extends RestController
 
     function getroleoptions_get()
     {
-        $Token = $this->input->get_request_header('X-Token', TRUE);
+        $Token = $this->input->get_request_header('X-Token', true);
         $jwt_object = $this->permission->parseJWT($Token);
 
         $RoleArr = $this->User_model->getRoleOptions($jwt_object->user_id);
@@ -225,7 +225,7 @@ class User extends RestController
     // 增
     function add_post()
     {
-         $parms = $this->post();  // 获取表单参数，类型为数组
+        $parms = $this->post();  // 获取表单参数，类型为数组
 
         // 参数数据预处理
         $RoleArr = $parms['role'];
@@ -465,11 +465,246 @@ class User extends RestController
         }
     }
 
+    function githubauth_get()
+    {
+        $code = $this->get('code');
+        // 需要正确配置github client ID及Secret
+        // $client_id = 'xxxxxx';
+        // $client_secret = 'xxxxxx';
+        $client_id = '94aae05609c96ffb7d3b';  // #gitignore
+        $client_secret = '02e962159c91e76bfc18548f7c90c52bc18b1cc6';  // #gitignore
+
+        // code: 60206 认证失败统一代码
+        if (!$code) {
+            $message = [
+                "code" => 60206,
+                "data" => ["status" => 'fail', "msg" => 'code参数为空'],
+                "message" => "code参数为空"
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        // 根据上面的回调参数获取github access_token。 已经传递过来code数据。
+        $getGithubAccessTokenUrl = 'https://github.com/login/oauth/access_token?client_id=' . $client_id . '&client_secret=' . $client_secret . '&code=' . $code;
+        $tokenInfo = $this->http_get($getGithubAccessTokenUrl);
+        if (array_key_exists('base_resp', $tokenInfo) && $tokenInfo["base_resp"]["ret"] == 0) {
+            // var_dump($tokenInfo);
+            // var_dump($tokenInfo["base_resp"]["ret"]);
+            // var_dump($tokenInfo["base_resp"]["err_msg"]);
+            // var_dump($tokenInfo["content"]);
+            // $tokenInfoJson = json_decode($tokenInfo["content"], true); // 获取的原始数据解码成json格式，如下
+            // var_dump( $tokenInfoJson);
+            $tokenInfoArr = explode('&', $tokenInfo["content"]);
+            $access_token = explode('=', $tokenInfoArr[0])[1];
+        } else {
+            $message = [
+                "code" => 60206,
+                "data" => ["status" => 'fail', "msg" => "get github access_token failed!"],
+                "message" => "get github access_token failed!"
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        // var_dump($access_token);
+        // https://api.github.com/user?access_token=6425775635d969ca3ecaeedef2d7c7d8cf7ad026;
+
+        $getUserInfoUrl = 'https://api.github.com/user?access_token=' . $access_token;
+        // var_dump($getUserInfoUrl);
+        $ajaxUserInfo = $this->http_get($getUserInfoUrl);
+        // var_dump($ajaxUserInfo);
+        // array(5) {
+        //     ["header"]=>
+        //     string(0) ""
+        //     ["content"]=>
+        //     string(0) ""
+        //     ["curl_error"]=>
+        //     string(75) "OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443 "
+        //     ["http_code"]=>
+        //     string(0) ""
+        //     ["last_url"]=>
+        //     string(0) ""
+        //   }
+        //   Message:  Undefined index: base_resp
+        if (array_key_exists('base_resp', $ajaxUserInfo) && $ajaxUserInfo["base_resp"]["ret"] == 0) { //  ["ret"]=> int(0) ["err_msg"]=> string(2) "ok"
+            $userInfo = json_decode($ajaxUserInfo["content"], true); // 获取的原始数据解码成json格式，如下
+            // var_dump($userInfo["email"]);
+            // var_dump($userInfo["login"]);
+            $user = $this->User_model->getUserInfoByTel($userInfo["email"]);
+            // var_dump($user);
+        } else {
+            $message = [
+                "code" => 60206,
+                "data" => ["status" => 'fail', "msg" => "get github userinfo failed!"],
+                "message" => "get github userinfo failed! - " . $ajaxUserInfo["curl_error"]
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        if (!empty($user)) {
+
+            $time = time(); //当前时间
+            
+            // 公用信息
+            $payload = [
+                'iss' => 'http://pocoyo.org', //签发者 可选
+                'aud' => 'http://emacs.org', //接收该JWT的一方，可选
+                'iat' => $time, //签发时间
+                'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+                'user_id' => $user[0]['id'], //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
+            ];
+
+            $access_token = $payload;
+            $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
+            $access_token['exp'] = $time + config_item('jwt_access_token_exp'); //access_token过期时间,这里设置2个小时
+
+            $refresh_token = $payload;
+            $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
+            $refresh_token['exp'] = $time + config_item('jwt_refresh_token_exp'); //refresh_token,这里设置30天
+            $refresh_token['count'] = 0; // 刷新TOKEN计数, 在刷新token期间多次请求刷新token则表示活跃,可以重新生成刷新token以免刷新token过期后登录
+
+            $message = [
+                "code" => 20000,
+                "data" => [
+                    "status" => 'ok',
+                    "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
+                    "refresh_token" => JWT::encode($refresh_token, config_item('jwt_key')) //生成refresh_token,
+                ]
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        } else {
+            $message = [
+                "code" => 60206,
+                "data" => ["status" => 'fail', "msg" => "此github邮箱账号(" . $userInfo['email'] . ")没有与系统账号关联,请联系系统管理员!"],
+                "message" => "此github邮箱账号(" . $userInfo['email'] . ")没有与系统账号关联,请联系系统管理员!"
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+    }
+
+    /**
+     * 执行CURL请求，并封装返回对象
+     */
+    private function execCURL($ch)
+    {
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
+        $result = array(
+            'header' => '',
+            'content' => '',
+            'curl_error' => '',
+            'http_code' => '',
+            'last_url' => ''
+        );
+
+        if ($error != "") {
+            $result['curl_error'] = $error;
+            return $result;
+        }
+
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $result['header'] = str_replace(array("\r\n", "\r", "\n"), "<br/>", substr($response, 0, $header_size));
+        $result['content'] = substr($response, $header_size);
+        $result['http_code'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $result['last_url'] = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        $result["base_resp"] = array();
+        $result["base_resp"]["ret"] = $result['http_code'] == 200 ? 0 : $result['http_code'];
+        $result["base_resp"]["err_msg"] = $result['http_code'] == 200 ? "ok" : $result["curl_error"];
+
+        return $result;
+    }
+
+    /**
+     * GET 请求
+     * @param string $url
+     */
+    private function http_get($url)
+    {
+        $oCurl = curl_init();
+        if (stripos($url, "https://") !== false) {
+            curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($oCurl, CURLOPT_SSLVERSION, 1); //CURL_SSLVERSION_TLSv1
+        }
+        curl_setopt($oCurl, CURLOPT_URL, $url);
+        curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($oCurl, CURLOPT_VERBOSE, 1);
+        curl_setopt($oCurl, CURLOPT_HEADER, 1);
+
+        curl_setopt(
+            $oCurl,
+            CURLOPT_HTTPHEADER,
+            array("User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64)")
+        ); // github 获取用户信息时必须设置user_agent $getUserInfoUrl = 'https://api.github.com/user?access_token=' . $access_token;
+
+        // $sContent = curl_exec($oCurl);
+        // $aStatus = curl_getinfo($oCurl);
+        $sContent = $this->execCURL($oCurl);
+        curl_close($oCurl);
+
+        return $sContent;
+    }
+
+    /**
+     * POST 请求
+     * @param string $url
+     * @param array $param
+     * @param boolean $post_file 是否文件上传
+     * @return string content
+     */
+    private function http_post($url, $param, $post_file = false)
+    {
+        $oCurl = curl_init();
+
+        if (stripos($url, "https://") !== false) {
+            curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($oCurl, CURLOPT_SSLVERSION, 1); //CURL_SSLVERSION_TLSv1
+        }
+        if (PHP_VERSION_ID >= 50500 && class_exists('\CURLFile')) {
+            $is_curlFile = true;
+        } else {
+            $is_curlFile = false;
+            if (defined('CURLOPT_SAFE_UPLOAD')) {
+                curl_setopt($oCurl, CURLOPT_SAFE_UPLOAD, false);
+            }
+        }
+
+        if ($post_file) {
+            if ($is_curlFile) {
+                foreach ($param as $key => $val) {
+                    if (isset($val["tmp_name"])) {
+                        $param[$key] = new \CURLFile(realpath($val["tmp_name"]), $val["type"], $val["name"]);
+                    } else if (substr($val, 0, 1) == '@') {
+                        $param[$key] = new \CURLFile(realpath(substr($val, 1)));
+                    }
+                }
+            }
+            $strPOST = $param;
+        } else {
+            $strPOST = json_encode($param);
+        }
+
+        curl_setopt($oCurl, CURLOPT_URL, $url);
+        curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($oCurl, CURLOPT_POST, true);
+        curl_setopt($oCurl, CURLOPT_POSTFIELDS, $strPOST);
+        curl_setopt($oCurl, CURLOPT_VERBOSE, 1);
+        curl_setopt($oCurl, CURLOPT_HEADER, 1);
+
+        // $sContent = curl_exec($oCurl);
+        // $aStatus  = curl_getinfo($oCurl);
+
+        $sContent = $this->execCURL($oCurl);
+        curl_close($oCurl);
+
+        return $sContent;
+    }
+
     function refreshtoken_post()
     {
         // 此处 $Token 应为refresh token 在前端 request 拦截器中做了修改
         // 刷新token接口需要在控制器内作权限验证,比较特殊,不能使用hook ManageAuth来验证
-        $Token = $this->input->get_request_header('X-Token', TRUE);
+        $Token = $this->input->get_request_header('X-Token', true);
         try {
             $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
 
@@ -550,9 +785,9 @@ class User extends RestController
     function info_get()
     {
         // $result = $this->some_model();
-        $result['success'] = TRUE;
+        $result['success'] = true;
         // /sys/user/info 不用认证但是需要提取出 access_token 中的 user_id 来拉取用户信息
-        $Token = $this->input->get_request_header('X-Token', TRUE);
+        $Token = $this->input->get_request_header('X-Token', true);
         $jwt_obj = $this->permission->parseJWT($Token);
 
         //    $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
@@ -688,7 +923,7 @@ class User extends RestController
     function router_get()
     {
 //        $result = $this->some_model();
-        $result['success'] = TRUE;
+        $result['success'] = true;
 
         // 获取用户信息成功
         if ($result['success']) {
@@ -725,9 +960,7 @@ class User extends RestController
                                         "icon" => "nested"
                                     ],
                                     "component" => 'index',
-                                    "children" => [
-
-                                    ]
+                                    "children" => []
                                 ]
                             ]
                         ],
@@ -739,13 +972,11 @@ class User extends RestController
                                 "icon" => "nested"
                             ],
                             "component" => 'Layout',
-                            "children" => [
-
-                            ]
+                            "children" => []
                         ]
                     ],
                     "__FUNCTION__" => __FUNCTION__,
-                    "__CLASS__" => __CLASS__,
+                    "__CLASS__" => __class__,
                     "uri" => $this->uri
                 ],
 
@@ -774,7 +1005,7 @@ class User extends RestController
     function list_get()
     {
 //        $result = $this->some_model();
-        $result['success'] = TRUE;
+        $result['success'] = true;
 
         if ($result['success']) {
             $List = array(

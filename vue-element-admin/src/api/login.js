@@ -27,6 +27,15 @@ export function getUserInfo(token) {
   })
 }
 
+// github 微信认证
+export function githubAuth(code) {
+  return request({
+    url: '/sys/user/githubauth',
+    method: 'get',
+    params: { code }
+  })
+}
+
 export function checkRefreshToken() {
   return request({
     url: '/sys/user/refreshtoken',

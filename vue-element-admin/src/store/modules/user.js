@@ -1,4 +1,4 @@
-import { loginByUsername, logout, getUserInfo, checkRefreshToken } from '@/api/login'
+import { loginByUsername, logout, getUserInfo, githubAuth, checkRefreshToken } from '@/api/login'
 import { getToken, setToken, removeToken, getRefreshToken, setRefreshToken, removeRefreshToken } from '@/utils/auth'
 
 const user = {
@@ -71,6 +71,25 @@ const user = {
           setToken(data.token)
           setRefreshToken(data.refresh_token)
           resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+
+    // github认证
+    githubAuth({ commit }, code) {
+      return new Promise((resolve, reject) => {
+        githubAuth(code).then(response => {
+          console.log('githubAuth response...', response)
+          const data = response.data
+          if (data.status === 'ok') {
+            commit('SET_TOKEN', data.token)
+            commit('SET_REFRESH_TOKEN', data.refresh_token)
+            setToken(data.token)
+            setRefreshToken(data.refresh_token)
+            resolve()
+          }
         }).catch(error => {
           reject(error)
         })

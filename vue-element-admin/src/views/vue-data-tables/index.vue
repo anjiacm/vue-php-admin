@@ -1,6 +1,14 @@
 <template>
   <div>
+    <el-link href="https://element.eleme.io" target="_blank">默认链接</el-link>
+    <el-link type="primary" href="https://element.eleme.io">主要链接</el-link>
+    <el-link type="success">成功链接</el-link>
+    <el-link type="warning">警告链接</el-link>
+    <el-link type="danger">危险链接</el-link>
+    <el-link type="info">信息链接</el-link>
+
     <div style="margin-left: 10px;margin-top: 10px;margin-bottom: 10px">
+
       <el-row>
         <el-col :span="18">
           <el-button @click="onCreate">create 1 row</el-button>
@@ -17,7 +25,7 @@
     <data-tables :search-def="searchDef" :data="data" :action-col="actionCol" :filters="filters" layout="pagination, tool, table" @selection-change="handleSelectionChange">
       <el-row slot="tool" style="margin: 10px 0">
         <el-col :span="5" :offset="4">
-          <el-input v-model="filters[0].value"/>
+          <el-input v-model="filters[0].value" />
         </el-col>
       </el-row>
 
@@ -63,7 +71,9 @@
         <el-form-item label="password" prop="password">
 
           <el-input v-model="user.password" :type="passwordType" name="password" auto-complete="on">
-            <i slot="suffix" class="el-input__icon el-icon-eye" @click="showPwd"> <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" /></i>
+            <i slot="suffix" class="el-input__icon el-icon-eye" @click="showPwd">
+              <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
+            </i>
           </el-input>
           <!-- <span class="show-pwd" @click="showPwd">
             <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />

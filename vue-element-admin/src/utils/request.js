@@ -122,7 +122,7 @@ service.interceptors.response.use(
   },
   error => {
     // Error对象可能log出来并不是你想象的那种以对象的样子出现
-    // console.log(error.response) // console.log(error) 401 再判断 error.response.data.code
+    console.log(error.response) // console.log(error) 401 再判断 error.response.data.code
     // // let config = error.response.config
     // console.log('err' + error) // for debug
 

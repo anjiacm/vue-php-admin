@@ -42,10 +42,13 @@
           </span>
           <span>{{ $t('login.password') }} : editor</span>
         </div>
-
         <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
           {{ $t('login.thirdparty') }}
         </el-button>
+        <el-link type="success" href="https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b">github登录</el-link>
+        <!-- 单击此链接后 github oauth 配置页面 Authorization callback URL 配置的 url 后 执行 并且附带 &code=xxxxx99 参数 -->
+        <!-- http://localhost/get-github-code.html 微信好像需要使用这个get-code.html, github 里只需要配置 http://localhost:9527 即可
+        https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost/get-github-code.html?redirect_uri=http://localhost:9527 -->
       </div>
     </el-form>
 
@@ -107,11 +110,30 @@ export default {
   },
   created() {
     // window.addEventListener('hashchange', this.afterQRScan)
+    this.githubLogin()
   },
   destroyed() {
     // window.removeEventListener('hashchange', this.afterQRScan)
   },
   methods: {
+    // githubHandleClick(thirdpart) {
+    //   openWindow('https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/#/auth-redirect', thirdpart, 540, 540)
+    // },
+    githubLogin() {
+      console.log('login/index.vue...', location, this.$store.state.user.code)
+      if (location.search && location.search.indexOf('code=') >= 0) {
+        this.$store.state.user.code = location.search.replace('\?code=', '')
+        this.$store.dispatch('githubAuth', this.$store.state.user.code).then(() => {
+          console.log('this.$store.dispatchgithubAuth....', window.location.origin + '/' + window.location.hash, window.location.hash)
+          window.location.replace(window.location.origin + '/' + window.location.hash) // 解决 this.$router.push({ path: '/' }) 出现url 携带 ?code=xxooo 问题
+          // this.$router.push({ path: '/' })
+        }).catch((err) => {
+          console.log('this.$store.dispatchgithubAuth catch....', err)
+        }).finally((e) => {
+          console.log('this.$store.dispatchgithubAuth finally....', e)
+        })
+      }
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
