@@ -120,13 +120,11 @@ export default {
     //   openWindow('https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/#/auth-redirect', thirdpart, 540, 540)
     // },
     githubLogin() {
-      console.log('login/index.vue...', location, this.$store.state.user.code)
-      if (location.search && location.search.indexOf('code=') >= 0) {
-        this.$store.state.user.code = location.search.replace('\?code=', '')
+      if (this.$store.state.user.code) {
         this.$store.dispatch('githubAuth', this.$store.state.user.code).then(() => {
           console.log('this.$store.dispatchgithubAuth....', window.location.origin + '/' + window.location.hash, window.location.hash)
-          window.location.replace(window.location.origin + '/' + window.location.hash) // 解决 this.$router.push({ path: '/' }) 出现url 携带 ?code=xxooo 问题
-          // this.$router.push({ path: '/' })
+          // window.location.replace(window.location.origin + '/' + window.location.hash) // 解决 this.$router.push({ path: '/' }) 出现url 携带 ?code=xxooo 问题
+          this.$router.push({ path: '/' })
         }).catch((err) => {
           console.log('this.$store.dispatchgithubAuth catch....', err)
         }).finally((e) => {

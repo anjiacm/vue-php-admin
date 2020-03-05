@@ -18,6 +18,19 @@ const whiteList = ['/login', '/auth-redirect']// no redirect whitelist
 
 router.beforeEach((to, from, next) => {
   NProgress.start() // start progress bar
+
+  // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
+  // console.log('router.beforeEach', to, from)
+  // if (location.search && location.search.indexOf('code=') >= 0) {
+  if (to.query.hasOwnProperty('code')) {
+    // && to.fullPath.includes('\?code=')
+    // const code = location.search.replace('\?code=', '')
+    const code = to.query.code
+    console.log('github code: ', code)
+    store.state.user.code = code
+    // console.log(store.state.user)  // 该code 在store/modules/user.js 里定义有 作为第三方登录使用 参见其中 LoginByThirdparty
+  }
+
   if (getToken()) { // determine if there has token
     /* has token*/
     if (to.path === '/login') {
