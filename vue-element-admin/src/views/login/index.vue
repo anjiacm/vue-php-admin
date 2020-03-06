@@ -7,15 +7,14 @@
         </h3>
         <lang-select class="set-language" />
       </div>
-
-      <el-form-item prop="username">
+      <el-form-item v-if="!thirdLogin" prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input v-model="loginForm.username" :placeholder="$t('login.username')" name="username" type="text" auto-complete="on" />
       </el-form-item>
 
-      <el-form-item prop="password">
+      <el-form-item v-if="!thirdLogin" prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
@@ -25,7 +24,7 @@
         </span>
       </el-form-item>
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">
+      <el-button v-if="!thirdLogin" :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">
         {{ $t('login.logIn') }}
       </el-button>
 
@@ -45,9 +44,9 @@
         <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
           {{ $t('login.thirdparty') }}
         </el-button>
-        <el-link type="success" href="https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b">github登录</el-link>
-        <!-- 单击此链接后 github oauth 配置页面 Authorization callback URL 配置的 url 后 执行 并且附带 &code=xxxxx99 参数 -->
-        <!-- http://localhost/get-github-code.html 微信好像需要使用这个get-code.html, github 里只需要配置 http://localhost:9527 即可
+        <el-link type="success" href="https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527">github登录不弹子窗口方式</el-link>
+        <!-- 如果此href 不含有 redirect_uri参数 则回调地址为 github oauth 配置页面 Authorization callback URL 配置的 url 并且附带 &code=xxxxx99 参数 -->
+        <!-- http://localhost/get-github-code.html 微信好像需要使用这个get-code.html
         https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost/get-github-code.html?redirect_uri=http://localhost:9527 -->
       </div>
     </el-form>
@@ -97,7 +96,8 @@ export default {
       passwordType: 'password',
       loading: false,
       showDialog: false,
-      redirect: undefined
+      redirect: undefined,
+      thirdLogin: false
     }
   },
   watch: {
@@ -116,19 +116,31 @@ export default {
     // window.removeEventListener('hashchange', this.afterQRScan)
   },
   methods: {
-    // githubHandleClick(thirdpart) {
-    //   openWindow('https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/#/auth-redirect', thirdpart, 540, 540)
-    // },
     githubLogin() {
+      // permission.js 里根据 AuthRedirect 返回的 http://localhost:9527/?code=8789d613d1fa9a19732a URL 获取code 并写入 store.state.user.code
+      // 如果设置了github code, 说明是三方登录, 则执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
       if (this.$store.state.user.code) {
+        this.thirdLogin = true
+
+        const loading = this.$loading({
+          lock: true,
+          text: 'github 认证登录中...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+
         this.$store.dispatch('githubAuth', this.$store.state.user.code).then(() => {
           console.log('this.$store.dispatchgithubAuth....', window.location.origin + '/' + window.location.hash, window.location.hash)
-          // window.location.replace(window.location.origin + '/' + window.location.hash) // 解决 this.$router.push({ path: '/' }) 出现url 携带 ?code=xxooo 问题
           this.$router.push({ path: '/' })
+          loading.close()
         }).catch((err) => {
           console.log('this.$store.dispatchgithubAuth catch....', err)
+          this.thirdLogin = false
+          loading.close()
         }).finally((e) => {
           console.log('this.$store.dispatchgithubAuth finally....', e)
+          this.thirdLogin = false
+          loading.close()
         })
       }
     },
