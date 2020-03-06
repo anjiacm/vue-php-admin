@@ -5,7 +5,8 @@ const user = {
   state: {
     user: '',
     status: '',
-    code: '',
+    code: '', // 存储三方登录认证 code 参数
+    code_state: '', // 存储三方登录认证 state 参数
     token: getToken(),
     refresh_token: getRefreshToken(),
     name: '',
@@ -78,18 +79,16 @@ const user = {
     },
 
     // github认证
-    githubAuth({ commit }, code) {
+    githubAuth({ commit }, authParms) {
       return new Promise((resolve, reject) => {
-        githubAuth(code).then(response => {
+        githubAuth(authParms.code, authParms.state).then(response => {
           console.log('githubAuth response...', response)
           const data = response.data
-          if (data.status === 'ok') {
-            commit('SET_TOKEN', data.token)
-            commit('SET_REFRESH_TOKEN', data.refresh_token)
-            setToken(data.token)
-            setRefreshToken(data.refresh_token)
-            resolve()
-          }
+          commit('SET_TOKEN', data.token)
+          commit('SET_REFRESH_TOKEN', data.refresh_token)
+          setToken(data.token)
+          setRefreshToken(data.refresh_token)
+          resolve()
         }).catch(error => {
           reject(error)
         })

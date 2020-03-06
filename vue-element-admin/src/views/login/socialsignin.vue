@@ -20,6 +20,7 @@
 
 <script>
 import openWindow from '@/utils/openWindow'
+import { githubAuth } from '@/api/login'
 
 export default {
   name: 'SocialSignin',
@@ -44,9 +45,15 @@ export default {
       // 1. 指定授权 client_id 及 redirect_uri 的 URL
       //    如果不指定 redirect_uri, 则默认使用 gihtub => Settings => Developer settings =>  OAuth Apps 里 Authorization callback URL 配置的地址
       //    为了无歧义尽量指定redirect_uri
-      const url = 'https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/auth-redirect'
-      // 2. 弹出子窗口进行授权, 子窗口完成授权后, 子窗口地址栏URL 会是 redirect_uri 并带上 ?code= 参数
-      openWindow(url, thirdpart, 540, 540)
+      // const url = 'https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/auth-redirect'
+      githubAuth().then(response => { // githubAuth() 参数 code 为空，由后端返回 authorize_url
+        // 2. 弹出子窗口进行授权, 子窗口完成授权后, 子窗口地址栏URL 会是 redirect_uri 并带上 ?code= 参数
+        const url = response.data.auth_url
+        // console.log('auth url....', url)
+        openWindow(url, thirdpart, 540, 540)
+      }).catch(error => {
+        console.log(error)
+      })
     }
   }
 }

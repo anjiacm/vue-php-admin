@@ -27,12 +27,12 @@ export function getUserInfo(token) {
   })
 }
 
-// github 微信认证
-export function githubAuth(code) {
+// github 认证
+export function githubAuth(code, state) {
   return request({
     url: '/sys/user/githubauth',
     method: 'get',
-    params: { code }
+    params: { code, state }
   })
 }
 

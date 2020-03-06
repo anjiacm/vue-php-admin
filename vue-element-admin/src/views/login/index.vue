@@ -119,9 +119,11 @@ export default {
     githubLogin() {
       // permission.js 里根据 AuthRedirect 返回的 http://localhost:9527/?code=8789d613d1fa9a19732a URL 获取code 并写入 store.state.user.code
       // 如果设置了github code, 说明是三方登录, 则执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
-      if (this.$store.state.user.code) {
-        this.thirdLogin = true
+      const code = this.$store.state.user.code
+      const state = this.$store.state.user.code_state
 
+      if (code) {
+        this.thirdLogin = true
         const loading = this.$loading({
           lock: true,
           text: 'github 认证登录中...',
@@ -129,12 +131,13 @@ export default {
           background: 'rgba(0, 0, 0, 0.7)'
         })
 
-        this.$store.dispatch('githubAuth', this.$store.state.user.code).then(() => {
+        const authParms = { code, state }
+        this.$store.dispatch('githubAuth', authParms).then(() => {
           console.log('this.$store.dispatchgithubAuth....', window.location.origin + '/' + window.location.hash, window.location.hash)
           this.$router.push({ path: '/' })
           loading.close()
         }).catch((err) => {
-          console.log('this.$store.dispatchgithubAuth catch....', err)
+          console.log('this.$store.dispatchgithubAuth catch....', err.response)
           this.thirdLogin = false
           loading.close()
         }).finally((e) => {

@@ -23,13 +23,16 @@ router.beforeEach((to, from, next) => {
   // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
   console.log('router.beforeEach', to, from)
   // if (location.search && location.search.indexOf('code=') >= 0) {
-  if (to.query.hasOwnProperty('code')) { // to.query 如果存在 code 则为三方登录则写入store 变量
+  if (to.query.hasOwnProperty('code') && to.query.hasOwnProperty('state')) { // to.query 如果存在 code 则为三方登录则写入store 变量
     // && to.fullPath.includes('\?code=')
     // const code = location.search.replace('\?code=', '')
     const code = to.query.code
+    const state = to.query.state
     console.log('github code: ', code)
+    console.log('github state: ', state)
     store.state.user.code = code
-    // console.log(store.state.user)  // 该code 在store/modules/user.js 里定义有 作为第三方登录使用 参见其中 LoginByThirdparty
+    store.state.user.code_state = state
+    // console.log(store.state.user) // 该code 在store/modules/user.js 里定义有 作为第三方登录使用 参见其中 LoginByThirdparty
   }
   // 获取 code 结束
 
