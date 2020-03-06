@@ -14,7 +14,7 @@
 其余组件如 tags-views等，全部未做变化，可根据需要具体需求进行删减。 
 
 ## 功能介绍
-1. 系统登录：系统用户登录，系统登录认证（jwt token方式） 
+1. 系统登录：系统用户登录，系统登录认证（jwt token方式success）, github 三方登录(success)
 2. 用户管理：新建用户，修改用户，删除用户，查询用户
 3. 角色管理：新建角色，修改角色，删除角色，查询角色
 4. 菜单管理：新建菜单，修改菜单，删除菜单，查询菜单
@@ -118,6 +118,9 @@ $config['jwt_refresh_token_exp'] = 180; // 单位秒
  ![删除](vue-element-admin/static/screenshot/del_jwt.gif)
  ![编辑](vue-element-admin/static/screenshot/edit_jwt.gif)
  ![查看](vue-element-admin/static/screenshot/view_jwt.gif)
+
+## github 三方认证demo.gif
+ ![github_login.gif](vue-element-admin/static/screenshot/github_login.gif)
 
 ## 截图
  
