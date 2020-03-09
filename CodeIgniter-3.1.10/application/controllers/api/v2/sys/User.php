@@ -471,6 +471,8 @@ class User extends RestController
         // $client_id = 'xxxxxx';
         // $client_secret = 'xxxxxx';
         // $redirect_uri ='http://localhost:9527/auth-redirect';
+        // 这里redirect_uri 应与github网站配置尽量保持一至，因为手工封包的时候容易出现 在通过authcode获取accesstoken的时候容易
+        // 漏掉redirct_uri参数，而使用github默认值，可能导致校验出错
         $client_id = '94aae05609c96ffb7d3b';  // #gitignore
         $client_secret = '02e962159c91e76bfc18548f7c90c52bc18b1cc6';  // #gitignore
         $redirect_uri = 'http://localhost:9527/auth-redirect';   // #gitignore
@@ -488,17 +490,17 @@ class User extends RestController
 
         // If we don't have an authorization code then get one
         if (!isset($code)) {
-             // 没有 code 参数, 生成授权链接 AuthorizationUrl 前返回前端
-              //  https://github.com/login/oauth/authorize?state=137caabc2b409f0cccd14834fc848041&response_type=code&approval_prompt=auto&redirect_uri=http://localhost:9527/auth-redirect&client_id=94aae05609c96ffb7d3b
-                // Fetch the authorization URL from the provider; this returns the
-                // urlAuthorize option and generates and applies any necessary parameters
-                // (e.g. state).
+            // 没有 code 参数, 生成授权链接 AuthorizationUrl 前返回前端
+            //  https://github.com/login/oauth/authorize?state=137caabc2b409f0cccd14834fc848041&response_type=code&approval_prompt=auto&redirect_uri=http://localhost:9527/auth-redirect&client_id=94aae05609c96ffb7d3b
+            // Fetch the authorization URL from the provider; this returns the
+            // urlAuthorize option and generates and applies any necessary parameters
+            // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
             
-                // Get the state generated for you and store it to the session.
+            // Get the state generated for you and store it to the session.
             $_SESSION['oauth2state'] = $provider->getState();
             
-                // Redirect the user to the authorization URL.
+            // Redirect the user to the authorization URL.
             // header('Location: ' . $authorizationUrl);
             // exit;
             $message = [
@@ -507,7 +509,7 @@ class User extends RestController
             ];
             $this->response($message, RestController::HTTP_OK);
 
-            // Check given state against previously stored one to mitigate CSRF attack
+        // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($state) || (isset($_SESSION['oauth2state']) && $state !== $_SESSION['oauth2state'])) {
 
             if (isset($_SESSION['oauth2state'])) {
@@ -570,7 +572,12 @@ class User extends RestController
                 }
             } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {              
                 // Failed to get the access token or user details.
-                exit($e->getMessage());
+                // exit($e->getMessage());
+                $message = [
+                    "code" => 60206,
+                    "message" => "canot get access token!"
+                ];
+                $this->response($message, RestController::HTTP_OK);
             }
         }
 

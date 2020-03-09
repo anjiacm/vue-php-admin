@@ -119,10 +119,20 @@ export default {
     githubLogin() {
       // permission.js 里根据 AuthRedirect 返回的 http://localhost:9527/?code=8789d613d1fa9a19732a URL 获取code 并写入 store.state.user.code
       // 如果设置了github code, 说明是三方登录, 则执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
-      const code = this.$store.state.user.code
-      const state = this.$store.state.user.code_state
+      // const code = this.$store.state.user.code
+      // const state = this.$store.state.user.code_state
+      console.log('in login/index.vue....', window.location, this.$route, this.$router)
+      // 获取三方登录 code
+      // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
+      if (this.$route.query.hasOwnProperty('code') && this.$route.query.hasOwnProperty('state')) { // to.query 如果存在 code 则为三方登录则写入store 变量
+        const code = this.$route.query.code
+        const state = this.$route.query.state
+        console.log('github code: ', code)
+        console.log('github state: ', state)
+        // store.state.user.code = code
+        // store.state.user.code_state = state
+        // console.log(store.state.user) // 该code 在store/modules/user.js 里定义有 作为第三方登录使用 参见其中 LoginByThirdparty
 
-      if (code) {
         this.thirdLogin = true
         const loading = this.$loading({
           lock: true,
@@ -133,7 +143,6 @@ export default {
 
         const authParms = { code, state }
         this.$store.dispatch('githubAuth', authParms).then(() => {
-          console.log('this.$store.dispatchgithubAuth....', window.location.origin + '/' + window.location.hash, window.location.hash)
           this.$router.push({ path: '/' })
           loading.close()
         }).catch((err) => {

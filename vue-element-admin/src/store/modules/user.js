@@ -5,8 +5,7 @@ const user = {
   state: {
     user: '',
     status: '',
-    code: '', // 存储三方登录认证 code 参数
-    code_state: '', // 存储三方登录认证 state 参数
+    code: '', // 存储三方登录认证 code 参数 不是必须
     token: getToken(),
     refresh_token: getRefreshToken(),
     name: '',
