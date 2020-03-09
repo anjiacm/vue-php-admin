@@ -538,6 +538,7 @@ $config['jwt_white_list'] = [
     '/sys/user/logout',
     '/sys/user/refreshtoken', // 刷新token接口需要在控制器内作权限验证,比较特殊
     '/sys/user/githubauth', // github认证免授权
+    '/sys/user/giteeauth', // gitee码云认证免授权
     // 下面接口uri 可以在菜单权限里面添加,再分配给对应角色即可, 方便/安全?
     // 如果不想在前端菜单里添加,也可以直接在后端在控制器里单独做token验证,不用做权限认证
     // 参考/sys/user/refreshtoken

@@ -580,6 +580,145 @@ class User extends RestController
 
     } // function githubauth_get() end
 
+    function giteeauth_get()
+    {
+        $code = $this->get('code');
+        $state = $this->get('state');
+
+        // 需要正确配置client ID, Secret, redirect_uri
+        // $client_id = 'xxxxxx';
+        // $client_secret = 'xxxxxx';
+        // $redirect_uri ='http://localhost:9527/auth-redirect';
+        // 这里redirect_uri 应与gitee网站配置尽量保持一至，因为手工封包的时候容易出现 在通过authcode获取accesstoken的时候容易
+        // 漏掉redirct_uri参数，而使用gitee默认值，可能导致校验出错
+        $client_id = '15be551900242204c25e8aff5c49f8a41ba5bd889657512bade8ec2d12d956b9';  // #gitignore
+        $client_secret = '23a2346a2c32c4ed7e793dbf1f03c0d3d7b2d1233d46ff0a2d4ae2087ebee562';  // #gitignore
+        $redirect_uri = 'http://localhost:9527/auth-redirect';   // #gitignore
+        
+        // composer 安装 oauth2-client 包
+        // composer require league/oauth2-client
+        $provider = new \League\OAuth2\Client\Provider\GenericProvider([
+            'clientId' => $client_id,    // The client ID assigned to you by the provider
+            'clientSecret' => $client_secret,   // The client password assigned to you by the provider
+            'redirectUri' => $redirect_uri,
+            'urlAuthorize' => 'https://gitee.com/oauth/authorize',
+            'urlAccessToken' => 'https://gitee.com/oauth/token',
+            'urlResourceOwnerDetails' => 'https://gitee.com/api/v5/user'
+        ]);
+
+        // If we don't have an authorization code then get one
+        if (!isset($code)) {
+            // 没有 code 参数, 生成授权链接 AuthorizationUrl 前返回前端
+            //  https://github.com/login/oauth/authorize?state=137caabc2b409f0cccd14834fc848041&response_type=code&approval_prompt=auto&redirect_uri=http://localhost:9527/auth-redirect&client_id=94aae05609c96ffb7d3b
+            // Fetch the authorization URL from the provider; this returns the
+            // urlAuthorize option and generates and applies any necessary parameters
+            // (e.g. state).
+            $authorizationUrl = $provider->getAuthorizationUrl();
+            
+            // Get the state generated for you and store it to the session.
+            $_SESSION['oauth2state'] = $provider->getState();
+            
+            // Redirect the user to the authorization URL.
+            // header('Location: ' . $authorizationUrl);
+            // exit;
+            $message = [
+                "code" => 20000,
+                "data" => ['auth_url' => $authorizationUrl],
+            ];
+            $this->response($message, RestController::HTTP_OK);
+
+        // Check given state against previously stored one to mitigate CSRF attack
+        } elseif (empty($state) || (isset($_SESSION['oauth2state']) && $state !== $_SESSION['oauth2state'])) {
+
+            if (isset($_SESSION['oauth2state'])) {
+                unset($_SESSION['oauth2state']);
+            }
+
+            exit('Invalid state');
+
+        } else {
+            try {
+                // Try to get an access token using the authorization code grant.
+                $accessToken = $provider->getAccessToken('authorization_code', [
+                    'code' => $code
+                ]);
+                // // We have an access token, which we may use in authenticated
+                // // requests against the service provider's API.
+                // echo 'Access Token: ' . $accessToken->getToken() . "<br>";
+                // echo 'Refresh Token: ' . $accessToken->getRefreshToken() . "<br>";
+                // echo 'Expired in: ' . $accessToken->getExpires() . "<br>";
+                // echo 'Already expired? ' . ($accessToken->hasExpired() ? 'expired' : 'not expired') . "<br>";
+
+                // Using the access token, we may look up details about the
+                // resource owner.
+                $resourceOwner = $provider->getResourceOwner($accessToken);
+                
+                // 与业务系统绑定帐户时 应该以 login 为唯一名比较好，或者邮箱？
+                //  var_export($resourceOwner->toArray());
+                //  array (
+                //     'id' => 111,
+                //     'login' => 'foo',
+                //     'name' => 'fooname',
+                //     'id' => 4797475,  // #gitignore
+                //     'login' => 'emacle',   // #gitignore
+                //     'name' => '荆棘鸟',   // #gitignore
+                //     'avatar_url' => 'https://gitee.com/assets/no_portrait.png',
+                //     'url' => 'https://gitee.com/api/v5/users/emacle',   // #gitignore
+                //     'html_url' => 'https://gitee.com/emacle',   // #gitignore
+                //     'blog' => '',
+                //     'weibo' => '',
+                //     'bio' => '',
+                //     'email' => '79464972@qq.com',   // #gitignore
+                //     'email' => 'abc@qq.com',
+                //   )
+                $userInfo = $resourceOwner->toArray();
+
+                $user = $this->User_model->getUserInfoByTel($userInfo["email"]); // 结合业务逻辑
+                if (!empty($user)) {
+
+                    $time = time(); //当前时间
+                    // 公用信息
+                    $payload = [
+                        'iat' => $time, //签发时间
+                        'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+                        'user_id' => $user[0]['id'], //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
+                    ];
+
+                    $access_token = $payload;
+                    $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
+                    $access_token['exp'] = $time + config_item('jwt_access_token_exp'); //access_token过期时间,这里设置2个小时
+
+                    $refresh_token = $payload;
+                    $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
+                    $refresh_token['exp'] = $time + config_item('jwt_refresh_token_exp'); //refresh_token,这里设置30天
+                    $refresh_token['count'] = 0; // 刷新TOKEN计数, 在刷新token期间多次请求刷新token则表示活跃,可以重新生成刷新token以免刷新token过期后登录
+
+                    $message = [
+                        "code" => 20000,
+                        "data" => [
+                            "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
+                            "refresh_token" => JWT::encode($refresh_token, config_item('jwt_key')) //生成refresh_token,
+                        ]
+                    ];
+                    $this->response($message, RestController::HTTP_OK);
+                } else {
+                    $message = [
+                        "code" => 60206,
+                        "data" => ["status" => 'fail', "msg" => "此gitee邮箱账号(" . $userInfo['email'] . ")没有与系统账号关联,请联系系统管理员!"],
+                        "message" => "此gitee邮箱账号(" . $userInfo['email'] . ")没有与系统账号关联,请联系系统管理员!"
+                    ];
+                    $this->response($message, RestController::HTTP_OK);
+                }
+            } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {              
+                // Failed to get the access token or user details.
+                exit($e->getMessage());
+                // Type: GuzzleHttp\Exception\ConnectException  Message: cURL error 35: OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443
+                // 此错误无法catch???
+            }
+        }
+
+    } // function giteeauth_get() end
+
     function refreshtoken_post()
     {
         // 此处 $Token 应为refresh token 在前端 request 拦截器中做了修改
