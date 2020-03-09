@@ -13,14 +13,19 @@
     <div class="sign-btn" @click="githubHandleClick('github')">
       <span class="github-svg-container">
         <svg-icon icon-class="github" class="icon" />
-      </span> github 弹子窗口方式
+      </span> github
+    </div>
+    <div class="sign-btn" @click="giteeHandleClick('gitee')">
+      <span class="gitee-svg-container">
+        <svg-icon icon-class="gitee-white" class="icon" />
+      </span> 码云
     </div>
   </div>
 </template>
 
 <script>
 import openWindow from '@/utils/openWindow'
-import { githubAuth } from '@/api/login'
+import { githubAuth, giteeAuth } from '@/api/login'
 
 export default {
   name: 'SocialSignin',
@@ -52,6 +57,21 @@ export default {
         // console.log('auth url....', url)
         // =>  https://github.com/login/oauth/authorize?state=137caabc2b409f0cccd14834fc848041&response_type=code&approval_prompt=auto&redirect_uri=http://localhost:9527/auth-redirect&client_id=94aae05609c96ffb7d3b
         openWindow(url, thirdpart, 540, 540)
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    giteeHandleClick(thirdpart) {
+      // 1. 指定授权 client_id 及 redirect_uri 的 URL
+      //    如果不指定 redirect_uri, 则默认使用 gihtub => Settings => Developer settings =>  OAuth Apps 里 Authorization callback URL 配置的地址
+      //    为了无歧义尽量在程序代码里指定redirect_uri
+      // const url = 'https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/auth-redirect'
+      giteeAuth().then(response => { // githubAuth() 参数 code 为空，由后端返回 authorize_url
+        // 2. 弹出子窗口进行授权, 子窗口完成授权后, 子窗口地址栏URL 会是 redirect_uri 并带上 ?code= 参数与&state= 参数
+        const url = response.data.auth_url
+        // console.log('auth url....', url)
+        // =>  https://github.com/login/oauth/authorize?state=137caabc2b409f0cccd14834fc848041&response_type=code&approval_prompt=auto&redirect_uri=http://localhost:9527/auth-redirect&client_id=94aae05609c96ffb7d3b
+        openWindow(url, thirdpart, 1024, 800)
       }).catch(error => {
         console.log(error)
       })
@@ -104,5 +124,19 @@ export default {
     background-color: #69747e;
     margin-left: 50px;
   }
+  .gitee-svg-container {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    padding-top: 1px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    margin-right: 5px;
+    background-color: #69747e;
+    margin-left: 50px;
+  }
+
 }
 </style>

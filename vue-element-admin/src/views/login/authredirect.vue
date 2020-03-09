@@ -2,11 +2,14 @@
 export default {
   name: 'AuthRedirect',
   created() {
-    this.githubLogin()
+    this.thirdLogin()
   },
   methods: {
-    githubLogin() {
-      console.log('in AuthRedirect ... this.$store.state.user.code', this.$store.state.user.code)
+    thirdLogin() {
+      console.log('in AuthRedirect ... this.$store.state.user.code', this.$store.state.user.code, this.$store.state.user)
+      // ***window.name*** 是 socialsignin.vue 中 openWindow(url, thirdpart, 1024, 800) 传过来三方类型 子窗口关闭时 回传给主窗口, 用于区分三方类型,
+      // 在主窗口使用vue store不行，因此 href 发生了跳转 vue store 变量被清空了
+      console.log(window.name)
       console.log(window.location)
       // 1.  授权成功后, github 返回给 AuthRedirect子窗口的浏览器 回调地址 并带上 ?code=8789d613d1fa9a19732a&state= 参数
       //     地址栏URL如 http://localhost:9527/auth-redirect?code=8789d613d1fa9a19732a&state=xyz
@@ -16,7 +19,8 @@ export default {
       //         window.location.search  => ?code=8789d613d1fa9a19732a&state=137caabc2b409f0cccd14834fc848041
 
       // 2. 调用 window.opener 方法 给 父窗口 的 location.href 赋值 => http://localhost:9527/login?code=8789d613d1fa9a19732a&state=xyz
-      window.opener.location.href = window.location.origin + '/login' + window.location.search
+      window.opener.location.href = window.location.origin + '/login' + window.location.search + '&auth_type=' + window.name
+
       //    注意：此处加入 /login 是因为 router /login 在 permission.js的whiteLis里不会发生重定向而导致href里丢失?code等参数,从而
       //         可以在login/index.vue里直接通过location或vue route 获取code，state参数，不必在permission.js里获取并保存至store里
       //         ***非常关键***，不加的话默认/ 是等价于/dashboard不在白名单里路由根据permission.js逻辑会发生重定向至/login里此时会丢失?code等参数

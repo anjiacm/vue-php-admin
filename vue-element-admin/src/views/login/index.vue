@@ -44,7 +44,7 @@
         <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
           {{ $t('login.thirdparty') }}
         </el-button>
-        <el-link type="success" href="https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527">github登录不弹子窗口方式</el-link>
+        <!-- <el-link type="success" href="https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527">github登录不弹子窗口方式</el-link> -->
         <!-- 如果此href 不含有 redirect_uri参数 则回调地址为 github oauth 配置页面 Authorization callback URL 配置的 url 并且附带 &code=xxxxx99 参数 -->
         <!-- http://localhost/get-github-code.html 微信好像需要使用这个get-code.html
         https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost/get-github-code.html?redirect_uri=http://localhost:9527 -->
@@ -110,13 +110,13 @@ export default {
   },
   created() {
     // window.addEventListener('hashchange', this.afterQRScan)
-    this.githubLogin()
+    this.LoginByThirdparty()
   },
   destroyed() {
     // window.removeEventListener('hashchange', this.afterQRScan)
   },
   methods: {
-    githubLogin() {
+    LoginByThirdparty() {
       // console.log('in login/index.vue....', window.location, this.$route, this.$router)
       // 获取三方登录 code
       // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
@@ -124,8 +124,10 @@ export default {
       if (this.$route.query.hasOwnProperty('code') && this.$route.query.hasOwnProperty('state')) { // this.$route.query 如果存在 code 则为三方登录则写入store 变量
         const code = this.$route.query.code
         const state = this.$route.query.state
-        console.log('github code: ', code)
-        console.log('github state: ', state)
+        const auth_type = this.$route.query.auth_type
+        console.log('thirdLogin code: ', code)
+        console.log('thirdLogin state: ', state)
+        console.log('thirdLogin auth_type: ', auth_type)
         // store.state.user.code = code
         // store.state.user.code_state = state
         // console.log(store.state.user) // 该code 在store/modules/user.js 里定义有 作为第三方登录使用 参见其中 LoginByThirdparty
@@ -133,22 +135,22 @@ export default {
         this.thirdLogin = true
         const loading = this.$loading({
           lock: true,
-          text: 'github 认证登录中...',
+          text: '三方认证登录中...',
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
 
-        const authParms = { code, state }
+        const authParms = { code, state, auth_type }
         // 执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
-        this.$store.dispatch('githubAuth', authParms).then(() => {
+        this.$store.dispatch('LoginByThirdparty', authParms).then(() => {
           this.$router.push({ path: '/' })
           loading.close()
         }).catch((err) => {
-          console.log('this.$store.dispatchgithubAuth catch....', err.response)
+          console.log('this.$store.dispatchLoginByThirdparty catch....', err.response)
           this.thirdLogin = false
           loading.close()
         }).finally((e) => {
-          console.log('this.$store.dispatchgithubAuth finally....', e)
+          console.log('this.$store.dispatchLoginByThirdparty finally....', e)
           this.thirdLogin = false
           loading.close()
         })

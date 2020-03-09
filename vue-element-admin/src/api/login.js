@@ -36,6 +36,15 @@ export function githubAuth(code, state) {
   })
 }
 
+// gitee 认证
+export function giteeAuth(code, state) {
+  return request({
+    url: '/sys/user/giteeauth',
+    method: 'get',
+    params: { code, state }
+  })
+}
+
 export function checkRefreshToken() {
   return request({
     url: '/sys/user/refreshtoken',

@@ -1,4 +1,4 @@
-import { loginByUsername, logout, getUserInfo, githubAuth, checkRefreshToken } from '@/api/login'
+import { loginByUsername, logout, getUserInfo, githubAuth, giteeAuth, checkRefreshToken } from '@/api/login'
 import { getToken, setToken, removeToken, getRefreshToken, setRefreshToken, removeRefreshToken } from '@/utils/auth'
 
 const user = {
@@ -77,20 +77,38 @@ const user = {
       })
     },
 
-    // github认证
-    githubAuth({ commit }, authParms) {
+    // 第三方验证登录
+    LoginByThirdparty({ commit, state }, authParms) {
       return new Promise((resolve, reject) => {
-        githubAuth(authParms.code, authParms.state).then(response => {
-          console.log('githubAuth response...', response)
-          const data = response.data
-          commit('SET_TOKEN', data.token)
-          commit('SET_REFRESH_TOKEN', data.refresh_token)
-          setToken(data.token)
-          setRefreshToken(data.refresh_token)
-          resolve()
-        }).catch(error => {
-          reject(error)
-        })
+        // 按类型拆分 防止不同的三方oauth 方式不一致
+        if (authParms.auth_type === 'github') { // github
+          githubAuth(authParms.code, authParms.state).then(response => {
+            console.log('githubAuth response...', response)
+            const data = response.data
+            commit('SET_TOKEN', data.token)
+            commit('SET_REFRESH_TOKEN', data.refresh_token)
+            setToken(data.token)
+            setRefreshToken(data.refresh_token)
+            resolve()
+          }).catch(error => {
+            reject(error)
+          })
+        } else if (authParms.auth_type === 'gitee') { // 码云
+          giteeAuth(authParms.code, authParms.state).then(response => {
+            console.log('giteeAuth response...', response)
+            const data = response.data
+            commit('SET_TOKEN', data.token)
+            commit('SET_REFRESH_TOKEN', data.refresh_token)
+            setToken(data.token)
+            setRefreshToken(data.refresh_token)
+            resolve()
+          }).catch(error => {
+            reject(error)
+          })
+        } else {
+          // 其他
+          console.log('other login...')
+        }
       })
     },
 
