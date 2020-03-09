@@ -9,13 +9,13 @@ export default {
       console.log('in AuthRedirect ... this.$store.state.user.code', this.$store.state.user.code)
       console.log(window.location)
       // 1.  授权成功后, github 返回给 AuthRedirect子窗口的浏览器 回调地址 并带上 ?code=8789d613d1fa9a19732a&state= 参数
-      //     地址栏URL如 http://localhost:9527/auth-redirect?code=8789d613d1fa9a19732a&state=xxx
+      //     地址栏URL如 http://localhost:9527/auth-redirect?code=8789d613d1fa9a19732a&state=xyz
       //     其中 http://localhost:9527/auth-redirect 是定义 githubHandleClick() 里定义或服务端返回的回调地址
       //     const url = 'https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/auth-redirect'
       //     此时 window.location.href   => http://localhost:9527/auth-redirect?code=8789d613d1fa9a19732a&state=137caabc2b409f0cccd14834fc848041
       //         window.location.search  => ?code=8789d613d1fa9a19732a&state=137caabc2b409f0cccd14834fc848041
 
-      // 2. 调用 window.opener 方法 给 父窗口 的 location.href 赋值 => http://localhost:9527/login?code=8789d613d1fa9a19732a
+      // 2. 调用 window.opener 方法 给 父窗口 的 location.href 赋值 => http://localhost:9527/login?code=8789d613d1fa9a19732a&state=xyz
       window.opener.location.href = window.location.origin + '/login' + window.location.search
       //    注意：此处加入 /login 是因为 router /login 在 permission.js的whiteLis里不会发生重定向而导致href里丢失?code等参数,从而
       //         可以在login/index.vue里直接通过location或vue route 获取code，state参数，不必在permission.js里获取并保存至store里

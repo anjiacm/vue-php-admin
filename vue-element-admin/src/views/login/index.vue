@@ -117,14 +117,11 @@ export default {
   },
   methods: {
     githubLogin() {
-      // permission.js 里根据 AuthRedirect 返回的 http://localhost:9527/?code=8789d613d1fa9a19732a URL 获取code 并写入 store.state.user.code
-      // 如果设置了github code, 说明是三方登录, 则执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
-      // const code = this.$store.state.user.code
-      // const state = this.$store.state.user.code_state
-      console.log('in login/index.vue....', window.location, this.$route, this.$router)
+      // console.log('in login/index.vue....', window.location, this.$route, this.$router)
       // 获取三方登录 code
       // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
-      if (this.$route.query.hasOwnProperty('code') && this.$route.query.hasOwnProperty('state')) { // to.query 如果存在 code 则为三方登录则写入store 变量
+      // 如果路由存在code 与 state 参数，如http://localhost:9527/login?code=8789d613d1fa9a19732a&state=xyz
+      if (this.$route.query.hasOwnProperty('code') && this.$route.query.hasOwnProperty('state')) { // this.$route.query 如果存在 code 则为三方登录则写入store 变量
         const code = this.$route.query.code
         const state = this.$route.query.state
         console.log('github code: ', code)
@@ -142,6 +139,7 @@ export default {
         })
 
         const authParms = { code, state }
+        // 执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
         this.$store.dispatch('githubAuth', authParms).then(() => {
           this.$router.push({ path: '/' })
           loading.close()

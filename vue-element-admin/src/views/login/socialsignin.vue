@@ -11,8 +11,8 @@
       </span> QQ
     </div>
     <div class="sign-btn" @click="githubHandleClick('github')">
-      <span class="qq-svg-container">
-        <svg-icon icon-class="qq" class="icon" />
+      <span class="github-svg-container">
+        <svg-icon icon-class="github" class="icon" />
       </span> github 弹子窗口方式
     </div>
   </div>
@@ -89,6 +89,19 @@ export default {
   }
   .qq-svg-container {
     background-color: #6ba2d6;
+    margin-left: 50px;
+  }
+  .github-svg-container {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    padding-top: 1px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    margin-right: 5px;
+    background-color: #69747e;
     margin-left: 50px;
   }
 }

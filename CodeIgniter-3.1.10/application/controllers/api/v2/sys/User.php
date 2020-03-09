@@ -572,12 +572,9 @@ class User extends RestController
                 }
             } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {              
                 // Failed to get the access token or user details.
-                // exit($e->getMessage());
-                $message = [
-                    "code" => 60206,
-                    "message" => "canot get access token!"
-                ];
-                $this->response($message, RestController::HTTP_OK);
+                exit($e->getMessage());
+                // Type: GuzzleHttp\Exception\ConnectException  Message: cURL error 35: OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443
+                // 此错误无法catch???
             }
         }
 
