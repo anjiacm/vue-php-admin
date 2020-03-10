@@ -7,6 +7,12 @@
     <el-link type="danger">危险链接</el-link>
     <el-link type="info">信息链接</el-link>
 
+    <el-scrollbar>
+      <ul style="height: 200px;">
+        <li v-for="item in 100" :key="item"> {{ item }}</li>
+      </ul>
+    </el-scrollbar>
+
     <div style="margin-left: 10px;margin-top: 10px;margin-bottom: 10px">
 
       <el-row>
