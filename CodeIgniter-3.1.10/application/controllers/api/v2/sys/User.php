@@ -462,7 +462,123 @@ class User extends RestController
             $this->response($message, RestController::HTTP_OK);
         }
     }
+
+    // 使用 oauth2-github 官方包来进行 github 认证登录
+    // 配置参数不用配置 urlAuthorize/access_token/urlResourceOwnerDetails
     function githubauth_get()
+    {
+        $code = $this->get('code');
+        $state = $this->get('state');
+
+        // 需要正确配置github client ID, Secret, redirect_uri
+        // $client_id = 'xxxxxx';
+        // $client_secret = 'xxxxxx';
+        // $redirect_uri ='http://localhost:9527/auth-redirect';
+        // 这里redirect_uri 应与github网站配置尽量保持一至，因为手工封包的时候容易出现 在通过authcode获取accesstoken的时候容易
+        // 漏掉redirct_uri参数，而使用github默认值，可能导致校验出错
+        $client_id = '94aae05609c96ffb7d3b';  // #gitignore
+        $client_secret = '02e962159c91e76bfc18548f7c90c52bc18b1cc6';  // #gitignore
+        $redirect_uri = 'http://localhost:9527/auth-redirect';   // #gitignore
+        
+        // composer require league/oauth2-github
+        $provider = new League\OAuth2\Client\Provider\Github([
+            'clientId' => $client_id,    // The client ID assigned to you by the provider
+            'clientSecret' => $client_secret,   // The client password assigned to you by the provider
+            'redirectUri' => $redirect_uri,
+        ]);
+
+        // If we don't have an authorization code then get one
+        if (!isset($code)) {
+            // 没有 code 参数, 生成授权链接 AuthorizationUrl 前返回前端
+            //  https://github.com/login/oauth/authorize?state=137caabc2b409f0cccd14834fc848041&response_type=code&approval_prompt=auto&redirect_uri=http://localhost:9527/auth-redirect&client_id=94aae05609c96ffb7d3b
+            // Fetch the authorization URL from the provider; this returns the
+            // urlAuthorize option and generates and applies any necessary parameters
+            // (e.g. state).
+            $authorizationUrl = $provider->getAuthorizationUrl();
+            
+            // Get the state generated for you and store it to the session.
+            $_SESSION['oauth2state'] = $provider->getState();
+            
+            // Redirect the user to the authorization URL.
+            // header('Location: ' . $authorizationUrl);
+            // exit;
+            $message = [
+                "code" => 20000,
+                "data" => ['auth_url' => $authorizationUrl],
+            ];
+            $this->response($message, RestController::HTTP_OK);
+
+        // Check given state against previously stored one to mitigate CSRF attack
+        } elseif (empty($state) || (isset($_SESSION['oauth2state']) && $state !== $_SESSION['oauth2state'])) {
+
+            if (isset($_SESSION['oauth2state'])) {
+                unset($_SESSION['oauth2state']);
+            }
+
+            exit('Invalid state');
+
+        } else {
+            try {
+                // Try to get an access token (using the authorization code grant)
+                $accessToken = $provider->getAccessToken('authorization_code', [
+                    'code' => $_GET['code']
+                ]);
+                // We got an access token, let's now get the user's details
+                $resourceOwner = $provider->getResourceOwner($accessToken);
+                $userInfo = $resourceOwner->toArray();
+
+                $user = $this->User_model->getUserInfoByTel($userInfo["email"]); // 结合业务逻辑
+
+                if (!empty($user)) {
+
+                    $time = time(); //当前时间
+                        // 公用信息
+                    $payload = [
+                        'iat' => $time, //签发时间
+                        'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
+                        'user_id' => $user[0]['id'], //自定义信息，不要定义敏感信息, 一般只有 userId 或 username
+                    ];
+
+                    $access_token = $payload;
+                    $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
+                    $access_token['exp'] = $time + config_item('jwt_access_token_exp'); //access_token过期时间,这里设置2个小时
+
+                    $refresh_token = $payload;
+                    $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
+                    $refresh_token['exp'] = $time + config_item('jwt_refresh_token_exp'); //refresh_token,这里设置30天
+                    $refresh_token['count'] = 0; // 刷新TOKEN计数, 在刷新token期间多次请求刷新token则表示活跃,可以重新生成刷新token以免刷新token过期后登录
+
+                    $message = [
+                        "code" => 20000,
+                        "data" => [
+                            "token" => JWT::encode($access_token, config_item('jwt_key')), //生成access_tokenToken,
+                            "refresh_token" => JWT::encode($refresh_token, config_item('jwt_key')) //生成refresh_token,
+                        ]
+                    ];
+                    $this->response($message, RestController::HTTP_OK);
+                } else {
+                    $message = [
+                        "code" => 60206,
+                        "data" => ["status" => 'fail', "msg" => "此github邮箱账号(" . $userInfo['email'] . ")没有与系统账号关联,请联系系统管理员!"],
+                        "message" => "此github邮箱账号(" . $userInfo['email'] . ")没有与系统账号关联,请联系系统管理员!"
+                    ];
+                    $this->response($message, RestController::HTTP_OK);
+                }
+            } catch (Exception $e) {
+                // 直接使用Exception $e 可捕获所有异常包括依赖包 guzzlehttp 里的错误异常 GuzzleHttp\Exception\ConnectException  Message: cURL error 35: OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443
+                // 使用 \League\OAuth2\Client\Provider\Exception\IdentityProviderException 只能捕获 IdentityProviderException
+                $message = [
+                    "code" => 60206,
+                    "message" => $e->getMessage()
+                ];
+                $this->response($message, RestController::HTTP_OK);
+            }
+        }
+
+    } // function githubauth_get() end
+
+    // 使用 oauth2-client 通用包来进行 github 认证登录, 配置参数较多，(备用参考使用)
+    function githubauth1_get()
     {
         $code = $this->get('code');
         $state = $this->get('state');
@@ -570,16 +686,22 @@ class User extends RestController
                     ];
                     $this->response($message, RestController::HTTP_OK);
                 }
-            } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {              
+            // } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
+            } catch (Exception $e) {
+                // 直接使用Exception $e 可捕获所有异常包括信赖包 guzzlehttp 里的错误异常 GuzzleHttp\Exception\ConnectException  Message: cURL error 35: OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443
+                // 使用 \League\OAuth2\Client\Provider\Exception\IdentityProviderException 只能捕获 IdentityProviderException
                 // Failed to get the access token or user details.
-                exit($e->getMessage());
-                // Type: GuzzleHttp\Exception\ConnectException  Message: cURL error 35: OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443
-                // 此错误无法catch???
+                $message = [
+                    "code" => 60206,
+                    "message" => $e->getMessage()
+                ];
+                $this->response($message, RestController::HTTP_OK);
             }
         }
 
     } // function githubauth_get() end
 
+    // 使用 oauth2-client 通用包进行 gitee 码云认证登录
     function giteeauth_get()
     {
         $code = $this->get('code');
@@ -709,11 +831,9 @@ class User extends RestController
                     ];
                     $this->response($message, RestController::HTTP_OK);
                 }
-            } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {              
+            } catch (Exception $e) {
                 // Failed to get the access token or user details.
                 exit($e->getMessage());
-                // Type: GuzzleHttp\Exception\ConnectException  Message: cURL error 35: OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443
-                // 此错误无法catch???
             }
         }
 
@@ -919,10 +1039,10 @@ class User extends RestController
 //                    ]
 //                ]
             ];
-            
+
             $info = array_merge($info1, $info2);
 
-                $message = [
+            $message = [
                 "code" => 20000,
                 "data" => $info,
                 "_SERVER" => $_SERVER,
