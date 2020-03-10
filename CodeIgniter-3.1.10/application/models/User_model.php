@@ -30,12 +30,12 @@ class User_model extends CI_Model
         $query = $this->db->query($sql);
         if (($query->row_array()) == null) {
             $result = array(
-                'success' => FALSE,
+                'success' => false,
                 'userinfo' => null
             );
         } else {
             $result = array(
-                'success' => TRUE,
+                'success' => true,
                 'userinfo' => $query->row_array()
             );
         }
@@ -213,6 +213,43 @@ class User_model extends CI_Model
         return $query->result_array();
     }
 
+
+    /**
+     * 根据 $userId 拉取用户信息
+     * @param $userId
+     */
+    function getUserInfo($userId)
+    {
+        $sql = "SELECT
+                    u.id,
+                    u.username,
+                    u.tel,
+                    u.email,
+                    u.avatar,
+                    u.sex,
+                    u.last_login_ip,
+                    u.last_login_time,
+                    u.status
+                FROM
+                    sys_user u
+                WHERE
+                    u.id = " . $userId;
+
+        $query = $this->db->query($sql);
+        if (($query->row_array()) == null) {
+            $result = array(
+                'success' => false,
+                'userinfo' => null
+            );
+        } else {
+            $result = array(
+                'success' => true,
+                'userinfo' => $query->row_array()
+            );
+        }
+        return $result;
+    }
+    
     /*
      * github登录认证
      */

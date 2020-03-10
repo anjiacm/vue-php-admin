@@ -801,8 +801,6 @@ class User extends RestController
     // 根据token拉取用户信息 get
     function info_get()
     {
-        // $result = $this->some_model();
-        $result['success'] = true;
         // /sys/user/info 不用认证但是需要提取出 access_token 中的 user_id 来拉取用户信息
         $Token = $this->input->get_request_header('X-Token', true);
         $jwt_obj = $this->permission->parseJWT($Token);
@@ -824,16 +822,20 @@ class User extends RestController
         //    [scopes] => role_access
         //            [exp] => 1577355690
         //)
+        // $result = $this->some_model();
+        $result = $this->User_model->getUserInfo($jwt_obj->user_id);
         $MenuTreeArr = $this->permission->getPermission($jwt_obj->user_id, 'menu', false);
         $asyncRouterMap = $this->permission->genVueRouter($MenuTreeArr, 'id', 'pid', 0);
         $CtrlPerm = $this->permission->getMenuCtrlPerm($jwt_obj->user_id);
 
         // 获取用户信息成功
         if ($result['success']) {
-            $info = [
+            $info1 = $result['userinfo'];
+            // 附加信息2
+            $info2 = [
                 "roles" => ["admin", "editor"],
                 "introduction" => "I am a super administrator",
-                "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
+                // "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
                 "name" => "Super Admin",
                 "identify" => "410000000000000000",
                 "phone" => "13633838282",
@@ -917,8 +919,10 @@ class User extends RestController
 //                    ]
 //                ]
             ];
+            
+            $info = array_merge($info1, $info2);
 
-            $message = [
+                $message = [
                 "code" => 20000,
                 "data" => $info,
                 "_SERVER" => $_SERVER,
