@@ -61,7 +61,7 @@
           <h2>角色授权</h2>
         </span>
       </div>
-      <el-tabs v-model="activeName" tab-position="top" type="card" style="height: 200px;" @tab-click="handleTabClick">
+      <el-tabs v-model="activeName" tab-position="top" type="card" @tab-click="handleTabClick">
         <el-tab-pane label="菜单类" name="menu">
           <el-tree
             v-loading="menuLoading"
