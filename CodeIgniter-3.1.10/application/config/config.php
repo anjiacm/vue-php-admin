@@ -534,6 +534,7 @@ $config['jwt_api_prefix'] = 'api/v2';
 
 // 白名单里的uri不认证
 $config['jwt_white_list'] = [
+    '/sys/user/testapi', // 测试api接口不认证
     '/sys/user/login',
     '/sys/user/logout',
     '/sys/user/refreshtoken', // 刷新token接口需要在控制器内作权限验证,比较特殊
