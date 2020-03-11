@@ -13,8 +13,11 @@
 归档集中在 **样例模板** 菜单下，见 @router/index.js constantRouterMap，
 其余组件如 tags-views等，全部未做变化，可根据需要具体需求进行删减。 
 
+## Demo
+[vue-php-admin-demo](http://222.40.42.139:7001)
+
 ## 功能介绍
-1. 系统登录：系统用户登录，系统登录认证（jwt token方式success）, **github 三方登录(success)**
+1. 系统登录：系统用户登录，系统登录认证（jwt token方式success）, **github/gitee 三方登录(success)**
 2. 用户管理：新建用户，修改用户，删除用户，查询用户
 3. 角色管理：新建角色，修改角色，删除角色，查询角色
 4. 菜单管理：新建菜单，修改菜单，删除菜单，查询菜单
