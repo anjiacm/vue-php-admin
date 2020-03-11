@@ -81,13 +81,29 @@
 
     www.cirest.com:8889  **注意与前端接口配置一致** BASE_API: '"http://www.cirest.com:8889/api/v2/"'
 
-    接口调用使用示例：
+    api接口调用使用示例：
     ```html    
-    http://www.cirest.com:8889/api/v2/sys/menu/testapi
-    http://www.cirest.com:8889/index.php/api/v2/sys/menu/testapi
+    http://www.cirest.com:8889/api/v2/sys/user/testapi # 免token认证测试接口正常
+    http://www.cirest.com:8889/index.php/api/v2/sys/user/testapi
+    ```
+
+    免token认证测试接口在 CodeIgniter-3.1.10/config/config.php 配置
+
+    ```php
+    $config['jwt_white_list'] = [
+        '/sys/user/testapi', // 测试api接口不认证
+        '/sys/user/login',
+        '/sys/user/logout',
+        '/sys/user/refreshtoken', // 刷新token接口需要在控制器内作权限验证,比较特殊
+        '/sys/user/githubauth', // github认证免授权
+        '/sys/user/giteeauth', // gitee码云认证免授权
+    ]
+    ```
+    ~~request header 配置 X-API-KEY: oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks~~ 默认禁用API-KEY 可在CodeIgniter-3.1.10/config/rest.php中
+    ```php
+    cat CodeIgniter-3.1.10/config/rest.php
     
-    ~~request header 配置 X-API-KEY: oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks~~ 默认禁用API-KEY 可在CodeIgniter-3.1.10/config/rest.php中 $config['rest_enable_keys'] = TRUE 开启;
-    
+    $config['rest_enable_keys'] = TRUE
     ```
     带有 index.php 若要去掉 修改根目录下 CodeIgniter-3.1.10/.htaccess 文件(Apache), 注意不是 CodeIgniter-3.1.10/application/ 目录下
     Nginx的话需要对应的配置
