@@ -53,6 +53,7 @@ export default {
       // const url = 'https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527/auth-redirect'
       githubAuth().then(response => { // githubAuth() 参数 code 为空，由后端返回 authorize_url
         // 2. 弹出子窗口进行授权, 子窗口完成授权后, 子窗口地址栏URL 会是 redirect_uri 并带上 ?code= 参数与&state= 参数
+        //  子窗口单击确定按钮授权时，会校验此时的redirect 与 创建三方应用时填写的 callback 不一致会出错
         const url = response.data.auth_url
         // console.log('auth url....', url)
         // =>  https://github.com/login/oauth/authorize?state=137caabc2b409f0cccd14834fc848041&response_type=code&approval_prompt=auto&redirect_uri=http://localhost:9527/auth-redirect&client_id=94aae05609c96ffb7d3b
