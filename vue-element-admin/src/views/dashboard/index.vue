@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <component :is="currentRole"/>
+    <component :is="currentRole" />
   </div>
 </template>
 
@@ -23,8 +23,16 @@ export default {
     ])
   },
   created() {
-    if (!this.roles.includes('admin')) {
-      this.currentRole = 'editorDashboard'
+    console.log('dashboard...', this.roles)
+    // if (!this.roles.includes('admin')) {
+    //   this.currentRole = 'editorDashboard'
+    // }
+    // 非超级管理进入 editorDashboard 面板
+    for (let i = 0; i < this.roles.length; i++) {
+      if (!this.roles[i].name.includes('超级管理员') && !this.roles[i].name.includes('admin')) {
+        this.currentRole = 'editorDashboard'
+        break
+      }
     }
   }
 }

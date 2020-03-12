@@ -263,6 +263,27 @@ class User_model extends CI_Model
         $query = $this->db->query($sql);
         return $query->result_array();
     }
+
+    /**
+     * 根据$userId 拉取用户角色信息
+     * @param $userId
+     */
+    function getUserRolesByUserId($userId)
+    {
+        $sql = "SELECT
+                    DISTINCT r.id,r.name
+                FROM
+                    sys_user_role ur,
+                    sys_role r
+                WHERE
+                    r.id = ur.role_id
+                    AND r.status=1
+                    AND ur.user_id =" . $userId;
+
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+    
     /***********************
      * 用户模型部分结束
      ***********************/
