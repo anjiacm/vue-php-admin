@@ -69,19 +69,6 @@ class User extends RestController
         //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
     }
 
-    public function jsonexample_get()
-    {
-        $jsonStr = [
-            'hey' => 'guy',
-            'anumber' => 243,
-            'children' => [
-                'first' => 'good',
-                'second' => 'bad'
-            ]
-        ];
-        $this->response($jsonStr, RestController::HTTP_OK);
-    }
-
     public function testapi_get()
     {
 
@@ -97,11 +84,10 @@ class User extends RestController
 
         // var_dump($this->config);
 
-        echo "-------GuzzleHttp example--------\n\n";
-
+        // //////////////// GuzzleHttp 测试 ///////////////////////
         $client = new \GuzzleHttp\Client();
         $response = $client->request('GET', 'https://api.github.com/repos/guzzle/guzzle');
-        
+
         echo $response->getStatusCode(); // 200
         echo $response->getHeaderLine('content-type'); // 'application/json; charset=utf8'
         echo $response->getBody(); // '{"id": 1420053, "name": "guzzle", ...}'
@@ -117,47 +103,18 @@ class User extends RestController
 
         $promise->wait();
 
+        // //////////////// phpinfo 测试 ///////////////////////
         // phpinfo();
 
-//        $message = [
-//            "code" => 20000,
-//            "data" => [
-//                "__FUNCTION__" =>  __FUNCTION__,
-//                "__CLASS__" => __CLASS__,
-//                "uri" => $this->uri
-//            ],
-//
-//        ];
-//        "data": {
-//            "__FUNCTION__": "router_get",
-//            "__CLASS__": "User",
-//            "uri": {
-//                    "keyval": [],
-//              "uri_string": "api/v2/user/router",
-//              "segments": {
-//                        "1": "api",
-//                "2": "v2",
-//                "3": "user",
-//                "4": "router"
-//              },
-    }
+        // /////////////// 数据库连接测试 ///////////////////////
+        // //  有结果表明数据库连接正常 reslut() 与 row_array 结果有时不太一样
+        // //  一般加载到时model里面使用。
+        // $this->load->database();
+        // $query = $this->db->query("show tables");
+        // var_dump($query);
+        // var_dump($query->result());
 
-    public function phpinfo_get()
-    {
-        phpinfo();
     }
-
-    public function testdb_get()
-    {
-        $this->load->database();
-        $query = $this->db->query("show tables");
-        var_dump($query);
-        var_dump($query->result());
-        var_dump($query->row_array());
-//         有结果表明数据库连接正常 reslut() 与 row_array 结果有时不太一样
-//        一般加载到时model里面使用。
-    }
-
 
     /* Helper Methods */
     /**
