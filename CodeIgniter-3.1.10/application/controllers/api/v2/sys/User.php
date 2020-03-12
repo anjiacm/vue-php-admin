@@ -69,20 +69,55 @@ class User extends RestController
         //Firebase定义了多个 throw new，我们可以捕获多个catch来定义问题，catch加入自己的业务，比如token过期可以用当前Token刷新一个新Token
     }
 
+    public function jsonexample_get()
+    {
+        $jsonStr = [
+            'hey' => 'guy',
+            'anumber' => 243,
+            'children' => [
+                'first' => 'good',
+                'second' => 'bad'
+            ]
+        ];
+        $this->response($jsonStr, RestController::HTTP_OK);
+    }
+
     public function testapi_get()
     {
-        phpinfo();
-        echo "test api ok...";
 
-        echo APPPATH . "\n";
-        echo SELF . "\n";
-        echo BASEPATH . "\n";
-        echo FCPATH . "\n";
-        echo SYSDIR . "\n";
-        var_dump($this->config->item('rest_language'));
-        var_dump($this->config->item('language'));
+        echo "test api ok...\n\n";
 
-        var_dump($this->config);
+        // echo APPPATH . "\n";
+        // echo SELF . "\n";
+        // echo BASEPATH . "\n";
+        // echo FCPATH . "\n";
+        // echo SYSDIR . "\n";
+        // var_dump($this->config->item('rest_language'));
+        // var_dump($this->config->item('language'));
+
+        // var_dump($this->config);
+
+        echo "-------GuzzleHttp example--------\n\n";
+
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('GET', 'https://api.github.com/repos/guzzle/guzzle');
+        
+        echo $response->getStatusCode(); // 200
+        echo $response->getHeaderLine('content-type'); // 'application/json; charset=utf8'
+        echo $response->getBody(); // '{"id": 1420053, "name": "guzzle", ...}'
+        
+        // Send an asynchronous request. 异步请求
+        $request = new \GuzzleHttp\Psr7\Request('GET', 'https://jsonplaceholder.typicode.com/todos');
+        $promise = $client->sendAsync($request)->then(function ($response) {
+            // echo 'I completed! ' . $response->getStatusCode();
+            // echo 'I completed! ' . $response->getHeaderLine('content-type');
+            // echo 'I completed! ' . $response->getBody();
+            var_dump(json_decode($response->getBody(), true));   // json String => array , 有些json 网址 返回字符串不规范前面有 #xfeff 字
+        });
+
+        $promise->wait();
+
+        // phpinfo();
 
 //        $message = [
 //            "code" => 20000,
