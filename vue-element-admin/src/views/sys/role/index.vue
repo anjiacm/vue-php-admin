@@ -401,6 +401,9 @@ export default {
           type: res.type
         })
         this.authLoading = false
+      }).catch(err => {
+        console.log(err)
+        this.authLoading = false
       })
     },
     renderContent(h, { node, data, store }) {
