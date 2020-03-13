@@ -1,61 +1,82 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
+    <el-form
+      ref="loginForm"
+      :model="loginForm"
+      :rules="loginRules"
+      class="login-form"
+      auto-complete="on"
+      label-position="left"
+    >
       <div class="title-container">
-        <h3 class="title">
-          {{ $t('login.title') }}
-        </h3>
+        <h3 class="title">{{ $t('login.title') }}</h3>
         <lang-select class="set-language" />
       </div>
       <el-form-item v-if="!thirdLogin" prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
-        <el-input v-model="loginForm.username" :placeholder="$t('login.username')" name="username" type="text" auto-complete="on" />
+        <el-input
+          v-model="loginForm.username"
+          :placeholder="$t('login.username')"
+          name="username"
+          type="text"
+          auto-complete="on"
+        />
       </el-form-item>
 
       <el-form-item v-if="!thirdLogin" prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
-        <el-input v-model="loginForm.password" :type="passwordType" :placeholder="$t('login.password')" name="password" auto-complete="on" @keyup.enter.native="handleLogin" />
+        <el-input
+          v-model="loginForm.password"
+          :type="passwordType"
+          :placeholder="$t('login.password')"
+          name="password"
+          auto-complete="on"
+          @keyup.enter.native="handleLogin"
+        />
         <span class="show-pwd" @click="showPwd">
           <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
       </el-form-item>
 
-      <el-button v-if="!thirdLogin" :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">
-        {{ $t('login.logIn') }}
-      </el-button>
+      <el-button
+        v-if="!thirdLogin"
+        :loading="loading"
+        type="primary"
+        style="width:100%;margin-bottom:30px;"
+        @click.native.prevent="handleLogin"
+      >{{ $t('login.logIn') }}</el-button>
 
       <div style="position:relative">
         <div class="tips">
           <span>超级{{ $t('login.username') }} : admin</span>
           <!-- <span>{{ $t('login.password') }} : {{ $t('login.any') }}</span> -->
           <span>{{ $t('login.password') }} : admin</span>
-
         </div>
         <div class="tips">
-          <span style="margin-right:18px;">
-            普通{{ $t('login.username') }} : editor
-          </span>
+          <span style="margin-right:18px;">普通{{ $t('login.username') }} : editor</span>
           <span>{{ $t('login.password') }} : editor</span>
         </div>
-        <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
-          {{ $t('login.thirdparty') }}
-        </el-button>
+        <el-button
+          class="thirdparty-button"
+          type="primary"
+          @click="showDialog=true"
+        >{{ $t('login.thirdparty') }}</el-button>
         <!-- <el-link type="success" href="https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527">github登录不弹子窗口方式</el-link> -->
         <!-- 如果此href 不含有 redirect_uri参数 则回调地址为 github oauth 配置页面 Authorization callback URL 配置的 url 并且附带 &code=xxxxx99 参数 -->
         <!-- http://localhost/get-github-code.html 微信好像需要使用这个get-code.html
-        https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost/get-github-code.html?redirect_uri=http://localhost:9527 -->
+        https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost/get-github-code.html?redirect_uri=http://localhost:9527-->
       </div>
     </el-form>
 
     <el-dialog :title="$t('login.thirdparty')" :visible.sync="showDialog">
       {{ $t('login.thirdpartyTips') }}
-      <br>
-      <br>
-      <br>
+      <br >
+      <br >
+      <br >
       <social-sign />
     </el-dialog>
   </div>
@@ -90,8 +111,12 @@ export default {
         password: 'admin'
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+        username: [
+          { required: true, trigger: 'blur', validator: validateUsername }
+        ],
+        password: [
+          { required: true, trigger: 'blur', validator: validatePassword }
+        ]
       },
       passwordType: 'password',
       loading: false,
@@ -121,7 +146,11 @@ export default {
       // 获取三方登录 code
       // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
       // 如果路由存在code 与 state 参数，如http://localhost:9527/login?code=8789d613d1fa9a19732a&state=xyz
-      if (this.$route.query.hasOwnProperty('code') && this.$route.query.hasOwnProperty('state')) { // this.$route.query 如果存在 code 则为三方登录则写入store 变量
+      if (
+        this.$route.query.hasOwnProperty('code') &&
+        this.$route.query.hasOwnProperty('state')
+      ) {
+        // this.$route.query 如果存在 code 则为三方登录则写入store 变量
         const code = this.$route.query.code
         const state = this.$route.query.state
         const auth_type = this.$route.query.auth_type
@@ -142,18 +171,25 @@ export default {
 
         const authParms = { code, state, auth_type }
         // 执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
-        this.$store.dispatch('LoginByThirdparty', authParms).then(() => {
-          this.$router.push({ path: '/' })
-          loading.close()
-        }).catch((err) => {
-          console.log('this.$store.dispatchLoginByThirdparty catch....', err.response)
-          this.thirdLogin = false
-          loading.close()
-        }).finally((e) => {
-          console.log('this.$store.dispatchLoginByThirdparty finally....', e)
-          this.thirdLogin = false
-          loading.close()
-        })
+        this.$store
+          .dispatch('LoginByThirdparty', authParms)
+          .then(() => {
+            this.$router.push({ path: '/' })
+            loading.close()
+          })
+          .catch(err => {
+            console.log(
+              'this.$store.dispatchLoginByThirdparty catch....',
+              err.response
+            )
+            this.thirdLogin = false
+            loading.close()
+          })
+          .finally(e => {
+            console.log('this.$store.dispatchLoginByThirdparty finally....', e)
+            this.thirdLogin = false
+            loading.close()
+          })
       }
     },
     showPwd() {
@@ -167,12 +203,15 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
-            this.loading = false
-            this.$router.push({ path: this.redirect || '/' })
-          }).catch(() => {
-            this.loading = false
-          })
+          this.$store
+            .dispatch('LoginByUsername', this.loginForm)
+            .then(() => {
+              this.loading = false
+              this.$router.push({ path: this.redirect || '/' })
+            })
+            .catch(() => {
+              this.loading = false
+            })
         } else {
           console.log('error submit!!')
           return false
@@ -236,6 +275,7 @@ $cursor: #fff;
       &:-webkit-autofill {
         -webkit-box-shadow: 0 0 0px 1000px $bg inset !important;
         -webkit-text-fill-color: $cursor !important;
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1); // <- Add this to fix.
       }
     }
   }
