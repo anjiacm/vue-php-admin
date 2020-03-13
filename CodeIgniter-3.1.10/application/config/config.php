@@ -23,7 +23,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = 'http://www.vueapi.com:8889/';
+$config['base_url'] = 'http://www.cirest.com:8890/';
 
 /*
 |--------------------------------------------------------------------------
@@ -530,10 +530,9 @@ $config['jwt_access_token_exp'] = 7200; // 单位秒
 $config['jwt_refresh_token_exp'] = 604800; // 单位秒
 $config['jwt_refresh_count'] = 7; // 调用refresh_token接口超过此次数时, 会重置刷新token过期时间
 
-$config['jwt_api_prefix'] = 'api/v2';
-
 // 白名单里的uri不认证
 $config['jwt_white_list'] = [
+    '/example/users', // 测试api接口不认证  
     '/sys/user/testapi', // 测试api接口不认证
     '/sys/user/login',
     '/sys/user/logout',

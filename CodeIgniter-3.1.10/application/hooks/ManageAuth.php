@@ -1,8 +1,10 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 use \Firebase\JWT\JWT;
 use chriskacerguis\RestServer\RestController;
+use Nette\Utils\Arrays;
+use Nette\Utils\Strings;
 
 class ManageAuth
 {
@@ -13,14 +15,17 @@ class ManageAuth
         $this->CI = &get_instance();  //获取CI对象
     }
 
-    // var_dump(uri_string()); => api/v2/sys/user/login
-
     //token及权限认证
     public function auth()
     {
-        $uri_no_prefix = str_replace(config_item('jwt_api_prefix'), '', uri_string());  // /sys/user/login 不带 api/v2 前缀
+        // var_dump(uri_string()); // => api/v2/sys/user/login , api/example/users
 
-        if (!in_array($uri_no_prefix, config_item('jwt_white_list'))) { // 不在白名单里需要校验 token
+        $in_whiteList = Arrays::some(config_item('jwt_white_list'), function ($value) : bool {
+            // 白名单里的某一项 eg. '/sys/user/testapi' 包含于 uri_string() => 'api/v2/sys/user/testapi' 中则立即返回true, 所有项都不包含于才返回false
+            return Strings::contains(uri_string(), $value);
+        });
+
+        if (!$in_whiteList) { // 不在白名单里需要校验 token
             $headers = $this->CI->input->request_headers();
             $Token = $headers['X-Token'];
 

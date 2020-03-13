@@ -85,23 +85,23 @@ class User extends RestController
         // var_dump($this->config);
 
         // //////////////// GuzzleHttp 测试 ///////////////////////
-        $client = new \GuzzleHttp\Client();
-        $response = $client->request('GET', 'https://api.github.com/repos/guzzle/guzzle');
+        // $client = new \GuzzleHttp\Client();
+        // $response = $client->request('GET', 'https://api.github.com/repos/guzzle/guzzle');
 
-        echo $response->getStatusCode(); // 200
-        echo $response->getHeaderLine('content-type'); // 'application/json; charset=utf8'
-        echo $response->getBody(); // '{"id": 1420053, "name": "guzzle", ...}'
+        // echo $response->getStatusCode(); // 200
+        // echo $response->getHeaderLine('content-type'); // 'application/json; charset=utf8'
+        // echo $response->getBody(); // '{"id": 1420053, "name": "guzzle", ...}'
         
-        // Send an asynchronous request. 异步请求
-        $request = new \GuzzleHttp\Psr7\Request('GET', 'https://jsonplaceholder.typicode.com/todos');
-        $promise = $client->sendAsync($request)->then(function ($response) {
-            // echo 'I completed! ' . $response->getStatusCode();
-            // echo 'I completed! ' . $response->getHeaderLine('content-type');
-            // echo 'I completed! ' . $response->getBody();
-            var_dump(json_decode($response->getBody(), true));   // json String => array , 有些json 网址 返回字符串不规范前面有 #xfeff 字
-        });
+        // // Send an asynchronous request. 异步请求
+        // $request = new \GuzzleHttp\Psr7\Request('GET', 'https://jsonplaceholder.typicode.com/todos');
+        // $promise = $client->sendAsync($request)->then(function ($response) {
+        //     // echo 'I completed! ' . $response->getStatusCode();
+        //     // echo 'I completed! ' . $response->getHeaderLine('content-type');
+        //     // echo 'I completed! ' . $response->getBody();
+        //     var_dump(json_decode($response->getBody(), true));   // json String => array , 有些json 网址 返回字符串不规范前面有 #xfeff 字
+        // });
 
-        $promise->wait();
+        // $promise->wait();
 
         // //////////////// phpinfo 测试 ///////////////////////
         // phpinfo();
