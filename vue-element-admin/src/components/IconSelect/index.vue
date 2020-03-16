@@ -32,8 +32,9 @@ export default {
       }
     },
     selectedIcon(name) {
-      this.$emit('selected', name)
-      document.body.click()
+      // console.log(name) // eg. email/menu/bug  icon name
+      this.$emit('selected', name) // 呼叫父组件 @selected 后的方法selected 接收参数 name
+      document.body.click() // 模拟鼠标单击页面其他部分, 用来关闭 el-popup
     },
     reset() {
       this.name = ''

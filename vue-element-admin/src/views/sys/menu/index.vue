@@ -111,18 +111,15 @@
           <el-input v-model.trim="temp.redirect" placeholder="面包屑组件重定向,例 /sys/menu, 可留空" />
         </el-form-item>
         <el-form-item v-if="temp.type !==2" label="图标">
-          <!-- <el-input v-model.trim="temp.icon" placeholder="系统管理/图标管理里复制名称, 例 email">
-            <i slot="suffix" class="el-input__icon el-icon-eye">
-              <svg-icon :icon-class="temp.icon" />
-            </i>
-          </el-input>-->
           <el-popover
             placement="bottom-start"
             width="460"
             trigger="click"
             @show="$refs['iconSelect'].reset()"
           >
+            <!-- 显示时触发 IconSelect 里的 reset() 方法 -->
             <IconSelect ref="iconSelect" @selected="selected" />
+            <!-- slot reference 具名插槽， 触发 Popover 显示的 HTML 元素 此处click el-input 则弹出Popover 显示 IconSelect 子组件 -->
             <el-input slot="reference" v-model="temp.icon" placeholder="点击选择图标" readonly>
               <svg-icon
                 v-if="temp.icon"
@@ -131,7 +128,7 @@
                 class="el-input__icon"
                 style="height: 40px;width: 20px;"
               />
-              <i v-else slot="suffix" class="el-icon-search el-input__icon" />
+              <i v-else slot="prefix" class="el-icon-search el-input__icon" />
             </el-input>
           </el-popover>
         </el-form-item>
