@@ -3,8 +3,9 @@
     <div class="filter-container">
       <el-input
         v-perm="['/sys/menu/view']"
-        v-model="filterText"
-        placeholder="菜单名"
+        ref="filterText"
+        v-model.trim="filterText"
+        placeholder="菜单名称"
         style="width: 200px;"
         class="filter-item"
       />
@@ -19,23 +20,27 @@
       >添加</el-button>
     </div>
     <!-- tableData.filter( data => !filterText || filterData(data, function(item){return item.title.includes(filterText) })) -->
-    <el-table
+    <!-- 可配置树型数据折叠图标 icon="el-icon-caret-right"  el-icon-arrow-right -->
+    <i-tree-table
+      v-loading="listLoading"
       ref="TreeTable"
       :data="tableData"
-      row-key="id"
-      highlight-current-row
+      :columns="columns"
+      id-key="id"
+      icon="el-icon-caret-right"
       stripe
-      @selection-change="selectChange"
+      border
+      @trigger="onTrigger"
     >
-      <el-table-column prop="title" label="菜单名称" align="left" min-width="120" />
-      <el-table-column prop="id" label="菜单ID" align="center" />
-      <el-table-column prop="path" label="菜单路由" align="center" />
-      <el-table-column prop="name" label="路由别名" align="center" />
-      <el-table-column prop="icon" label="图标" align="center">
+      <el-table-column label="菜单ID" prop="id" />
+      <el-table-column label="菜单路由" prop="path" />
+      <el-table-column label="路由别名" prop="name" />
+      <el-table-column label="图标" prop="icon" align="center">
         <template slot-scope="scope">
           <svg-icon :icon-class="scope.row.icon" />
         </template>
       </el-table-column>
+
       <el-table-column prop="type" label="类型" align="center">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.type===0" size="small">目录</el-tag>
@@ -47,7 +52,6 @@
       <el-table-column prop="component" label="组件" align="center" />
       <el-table-column prop="redirect" label="重定向" align="center" />
       <el-table-column prop="listorder" label="排序" align="center" />
-
       <el-table-column prop="operation" label="操作" align="center" min-width="180" fixed="right">
         <template slot-scope="scope">
           <el-button
@@ -64,7 +68,7 @@
           >删除</el-button>
         </template>
       </el-table-column>
-    </el-table>
+    </i-tree-table>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form
@@ -117,9 +121,7 @@
             trigger="click"
             @show="$refs['iconSelect'].reset()"
           >
-            <!-- 显示时触发 IconSelect 里的 reset() 方法 -->
             <IconSelect ref="iconSelect" @selected="selected" />
-            <!-- slot reference 具名插槽， 触发 Popover 显示的 HTML 元素 此处click el-input 则弹出Popover 显示 IconSelect 子组件 -->
             <el-input slot="reference" v-model="temp.icon" placeholder="点击选择图标" readonly>
               <svg-icon
                 v-if="temp.icon"
@@ -128,7 +130,7 @@
                 class="el-input__icon"
                 style="height: 40px;width: 20px;"
               />
-              <i v-else slot="prefix" class="el-icon-search el-input__icon" />
+              <i v-else slot="suffix" class="el-icon-search el-input__icon" />
             </el-input>
           </el-popover>
         </el-form-item>
@@ -157,7 +159,6 @@
 <script>
 import waves from '@/directive/waves' // Waves directive
 import perm from '@/directive/perm/index.js' // 权限判断指令
-import TreeTable from '@/components/TreeTable'
 // import data from './data.js'
 // import treemenu from './treemenu.js'
 import {
@@ -173,18 +174,24 @@ import Treeselect from '@riophae/vue-treeselect'
 // import the styles
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import IconSelect from '@/components/IconSelect'
-
 import random from 'string-random'
+import _ from 'lodash'
 
 export default {
   name: 'SysMenuSnIc',
   // 所以在编写路由 router 和路由对应的 view component 的时候一定要确保 两者的 name 是完全一致的。
-  // register the component Treeselect, TreeTable
-  components: { TreeTable, Treeselect, IconSelect },
+  // register the component Treeselect, TreeTableComponent
+  components: { Treeselect, IconSelect },
   directives: { waves, perm },
   filters: {},
   data() {
     return {
+      columns: [
+        {
+          label: '菜单名称',
+          prop: 'title'
+        }
+      ],
       // 'href': windows.location.href,
       // 'total': '100',
       path: this.$route.path,
@@ -204,6 +211,8 @@ export default {
       downloadLoading: false,
       tableData: [],
       tableDatax: [],
+      // 保留折叠状态
+      treeExpandedKeys: [],
       dialogFormVisible: false,
       dialogStatus: '',
       textMap: {
@@ -251,83 +260,177 @@ export default {
         //  为空 重置初始值
         this.tableData = this.tableDatax
       } else {
-        // console.log(this.tableData)
-        // console.log(this.filterData(this.tableData, function (item) {
-        //   return item.title.includes(val)
-        // }))
-        this.tableData = this.filterData(this.tableData, item => {
-          return item.title.includes(val)
+        // 1. 遍历树对像 返回符合filter条件的数组.findset[],并且转化成的扁平数据treearr
+        const tmp = this.TravelTree(this.tableDatax, val)
+        // 2.findset 里的每个 id 递归找出其父节点 每个节点一个数组，最后将这些数组合并去重，形成新的treearr再转换成treeobject
+        let tmpArr = [] // 新扁平数组
+        for (let i = 0; i < tmp.findset.length; i++) {
+          tmpArr = _.union(
+            _.concat(tmpArr, this.TravelTreeArr(tmp.treearr, tmp.findset[i]))
+          )
+        }
+        this.tableData = this.listToTreeWithLevel(tmpArr, 0, 0)
+
+        // 搜索时展开结果行
+        this.$nextTick(() => {
+          // this.expandQuery()  // 会触发 onTrigger 函数
+          this.$refs.TreeTable.expandAll() // 不触发onTrigger 效果较好
         })
       }
     }
   },
   created() {
-    console.log('this.$route.path...', this.$route.path)
+    // console.log('this.$route.path...', this.$route.path)
     // console.log('this.$store.state.user.ctrlperm', this.$store.state.user.ctrlperm)
     this.getData()
+  },
+  mounted() {
+    this.$refs.filterText.focus()
   },
   methods: {
     // 选择图标
     selected(name) {
       this.temp.icon = name
     },
-    // 递归过滤树形数据
-    filterData(data, predicate) {
-      // if no data is sent in, return null, otherwise transform the data
-      if (!data) {
-        return null
+    onTrigger(row, expanded) {
+      row.$expanded = expanded
+      // console.log('onTrigger...', row)
+      // 保留折叠状态
+      if (row.$expanded) {
+        this.treeExpandedKeys.push(row.id)
+        this.treeExpandedKeys = _.uniq(this.treeExpandedKeys) // 过滤搜索时会产生重复的值
       } else {
-        return data.reduce((list, entry) => {
-          let clone = null
-          if (predicate(entry)) {
-            // if the object matches the filter, clone it as it is
-            clone = Object.assign({}, entry)
-          } else if (entry.children != null) {
-            // if the object has childrens, filter the list of children
-            const children = this.filterData(entry.children, predicate)
-            if (children.length > 0) {
-              // if any of the children matches, clone the parent object, overwrite
-              // the children list with the filtered list
-              clone = Object.assign({}, entry, { children: children })
+        const index = this.treeExpandedKeys.indexOf(row.id)
+        if (index > -1) {
+          this.treeExpandedKeys.splice(index, 1)
+        }
+      }
+      console.log('onTrigger...treeExpandedKeys', this.treeExpandedKeys)
+    },
+    expandQuery() {
+      // const els = this.$refs.TreeTable.$el.getElementsByClassName('el-table__expand-icon')
+      const els = this.$refs.TreeTable.$el.getElementsByClassName('trigger')
+      // console.info('expandAll els...', els)
+      // el-icon-arrow-right
+      // console.log('els..length/2....', els.length / 2) // 必须除以2
+      for (let i = 0; i < els.length / 2; i++) {
+        els[i].click()
+      }
+    },
+    // 遍历json树 过滤符合条件节点，并且扁平化成array
+    TravelTree(jsonTree, filterText) {
+      var ret = {
+        treearr: [], // 转化成扁平Array 没有children节点
+        findset: [] // 符合过滤条件的节点 id 数组
+      }
+      function refining(jsonTree, filterText) {
+        const length = jsonTree.length
+        for (var i = 0; i < length; i++) {
+          ret.treearr.push({
+            id: jsonTree[i].id,
+            pid: jsonTree[i].pid,
+            title: jsonTree[i].title,
+            name: jsonTree[i].name,
+            component: jsonTree[i].component,
+            condition: jsonTree[i].condition,
+            create_time: jsonTree[i].create_time,
+            hidden: jsonTree[i].hidden,
+            icon: jsonTree[i].icon,
+            listorder: jsonTree[i].listorder,
+            path: jsonTree[i].path,
+            perm_id: jsonTree[i].perm_id,
+            redirect: jsonTree[i].redirect,
+            status: jsonTree[i].status,
+            type: jsonTree[i].type,
+            update_time: jsonTree[i].update_time
+          })
+          if (jsonTree[i].title.indexOf(filterText) > -1) {
+            ret.findset.push(jsonTree[i].id)
+          }
+          if (jsonTree[i].children) {
+            refining(jsonTree[i].children, filterText)
+          }
+        }
+      }
+      refining(jsonTree, filterText)
+      return ret
+    },
+    // 遍历数组treearr 找到父节点全路径
+    TravelTreeArr(treearr, id) {
+      var arr = []
+      function findpath(treearr, id) {
+        const length = treearr.length
+        for (var i = 0; i < length; i++) {
+          if (treearr[i].id === id) {
+            arr.push(treearr[i])
+            if (treearr[i].pid === 0) {
+              // 回溯至根节点
+              return
+            } else {
+              findpath(treearr, treearr[i].pid)
             }
           }
-          // if there's a cloned object, push it to the output list
-          clone && list.push(clone)
-          return list
-        }, [])
+        }
+      }
+      findpath(treearr, id)
+      return arr
+    },
+    // 扁平数组转换为树形结构
+    listToTreeWithLevel(list, parent, level) {
+      var out = []
+      for (var node of list) {
+        if (node.pid === parent) {
+          // node.level = level  // 根据情况看是否需要 level
+          var children = this.listToTreeWithLevel(list, node.id, level + 1)
+          if (children.length) {
+            node.children = children
+          }
+          out.push(node)
+        }
+      }
+      return out
+    },
+
+    // 根据 treeExpandedKeys 数组, 遍历设置菜单树折叠状态
+    setTreeCollapseStatus(jsonTree) {
+      for (var i = 0; i < jsonTree.length; i++) {
+        // _.indexOf([3,3], 1);//-1
+        if (_.indexOf(this.treeExpandedKeys, jsonTree[i].id) > -1) {
+          jsonTree[i].$expanded = true
+        }
+        if (jsonTree[i].children) {
+          this.setTreeCollapseStatus(jsonTree[i].children)
+        }
       }
     },
     getData() {
       // import { createMenu, getTreeOptions, getMenuTree } from '@/api/menu'
-      getMenuTree()
-        .then(res => {
-          console.log('getMenuTree', res)
-          this.tableData = res.data
-          this.tableDatax = res.data
-        })
-        .catch(() => {})
-      getTreeOptions()
-        .then(res => {
-          this.TreeSelectOptions = res.data
-        })
-        .catch(() => {})
+      this.listLoading = true
+      getMenuTree().then(res => {
+        // console.log('getMenuTree', res)
+        const tmpData = res.data
+        this.setTreeCollapseStatus(tmpData)
+        this.tableData = tmpData
+        this.tableDatax = tmpData
+        this.listLoading = false
+      })
     },
     editItem(row) {
       this.tempItem = Object.assign({}, row)
-      console.log(row)
-      console.log(row.id)
+      // console.log(row)
+      // console.log(row.id)
       this.dialogFormVisible = true
     },
     async updateItem() {
       await this.$refs.TreeTable.updateTreeNode(this.tempItem)
       this.dialogFormVisible = false
-      console.log(this.tempItem.id)
+      // console.log(this.tempItem.id)
     },
     deleteItem(row) {
       this.$refs.TreeTable.delete(row)
     },
     selectChange(val) {
-      console.log(val)
+      // console.log(val)
     },
     message(row) {
       this.$message.info(row.event)
@@ -347,10 +450,13 @@ export default {
       }
     },
     handleCreate() {
-      console.log('handleCreate...click')
+      // console.log('handleCreate...click')
       this.resetTemp()
       this.dialogStatus = 'create'
       this.dialogFormVisible = true
+      getTreeOptions().then(res => {
+        this.TreeSelectOptions = res.data
+      })
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })
@@ -376,25 +482,21 @@ export default {
                 letters: 'abcdefghijklmnopqrstuvwxyz'
               })
           )
-          console.log('createData valid done...', this.temp)
+          // console.log('createData valid done...', this.temp)
 
           // 调用api创建数据入库
           this.updateLoading = true
-          createMenu(this.temp)
-            .then(res => {
-              // 成功后 关闭窗口
-              this.updateLoading = false
-              console.log('createMenu...', res)
-              this.getData()
-              this.dialogFormVisible = false
-              this.$notify({
-                message: res.message,
-                type: res.type
-              })
+          createMenu(this.temp).then(res => {
+            // 成功后 关闭窗口
+            this.updateLoading = false
+            console.log('createMenu...', res)
+            this.getData()
+            this.dialogFormVisible = false
+            this.$notify({
+              message: res.message,
+              type: res.type
             })
-            .catch(() => {
-              this.updateLoading = false
-            })
+          })
         }
       })
     },
@@ -402,6 +504,9 @@ export default {
       this.temp = Object.assign({}, row) // copy obj
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
+      getTreeOptions().then(res => {
+        this.TreeSelectOptions = res.data
+      })
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })
@@ -423,7 +528,7 @@ export default {
             redirect: this.temp.redirect,
             listorder: this.temp.listorder
           }
-          console.log(tempData)
+          // console.log(tempData)
           // TODO: 增加校验 rules:
           if (tempData.pid === tempData.id) {
             this.$notify({
@@ -437,24 +542,20 @@ export default {
           // console.log(this.temp)
           // 调用api编辑数据入库
           this.updateLoading = true
-          updateMenu(tempData)
-            .then(res => {
-              if (res.type === 'success') {
-                // 后台重新更新数据
-                this.updateLoading = false
-                this.getData()
-                // this.$refs.TreeTable.updateTreeNode(this.temp) // 只能更新自身以下的节点
-                this.dialogFormVisible = false
-              }
-              this.$notify({
-                //  title: '错误',
-                message: res.message,
-                type: res.type
-              })
+          updateMenu(tempData).then(res => {
+            this.updateLoading = false
+            if (res.type === 'success') {
+              // 后台重新更新数据
+              this.getData()
+              // this.$refs.TreeTable.updateTreeNode(this.temp) // 只能更新自身以下的节点
+              this.dialogFormVisible = false
+            }
+            this.$notify({
+              //  title: '错误',
+              message: res.message,
+              type: res.type
             })
-            .catch(() => {
-              this.updateLoading = false
-            })
+          })
         }
       })
     },
@@ -543,8 +644,8 @@ export default {
     handleFilter() {
       this.listQuery.page = 1
       // this.getList()
-      console.log('handleFilter')
-      console.log(this.tableData)
+      // console.log('handleFilter')
+      // console.log(this.tableData)
       // const result = this.deal(this.tableData, node => node.title.toLowerCase().includes(this.searfilterTextch.toLowerCase()))
       // // console.log('result', result)
       // this.tableData.filter = result
@@ -552,9 +653,3 @@ export default {
   }
 }
 </script>
-
-<style rel="stylesheet/scss" lang="scss" scoped>
-.el-icon-arrow-right:before {
-  content: '\E606' !important;
-}
-</style>
