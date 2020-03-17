@@ -1,38 +1,86 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-model="filters[0].value" placeholder="角色名" style="width: 200px;" class="filter-item" />
+      <el-input
+        v-model="filters[0].value"
+        placeholder="角色名"
+        style="width: 200px;"
+        class="filter-item"
+      />
       <el-select v-model="filters[1].value" class="filter-item" multiple="multiple">
         <el-option label="启用" value="1" />
         <el-option label="禁用" value="0" />
       </el-select>
-      <el-button v-waves v-perm="['/sys/role/view']" class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">查询</el-button>
-      <el-button v-perm="['/sys/role/add']" class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-plus" @click="handleCreate">{{ $t('table.add') }}</el-button>
-
-      <!-- <el-input placeholder="名称" v-model="listQuery.title" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
-      <el-button v-waves class="filter-item" type="primary" :size="btnsize" icon="el-icon-search" v-perm="['/sys/role/view']" @click="handleFilter">查询</el-button>
-      <el-button class="filter-item" style="margin-left: 10px;" type="primary" :size="btnsize" icon="el-icon-plus" v-perm="['/sys/role/add']" @click="handleCreate">{{ $t('table.add') }}</el-button> -->
+      <el-button
+        v-waves
+        v-perm="['/sys/role/view']"
+        class="filter-item"
+        type="primary"
+        icon="el-icon-search"
+        @click="handleFilter"
+      >查询</el-button>
+      <el-button
+        v-perm="['/sys/role/add']"
+        class="filter-item"
+        style="margin-left: 10px;"
+        type="primary"
+        icon="el-icon-plus"
+        @click="handleCreate"
+      >{{ $t('table.add') }}</el-button>
     </div>
 
-    <data-tables :data="list" :filters="filters" :loading="listLoading" :table-props="tableProps" :pagination-props="{ pageSizes: [5, 10, 15,20] }" layout="table,pagination" @current-change="handleRoleSelectChange">
-      <el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.label" sortable="custom" />
+    <data-tables-server
+      :data="list"
+      :filters="filters"
+      :loading="listLoading"
+      :table-props="tableProps"
+      :pagination-props="{ pageSizes: [5, 10, 15,20] }"
+      layout="table,pagination"
+      @current-change="handleRoleSelectChange"
+    >
+      <el-table-column
+        v-for="title in titles"
+        :prop="title.prop"
+        :label="title.label"
+        :key="title.label"
+        sortable="custom"
+      />
 
       <el-table-column label="状态" min-width="100px">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter" size="small">{{ scope.row.status | statusChange }}</el-tag>
+          <el-tag
+            :type="scope.row.status | statusFilter"
+            size="small"
+          >{{ scope.row.status | statusChange }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" min-width="100px">
         <template slot-scope="scope">
-          <el-button v-perm="['/sys/role/edit']" :size="btnsize" type="success" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button v-perm="['/sys/role/edit']" :size="btnsize" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button
+            v-perm="['/sys/role/edit']"
+            :size="btnsize"
+            type="success"
+            @click="handleUpdate(scope.row)"
+          >编辑</el-button>
+          <el-button
+            v-perm="['/sys/role/edit']"
+            :size="btnsize"
+            type="danger"
+            @click="handleDelete(scope.row)"
+          >删除</el-button>
         </template>
       </el-table-column>
-    </data-tables>
+    </data-tables-server>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="" label-width="90px" style="width: 400px; margin-left:50px;">
-
+      <el-form
+        ref="dataForm"
+        :rules="rules"
+        :model="temp"
+        label-position
+        label-width="90px"
+        style="width: 400px; margin-left:50px;"
+      >
         <el-form-item label="角色名称" prop="name">
           <el-input v-model.trim="temp.name" placeholder="请输入角色名" />
         </el-form-item>
@@ -41,16 +89,29 @@
         </el-form-item>
         <el-form-item label="排序ID">
           <!-- onkeypress 防止录入e 及其他字符 -->
-          <el-input-number v-model.trim="temp.listorder" :min="0" controls-position="right" onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))" />
+          <el-input-number
+            v-model.trim="temp.listorder"
+            :min="0"
+            controls-position="right"
+            onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))"
+          />
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-switch v-model="temp.status" inactive-color="#ff4949" active-value="1" inactive-value="0" />
+          <el-switch
+            v-model="temp.status"
+            inactive-color="#ff4949"
+            active-value="1"
+            inactive-value="0"
+          />
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button :loading="updateLoading" type="primary" @click="dialogStatus==='create'?createData():updateData()">确定</el-button>
+        <el-button
+          :loading="updateLoading"
+          type="primary"
+          @click="dialogStatus==='create'?createData():updateData()"
+        >确定</el-button>
       </div>
     </el-dialog>
 
@@ -58,7 +119,10 @@
     <div class="menu-container">
       <div class="menu-header">
         <span>
-          <h2>角色授权</h2>
+          <h2>
+            角色授权
+            <span v-if="selectRole.id != null" class="menu-role">: {{ selectRole.name }}</span>
+          </h2>
         </span>
       </div>
       <el-tabs v-model="activeName" tab-position="top" type="card" @tab-click="handleTabClick">
@@ -75,42 +139,133 @@
             size="mini"
             style="width: 100%;pading-top:20px;"
             element-loading-text="拼命加载中"
-            @check-change="handleMenuCheckChange" />
+            @check-change="handleMenuCheckChange"
+          />
         </el-tab-pane>
         <el-tab-pane label="角色类" name="role">
-          <data-tables ref="roleTable" :data="roleData" :table-props="tableProps" :loading="roleLoading" :pagination-props="{ pageSizes: [10,20] }">
+          <data-tables-server
+            ref="roleTable"
+            :data="roleData"
+            :table-props="tableProps"
+            :loading="roleLoading"
+            :pagination-props="{ pageSizes: [10,20] }"
+          >
             <el-table-column type="selection" width="55" />
-            <el-table-column v-for="title in rtitles" :prop="title.prop" :label="title.label" :key="title.label" sortable="custom" />
+            <el-table-column
+              v-for="title in rtitles"
+              :prop="title.prop"
+              :label="title.label"
+              :key="title.label"
+              sortable="custom"
+            />
             <el-table-column label="状态" min-width="100px">
               <template slot-scope="scope">
-                <el-tag :type="scope.row.status | statusFilter" size="small">{{ scope.row.status | statusChange }}</el-tag>
+                <el-tag
+                  :type="scope.row.status | statusFilter"
+                  size="small"
+                >{{ scope.row.status | statusChange }}</el-tag>
               </template>
             </el-table-column>
-          </data-tables>
+          </data-tables-server>
+        </el-tab-pane>
+        <el-tab-pane label="数据权限" name="dept">
+          <el-row :gutter="0">
+            <el-form size="medium" label-width="100px">
+              <el-col :span="16">
+                <el-form-item label="权限范围" prop="dataPermScope">
+                  <el-select v-model="dataPermScope" class="filter-item">
+                    <el-option
+                      v-for="item in dataPermOption"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col v-if="dataPermScope == 4" :span="12">
+                <el-form-item label="部门数据" prop="dept">
+                  <el-tree
+                    v-loading="deptLoading"
+                    ref="deptTree"
+                    :data="deptData"
+                    :props="defaultDeptProps"
+                    :check-strictly="!checkJianlian"
+                    show-checkbox
+                    node-key="id"
+                    size="mini"
+                    style="width: 100%;pading-top:20px;"
+                    element-loading-text="拼命加载中"
+                  />
+                  <!-- @check-change="handleDeptCheckChange" -->
+                </el-form-item>
+              </el-col>
+              <el-col v-if="dataPermScope == 4" :span="16">
+                <el-form-item label="勾选级联树" prop="jilian">
+                  <el-checkbox v-model="checkJianlian" :disabled="selectRole.id == null"/>
+                </el-form-item>
+              </el-col>
+            </el-form>
+          </el-row>
         </el-tab-pane>
 
         <el-tab-pane label="文件类" name="file">todo:文件类授权</el-tab-pane>
 
         <div style="float:left;padding-left:24px;padding-top:12px;padding-bottom:4px;">
-          <el-checkbox v-if="activeName==='menu'" v-model="checkAll" :disabled="selectRole.id == null" @change="handleCheckAll">
+          <el-checkbox
+            v-if="activeName==='menu'"
+            v-model="checkAll"
+            :disabled="selectRole.id == null"
+            @change="handleCheckAll"
+          >
             <b>全选</b>
           </el-checkbox>
         </div>
         <div style="float:right;padding-right:15px;padding-top:4px;padding-bottom:4px;">
-          <el-button v-perm="['/sys/role/edit']" v-waves :disabled="selectRole.id == null" :size="btnsize" type="primary" @click="resetSelection">重置</el-button>
-          <el-button v-perm="['/sys/role/edit']" v-waves :loading="authLoading" :disabled="selectRole.id == null" :size="btnsize" type="primary" @click="submitAuthForm">提交</el-button>
+          <el-button
+            v-perm="['/sys/role/edit']"
+            v-waves
+            :disabled="selectRole.id == null"
+            :size="btnsize"
+            type="primary"
+            @click="resetSelection"
+          >重置</el-button>
+          <el-button
+            v-perm="['/sys/role/saveroleperm']"
+            v-waves
+            :loading="authLoading"
+            :disabled="selectRole.id == null"
+            :size="btnsize"
+            type="primary"
+            @click="submitAuthForm"
+          >提交</el-button>
         </div>
       </el-tabs>
     </div>
-
   </div>
 </template>
 
 <script>
 import waves from '@/directive/waves' // Waves directive
 import perm from '@/directive/perm/index.js' // 权限判断指令
+// import the component
+import Treeselect from '@riophae/vue-treeselect'
+// import the styles
+import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 
-import { createRole, updateRole, deleteRole, getRoleList, getAllMenus, getAllRoles, getRoleMenu, getRoleRole, saveRolePerms } from '@/api/role'
+import {
+  createRole,
+  updateRole,
+  deleteRole,
+  getRoleList,
+  getAllMenus,
+  getAllRoles,
+  getAllDepts,
+  getRoleMenu,
+  getRoleRole,
+  getRoleDept,
+  saveRolePerms
+} from '@/api/role'
 
 // import random from 'string-random'
 
@@ -118,7 +273,7 @@ export default {
   name: 'SysRoleCkoF',
   // 所以在编写路由 router 和路由对应的 view component 的时候一定要确保 两者的 name 是完全一致的。
   // register the component Treeselect, TreeTable
-  components: {},
+  components: { Treeselect },
   directives: { waves, perm },
   filters: {
     statusFilter(status) {
@@ -138,13 +293,41 @@ export default {
   },
   data() {
     return {
-      filters: [{
-        prop: 'name',
-        value: ''
-      }, {
-        prop: 'status',
-        value: ''
-      }],
+      checkJianlian: false,
+      dataPermShow: false,
+      dataPermScope: '',
+      dataPermOption: [
+        {
+          value: '0',
+          label: '全部数据权限'
+        },
+        {
+          value: '1',
+          label: '部门数据权限'
+        },
+        {
+          value: '2',
+          label: '部门及以下数据权限'
+        },
+        {
+          value: '3',
+          label: '仅本人数据权限'
+        },
+        {
+          value: '4',
+          label: '自定数据权限'
+        }
+      ],
+      filters: [
+        {
+          prop: 'name',
+          value: ''
+        },
+        {
+          prop: 'status',
+          value: ''
+        }
+      ],
       list: [],
       total: 0,
       listLoading: true,
@@ -211,18 +394,26 @@ export default {
       menuLoading: false,
       roleData: [],
       roleLoading: false,
+      deptData: [],
+      deptLoading: false,
       authLoading: false,
       updateLoading: false,
       checkAll: false,
       currentRoleMenus: [], // 服务端获取当前角色的菜单类权限
       currentRoleRoles: [], // 服务端获取当前角色的角色类权限
+      currentRoleDepts: [], // 服务端获取当前角色的角色类权限
       defaultProps: {
         children: 'children',
         label: 'title'
       },
+      defaultDeptProps: {
+        children: 'children',
+        label: 'name'
+      },
       tabMapOptions: [
         { label: '菜单类', key: 'menu' },
         { label: '角色类', key: 'role' },
+        { label: '数据权限', key: 'dept' },
         { label: '文件类', key: 'file' }
       ],
       activeName: 'menu',
@@ -259,30 +450,46 @@ export default {
       this.listLoading = true
       this.menuLoading = true
       this.roleLoading = true
-      getRoleList().then(res => {
-        // console.log('getRoleList', res)
-        this.list = res.data.items
-        this.total = res.data.total
-        this.listLoading = false
-      }).catch(() => {
-        // console.log(err)
-      })
+      this.deptLoading = true
+      getRoleList()
+        .then(res => {
+          // console.log('getRoleList', res)
+          this.list = res.data.items
+          this.total = res.data.total
+          this.listLoading = false
+        })
+        .catch(() => {
+          // console.log(err)
+        })
 
       // 菜单类权限列表
-      getAllMenus().then(res => {
-        // console.log('getAllMenus', res)
-        this.menuData = res.data
-        this.menuLoading = false
-      }).catch(() => {
-        // console.log(err)
-      })
+      getAllMenus()
+        .then(res => {
+          // console.log('getAllMenus', res)
+          this.menuData = res.data
+          this.menuLoading = false
+        })
+        .catch(() => {
+          // console.log(err)
+        })
       // 角色类权限列表
-      getAllRoles().then(res => {
-        this.roleData = res.data.items
-        this.roleLoading = false
-      }).catch(() => {
-        // console.log(err)
-      })
+      getAllRoles()
+        .then(res => {
+          this.roleData = res.data.items
+          this.roleLoading = false
+        })
+        .catch(() => {
+          // console.log(err)
+        })
+      // 部门类权限列表
+      getAllDepts()
+        .then(res => {
+          this.deptData = res.data
+          this.deptLoading = false
+        })
+        .catch(() => {
+          // console.log(err)
+        })
     },
     handleTabClick(tab, event) {
       // console.log(tab, event);
@@ -291,32 +498,59 @@ export default {
     handleRoleSelectChange(val) {
       console.log('handleRoleSelectChange', val)
       if (val === null || val.id === null) {
+        this.selectRole = {}
         return
       }
+
       this.selectRole = val
-      getRoleMenu({ 'roleId': this.selectRole.id }).then((res) => {
-        console.log('getRoleRole res', res)
-        if (res.code !== 50014) { // accesstoken 超时则不需要处理.
+      this.dataPermScope = this.selectRole.scope
+
+      this.menuLoading = true
+      this.roleLoading = true
+      this.deptLoading = true
+
+      getRoleMenu({ roleId: this.selectRole.id })
+        .then(res => {
+          // console.log('getRoleRole res', res)
           this.currentRoleMenus = res.data
           this.$refs.menuTree.setCheckedNodes(res.data)
-        }
-      }).catch(() => { })
+          this.menuLoading = false
+        })
+        .catch(() => {})
 
-      getRoleRole({ 'roleId': this.selectRole.id }).then((res) => {
-        console.log('getRoleRole res', res)
-        if (res.code !== 50014) { // accesstoken 超时则不需要处理.
+      getRoleRole({ roleId: this.selectRole.id })
+        .then(res => {
+          console.log('getRoleRole res', res)
+          this.roleLoading = false
           this.currentRoleRoles = res.data
-          console.log('currentRoleRoles', this.currentRoleRoles)
+          // console.log('currentRoleRoles', this.currentRoleRoles)
           this.$refs.roleTable.$refs.elTable.clearSelection()
           for (let i = 0; i < this.currentRoleRoles.length; i++) {
             for (let index = 0; index < this.roleData.length; index++) {
-              if (this.currentRoleRoles[i].perm_id === this.roleData[index].perm_id) { // 服务端返回需选中项的id
-                this.$refs.roleTable.$refs.elTable.toggleRowSelection(this.roleData[index], true) // row.ndex 选中
+              if (
+                this.currentRoleRoles[i].perm_id ===
+                this.roleData[index].perm_id
+              ) {
+                // 服务端返回需选中项的id
+                this.$refs.roleTable.$refs.elTable.toggleRowSelection(
+                  this.roleData[index],
+                  true
+                ) // row.ndex 选中
               }
             }
           }
-        }
-      }).catch(() => { })
+        })
+        .catch(() => {})
+
+      getRoleDept({ roleId: this.selectRole.id })
+        .then(res => {
+          // console.log('getRoleRole res', res)
+          this.deptLoading = false
+          this.checkJianlian = false // 置初始值时，不能关联子树，因为拥有的部门数据类权限是不规则的树结构
+          this.currentRoleDepts = res.data
+          this.$refs.deptTree.setCheckedNodes(res.data)
+        })
+        .catch(() => {})
     },
     // 树节点选择监听
     handleMenuCheckChange(data, check, subCheck) {
@@ -333,6 +567,21 @@ export default {
         }
       }
     },
+    // 部门树节点选择监听
+    handleDeptCheckChange(data, check, subCheck) {
+      if (check) {
+        // 节点选中时同步选中父节点
+        const parentId = data.pid
+        this.$refs.deptTree.setChecked(parentId, true, false)
+      } else {
+        // 节点取消选中时同步取消选中子节点
+        if (data.children != null) {
+          data.children.forEach(element => {
+            this.$refs.deptTree.setChecked(element.id, false, false)
+          })
+        }
+      }
+    },
     // 重置选择
     resetSelection() {
       this.checkAll = false
@@ -342,11 +591,19 @@ export default {
       this.$refs.roleTable.$refs.elTable.clearSelection()
       for (let i = 0; i < this.currentRoleRoles.length; i++) {
         for (let index = 0; index < this.roleData.length; index++) {
-          if (this.currentRoleRoles[i].perm_id === this.roleData[index].perm_id) {
-            this.$refs.roleTable.$refs.elTable.toggleRowSelection(this.roleData[index], true)
+          if (
+            this.currentRoleRoles[i].perm_id === this.roleData[index].perm_id
+          ) {
+            this.$refs.roleTable.$refs.elTable.toggleRowSelection(
+              this.roleData[index],
+              true
+            )
           }
         }
       }
+      // 重置当前部门数据类权限
+      console.log(this.selectRole)
+      this.dataPermScope = this.selectRole.scope
     },
     // 全选操作
     handleCheckAll() {
@@ -367,11 +624,15 @@ export default {
         }
       })
     },
+
     // 角色菜单授权提交
     submitAuthForm() {
       const roleId = this.selectRole.id
       if (roleId === 1) {
-        this.$message({ message: '超级管理员角色拥有所有权限，不允许修改！', type: 'error' })
+        this.$message({
+          message: '超级管理员角色拥有所有权限，不允许修改！',
+          type: 'error'
+        })
         return
       }
 
@@ -383,41 +644,75 @@ export default {
         const rolePerm = { role_id: roleId, perm_id: checkedNodes[i].perm_id }
         rolePerms.push(rolePerm)
       }
+
       // 获取选中的角色类权限
       // 在使用Element前端库时候,需要获得表格选中行的时候 查看源码,发现有个store属性,保存了选中的行数据.
-      const roleSelections = this.$refs.roleTable.$refs.elTable.store.states.selection
+      const roleSelections = this.$refs.roleTable.$refs.elTable.store.states
+        .selection
       for (let i = 0, len = roleSelections.length; i < len; i++) {
         const rolePerm = { role_id: roleId, perm_id: roleSelections[i].perm_id }
         rolePerms.push(rolePerm)
       }
 
-      // console.log('rolePerms', rolePerms)
+      // 获取选中的部门数据权限
+      if (this.dataPermScope === 4) {
+        const checkedDeptNodes = this.$refs.deptTree.getCheckedNodes(
+          false,
+          true
+        )
+        for (let i = 0, len = checkedDeptNodes.length; i < len; i++) {
+          const deptPerm = {
+            role_id: roleId,
+            perm_id: checkedDeptNodes[i].perm_id
+          }
+          rolePerms.push(deptPerm)
+        }
+      }
+
+      const roleScope = this.dataPermScope
+
+      console.log('rolePerms', rolePerms)
+      // this.authLoading = false
       // return
-      saveRolePerms(roleId, rolePerms).then((res) => {
-        // console.log('saveRolePerms...', res)
-        this.$notify({
-          //  title: '错误',
-          message: res.message,
-          type: res.type
+      saveRolePerms(roleId, rolePerms, roleScope)
+        .then(res => {
+          // console.log('saveRolePerms...', res)
+          this.$notify({
+            //  title: '错误',
+            message: res.message,
+            type: res.type
+          })
+          this.authLoading = false
+          this.fetchData()
         })
-        this.authLoading = false
-      }).catch(err => {
-        console.log(err)
-        this.authLoading = false
-      })
+        .catch(err => {
+          console.log(err)
+          this.authLoading = false
+        })
     },
     renderContent(h, { node, data, store }) {
       return (
         <div class='column-container'>
-          <span style='text-algin:center;margin-right:200px;'>{data.title}</span>
           <span style='text-algin:center;margin-right:200px;'>
-            <el-tag type={data.type === 0 ? '' : data.type === 1 ? 'success' : 'info'} size='small'>
+            {data.title}
+          </span>
+          <span style='text-algin:center;margin-right:200px;'>
+            <el-tag
+              type={data.type === 0 ? '' : data.type === 1 ? 'success' : 'info'}
+              size='small'
+            >
               {data.type === 0 ? '目录' : data.type === 2 ? '功能' : '菜单'}
             </el-tag>
           </span>
-          <span style='text-algin:center;margin-right:80px;'> <svg-icon icon-class={data.icon} /> </span>
-          <span style='text-algin:center;margin-right:80px;'>{data.path ? data.path : '\t'}</span>
-        </div>)
+          <span style='text-algin:center;margin-right:80px;'>
+            {' '}
+            <svg-icon icon-class={data.icon} />{' '}
+          </span>
+          <span style='text-algin:center;margin-right:80px;'>
+            {data.path ? data.path : '\t'}
+          </span>
+        </div>
+      )
       // <span style='text-algin:center;margin-right:200px;'>id:{data.id} - pid:{data.pid} - perm_id: {data.perm_id}</span>
     },
     resetTemp() {
@@ -439,7 +734,7 @@ export default {
       })
     },
     createData() {
-      this.$refs['dataForm'].validate((valid) => {
+      this.$refs['dataForm'].validate(valid => {
         if (valid) {
           console.log('createData valid done...', this.temp)
 
@@ -468,7 +763,7 @@ export default {
       })
     },
     updateData() {
-      this.$refs['dataForm'].validate((valid) => {
+      this.$refs['dataForm'].validate(valid => {
         if (valid) {
           // 调用api编辑数据入库
           this.updateLoading = true
@@ -506,40 +801,44 @@ export default {
             instance.confirmButtonLoading = true
             instance.confirmButtonText = '执行中...'
             const tempData = {
-              'id': row.id,
-              'name': row.name
+              id: row.id,
+              name: row.name
             }
             // 调用api删除数据
-            deleteRole(tempData).then(res => {
-              // 如果删除成功，后台重新更新数据,否则不更新数据
-              done()
-              instance.confirmButtonLoading = false
-              if (res.type === 'success') {
-                this.fetchData()
-              }
-              this.$notify({
-                //  title: '错误',
-                message: res.message,
-                type: res.type
+            deleteRole(tempData)
+              .then(res => {
+                // 如果删除成功，后台重新更新数据,否则不更新数据
+                done()
+                instance.confirmButtonLoading = false
+                if (res.type === 'success') {
+                  this.fetchData()
+                }
+                this.$notify({
+                  //  title: '错误',
+                  message: res.message,
+                  type: res.type
+                })
               })
-            }).catch(err => {
-              console.log(err)
-              instance.confirmButtonLoading = false
-            })
+              .catch(err => {
+                console.log(err)
+                instance.confirmButtonLoading = false
+              })
           } else {
             done()
             instance.confirmButtonLoading = false
           }
         }
         // }).then(action => {
-      }).then(() => {
-        // this.$message({
-        //   type: 'info',
-        //   message: 'action: ' + action // confirm
-        // })
-      }).catch(() => {
-        // console.log(err)  // cancel
       })
+        .then(() => {
+          // this.$message({
+          //   type: 'info',
+          //   message: 'action: ' + action // confirm
+          // })
+        })
+        .catch(() => {
+          // console.log(err)  // cancel
+        })
     },
     handleFilter() {
       this.listQuery.page = 1
@@ -558,5 +857,8 @@ export default {
   text-align: left;
   font-size: 16px;
   color: rgb(20, 89, 121);
+}
+.menu-role {
+  color: rgb(211, 66, 22);
 }
 </style>

@@ -58,6 +58,13 @@ export function getAllRoles() {
     method: 'get'
   })
 }
+// 获取所有部门类权限 不需权限验证
+export function getAllDepts() {
+  return request({
+    url: '/sys/role/alldepts',
+    method: 'get'
+  })
+}
 
 //  获取角色对应菜单 不需权限验证
 export function getRoleMenu(form) {
@@ -77,11 +84,20 @@ export function getRoleRole(form) {
   })
 }
 
-export function saveRolePerms(roleId, rolePerms) {
+//  获取角色拥有部门数据类权限 不需权限验证
+export function getRoleDept(form) {
+  return request({
+    url: '/sys/role/roledept',
+    method: 'post',
+    data: form
+  })
+}
+
+export function saveRolePerms(roleId, rolePerms, roleScope) {
   return request({
     url: '/sys/role/saveroleperm',
     method: 'post',
-    data: { roleId, rolePerms }
+    data: { roleId, rolePerms, roleScope }
   })
 }
 

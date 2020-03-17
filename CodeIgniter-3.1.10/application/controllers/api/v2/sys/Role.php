@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 use chriskacerguis\RestServer\RestController;
 
@@ -156,7 +156,6 @@ class Role extends RestController
             "message" => $parms['name'] . ' - 角色删除成功'
         ];
         $this->response($message, RestController::HTTP_OK);
-
     }
 
     // 查
@@ -211,6 +210,28 @@ class Role extends RestController
         $this->response($message, RestController::HTTP_OK);
     }
 
+    // 获取所有部门带perm_id 不需权限验证
+    function alldepts_get()
+    {
+        $AllDeptsArr = $this->Role_model->getAllDepts();
+
+        if (empty($AllDeptsArr)) {
+            $message = [
+                "code" => 20000,
+                "data" => $AllDeptsArr,
+                "message" => "数据库表中没有部门"
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        $DeptTree = $this->permission->genDeptTree($AllDeptsArr, 'id', 'pid', 0);
+        $message = [
+            "code" => 20000,
+            "data" => $DeptTree,
+        ];
+        $this->response($message, RestController::HTTP_OK);
+    }
+
     //  获取角色拥有的菜单权限 不需权限验证
     function rolemenu_post()
     {
@@ -239,12 +260,27 @@ class Role extends RestController
         $this->response($message, RestController::HTTP_OK);
     }
 
+    // 获取角色拥有的部门数据权限 不需权限验证
+    function roledept_post()
+    {
+        $parms = $this->post();  // 获取表单参数，类型为数组
+        $RoleId = $parms['roleId'];
+
+        $RoleDeptArr = $this->Role_model->getRoleDept($RoleId);
+        $message = [
+            "code" => 20000,
+            "data" => $RoleDeptArr,
+        ];
+        $this->response($message, RestController::HTTP_OK);
+    }
+
     // 保存角色对应权限
     function saveroleperm_post()
     {
         $parms = $this->post();  // 获取表单参数，类型为数组
         //        var_dump($parms['roleId']);
         //        var_dump($parms['rolePerms']);
+        //        var_dump($parms['roleScope']);
         // 参数检验/数据预处理
         // 超级管理员角色不允许删除
         if ($parms['roleId'] == 1) {
@@ -255,6 +291,13 @@ class Role extends RestController
             ];
             $this->response($message, RestController::HTTP_OK);
         }
+
+        // 部门数据授权范围写入sys_role表
+        $ret = $this->Base_model->_update_key('sys_role', ['scope' => $parms['roleScope']], ['id' => $parms['roleId']]);
+        if (!$ret) {
+            var_dump('部门数据授权范围写入sys_role表失败!');
+        }
+        // 写入将角色->权限对应关系写入 sys_role_perm 表
 
         $RolePermArr = $this->Role_model->getRolePerm($parms['roleId']);
 
@@ -308,5 +351,4 @@ class Role extends RestController
         ];
         $this->response($message, RestController::HTTP_OK);
     }
-
 }
