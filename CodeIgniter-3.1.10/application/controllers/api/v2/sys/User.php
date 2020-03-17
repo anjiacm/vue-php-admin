@@ -370,8 +370,9 @@ class User extends RestController
             $this->response($message, RestController::HTTP_OK);
         }
 
-        // 删除外键关联表 sys_user_role
+        // 删除外键关联表 sys_user_role, sys_user_dept
         $this->Base_model->_delete_key('sys_user_role', ['user_id' => $parms['id']]);
+        $this->Base_model->_delete_key('sys_user_dept', ['user_id' => $parms['id']]);
 
         // 删除基础表 sys_user
         if (!$this->Base_model->_delete_key('sys_user', $parms)) {
@@ -1053,80 +1054,6 @@ class User extends RestController
 
     }
 
-    //    async router test get
-    function router_get()
-    {
-//        $result = $this->some_model();
-        $result['success'] = true;
-
-        // 获取用户信息成功
-        if ($result['success']) {
-//            $info = [
-//                "roles" => ["admin", "editor"],
-//                "introduction" => "I am a super administrator",
-//                "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
-//                "name" => "Super Admin",
-//                "identify" => "410000000000000000",
-//                "phone" => "13633838282",
-//                "asyncRouterMap" => [
-//
-//                ]
-//            ];
-
-            $message = [
-                "code" => 20000,
-                "data" => [
-                    "asyncRouterMap" => [
-                        [
-                            "path" => '/sys',
-                            "name" => 'sys',
-                            "meta" => [
-                                "title" => "系统管理",
-                                "icon" => "nested"
-                            ],
-                            "component" => 'Layout',
-                            "children" => [
-                                [
-                                    "path" => '/sys/menu',
-                                    "name" => 'menu',
-                                    "meta" => [
-                                        "title" => "菜单管理",
-                                        "icon" => "nested"
-                                    ],
-                                    "component" => 'index',
-                                    "children" => []
-                                ]
-                            ]
-                        ],
-                        [
-                            "path" => '/sysx',
-                            "name" => 'sysx',
-                            "meta" => [
-                                "title" => "其他管理",
-                                "icon" => "nested"
-                            ],
-                            "component" => 'Layout',
-                            "children" => []
-                        ]
-                    ],
-                    "__FUNCTION__" => __FUNCTION__,
-                    "__CLASS__" => __class__,
-                    "uri" => $this->uri
-                ],
-
-            ];
-            $this->response($message, RestController::HTTP_OK);
-        } else {
-            $message = [
-                "code" => 50008,
-                "message" => 'Login failed, unable to get user details.'
-            ];
-
-            $this->response($message, RestController::HTTP_OK);
-        }
-
-    }
-
     function logout_post()
     {
         $message = [
@@ -1134,38 +1061,6 @@ class User extends RestController
             "data" => 'success'
         ];
         $this->response($message, RestController::HTTP_OK);
-    }
-
-    function list_get()
-    {
-//        $result = $this->some_model();
-        $result['success'] = true;
-
-        if ($result['success']) {
-            $List = array(
-                array('order_no' => '201805138451313131', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
-                array('order_no' => '300000000000000000', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
-                array('order_no' => '444444444444444444', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
-                array('order_no' => '888888888888888888', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
-            );
-
-            $message = [
-                "code" => 20000,
-                "data" => [
-                    "total" => count($List),
-                    "items" => $List
-                ]
-            ];
-            $this->response($message, RestController::HTTP_OK);
-        } else {
-            $message = [
-                "code" => 50008,
-                "message" => 'Login failed, unable to get user details.'
-            ];
-
-            $this->response($message, RestController::HTTP_OK);
-        }
-
     }
 
 }

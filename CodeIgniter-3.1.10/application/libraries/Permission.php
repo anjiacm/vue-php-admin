@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * Permission Class
@@ -34,7 +34,6 @@ class Permission
             //var_dump($data);
             $this->data = $data;
             $this->getChildren($this->root, $closed);
-
         }
 
         //去掉键名
@@ -64,7 +63,6 @@ class Permission
                 }
 
                 $this->treeArray[$node[$this->idKey]] = $node;
-
             }
         }
         return $children;
@@ -187,8 +185,8 @@ class Permission
             return ['code' => 50016, 'message' => "无操作权限 " . $uri, 'data' => $PermArr];
         }
 
-//          var_dump($uri); // string(19) "api/v2/sys/menu/add"
-//        var_dump($PermArr);
+        //          var_dump($uri); // string(19) "api/v2/sys/menu/add"
+        //        var_dump($PermArr);
         foreach ($PermArr as $k => $v) {
             if (strpos($uri, $v['path'])) {
                 return ['code' => 50000, 'message' => "有操作权限 " . $uri, 'data' => $PermArr];
@@ -257,6 +255,29 @@ class Permission
         return $tree;
     }
 
+    // 生成部门机构树
+    function genDeptTree($data, $idKey, $fidKey, $pId)
+    {
+        $tree = array();
+        foreach ($data as $k => $v) {
+            // 找到父节点为$pId的节点，然后进行递归查找其子节点，
+            if ($v[$fidKey] == $pId) {
+                // 数据库取出为string类型，强制类型转换成整形，方便前端使用
+                isset($v['id']) ? $v['id'] = intval($v['id']) : '';
+                isset($v['pid']) ? $v['pid'] = intval($v['pid']) : '';
+                isset($v['listorder']) ? $v['listorder'] = intval($v['listorder']) : '';
+
+                $v['children'] = $this->genDeptTree($data, $idKey, $fidKey, $v[$idKey]);
+                // vue treeselect 组件子节点为空时会列出，将空的子节点删除 children key.
+                if (empty($v['children'])) {
+                    unset($v['children']);
+                }
+                $tree[] = $v;     // 循环数组添加元素 属于同一层级
+            }
+        }
+        return $tree;
+    }
+
     /**
      * 指定格式两个二维数组比较差集
      * @param $array1
@@ -271,7 +292,7 @@ class Permission
     {
         $ret = array();
         foreach ($array1 as $k => $v) {
-#               var_dump($v);
+            #               var_dump($v);
             $isExist = false;
             foreach ($array2 as $k2 => $v2) {
                 if (empty(array_diff_assoc($v, $v2))) {
@@ -289,7 +310,7 @@ class Permission
      */
     function genTree($data, $idKey, $fidKey, $pId)
     {
-//        $tree = '';
+        //        $tree = '';
         $tree = array();
         foreach ($data as $k => $v) {
             // 找到父节点为$pId的节点，然后进行递归查找其子节点，
@@ -297,10 +318,10 @@ class Permission
             if ($v[$fidKey] == $pId) {
                 $v['children'] = $this->genTree($data, $idKey, $fidKey, $v[$idKey]);
                 //   print_r($pId);
-//                $v['isLeaf']=$v['children']?0:1;
-//                $v['state']=$v['children']?'closed':'open';
+                //                $v['isLeaf']=$v['children']?0:1;
+                //                $v['state']=$v['children']?'closed':'open';
                 $tree[] = $v;     // 循环数组添加元素 属于同一层级
-//                print_r($v);
+                //                print_r($v);
                 //   print_r($tree);
             }
         }
@@ -334,15 +355,15 @@ class Permission
         $CI->load->model('Dept_model', 'Dept');
 
         $array = $CI->Dept->getDeptids();
-//            var_dump($array);
+        //            var_dump($array);
         $max = 10000;
         $j = 0;
         for ($i = 0; $i < count($array); $i++) {
-//                var_dump($array[$i]->DeptId);
+            //                var_dump($array[$i]->DeptId);
             $arr = $CI->Dept->getDeptFatherId($array[$i]->DeptId);
-//                var_dump($arr[0]->FatherLst);
-//                var_dump(explode(",",$arr[0]->FatherLst));
-//                var_dump(count(explode(",",$arr[0]->FatherLst)));
+            //                var_dump($arr[0]->FatherLst);
+            //                var_dump(explode(",",$arr[0]->FatherLst));
+            //                var_dump(count(explode(",",$arr[0]->FatherLst)));
             $fid_length = count(explode(",", $arr[0]->FatherLst));
 
             if ($fid_length < $max) {
@@ -356,19 +377,16 @@ class Permission
 
         $ret = $CI->Dept->getFahterId($fdeptid); //获取最高机构直属父ID作为终止节点
         $root = $ret[0]->FatherId;   // treelib 需要终止节点
-//            $root 最顶层fid
-//            $b=$this->treelib->getTreeArray($data,'Id','FatherId',$root,1);
+        //            $root 最顶层fid
+        //            $b=$this->treelib->getTreeArray($data,'Id','FatherId',$root,1);
 
-//            $b=$this->treelib->getTreeArray($data,'Id','FatherId',$root,1);
-//            $b=str_replace(',"state":"closed","children":""',',"state":"open","children":""',json_encode($b));
-//            echo json_encode($b);
+        //            $b=$this->treelib->getTreeArray($data,'Id','FatherId',$root,1);
+        //            $b=str_replace(',"state":"closed","children":""',',"state":"open","children":""',json_encode($b));
+        //            echo json_encode($b);
 
-//            $b=$this->genTree($data,'Id','FatherId',$root);
+        //            $b=$this->genTree($data,'Id','FatherId',$root);
 
         $b = $this->genTree($data, 'id', 'FatherId', $root);
         echo json_encode($b);
-
     }
-
-
 }
