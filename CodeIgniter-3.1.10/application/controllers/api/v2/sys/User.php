@@ -950,7 +950,7 @@ class User extends RestController
                 "roles" => $this->User_model->getUserRolesByUserId($jwt_obj->user_id),
                 "introduction" => "I am a super administrator",
                 // "avatar" => "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif",
-                "name" => "editorDashboard",
+                "name" => "pocoyo",
                 "identify" => "410000000000000000",
                 "phone" => "13633838282",
                 "ctrlperm" => $CtrlPerm,
