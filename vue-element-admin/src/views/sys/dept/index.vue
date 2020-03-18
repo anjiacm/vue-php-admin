@@ -320,7 +320,6 @@ export default {
         beforeClose: (action, instance, done) => {
           if (action === 'confirm') {
             instance.confirmButtonLoading = true
-            instance.confirmButtonText = '执行中...'
 
             const tempData = {
               id: data.id,

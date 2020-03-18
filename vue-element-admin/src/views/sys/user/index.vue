@@ -45,6 +45,9 @@
           </el-select> -->
           <treeselect v-model="temp.role" :multiple="true" :clearable="false" :normalizer="normalizer" :options="roleOptions" placeholder="请选择角色..." />
         </el-form-item>
+        <el-form-item label="部门" prop="dept">
+          <treeselect v-model="temp.dept" :multiple="true" :clearable="false" :flat="true" :normalizer="normalizer" :options="deptOptions" placeholder="请选择部门..." />
+        </el-form-item>
         <el-form-item label="排序ID">
           <!-- onkeypress 防止录入e 及其他字符 -->
           <el-input-number v-model.trim="temp.listorder" :min="0" controls-position="right" onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))" />
@@ -67,7 +70,7 @@
 import waves from '@/directive/waves' // Waves directive
 import perm from '@/directive/perm/index.js' // 权限判断指令
 
-import { createUser, updateUser, deleteUser, getUserList, getRoleOptions } from '@/api/user'
+import { createUser, updateUser, deleteUser, getUserList, getRoleOptions, getDeptOptions } from '@/api/user'
 
 // import random from 'string-random'
 // import the component
@@ -108,17 +111,6 @@ export default {
     }
 
     return {
-      value: null,
-      // define treeselect options
-      TreeSelectOptions: [],
-      // 自定义treeselect key id,label
-      normalizer(node) {
-        return {
-          id: node.id,
-          label: node.name,
-          children: node.children
-        }
-      },
       passwordType: 'password',
       searchDef: {
         show: true,
@@ -163,8 +155,19 @@ export default {
           order: 'ascending'
         }
       },
+      // 自定义role treeselect key id,label
+      normalizer(node) {
+        return {
+          id: node.id,
+          label: node.name,
+          children: node.children
+        }
+      },
       roleOptions: [],
-      currentUserRoles: [],
+
+      // 部门 treeselect
+      deptOptions: [],
+
       btnsize: 'mini',
       dialogFormVisible: false,
       dialogStatus: '',
@@ -179,6 +182,7 @@ export default {
         password: '',
         email: '',
         role: [],
+        dept: [],
         status: '1',
         listorder: 1000
       },
@@ -186,13 +190,14 @@ export default {
         username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }],
         role: [{ required: true, message: '请选择角色', trigger: 'blur' }]
+        // dept: [{ required: true, message: '请选择部门', trigger: 'blur' }]
       }
     }
   },
 
   created() {
     // this.fetchData()
-    this.initRoleOptions()
+    this.initOptions()
   },
   methods: {
     removeTag(args) {
@@ -221,12 +226,19 @@ export default {
       })
     },
 
-    initRoleOptions() {
+    // 初始化角色树，部门树选项
+    initOptions() {
       getRoleOptions().then(res => {
         console.log('getRoleOptions', res)
         this.roleOptions = res.data
       }).catch(() => { })
+
+      getDeptOptions().then(res => {
+        console.log('getDeptOptions', res)
+        this.deptOptions = res.data
+      }).catch(() => { })
     },
+
     resetTemp() {
       this.temp = {
         id: undefined,
@@ -234,6 +246,7 @@ export default {
         password: '',
         email: '',
         role: [],
+        dept: [],
         status: '1',
         listorder: 1000
       }
@@ -265,6 +278,9 @@ export default {
               message: res.message,
               type: res.type
             })
+          }).catch(err => {
+            console.log(err)
+            this.updateLoading = true
           })
         }
       })
@@ -298,6 +314,9 @@ export default {
               message: res.message,
               type: res.type
             })
+          }).catch(err => {
+            console.log(err)
+            this.updateLoading = true
           })
         }
       })
@@ -317,7 +336,6 @@ export default {
         beforeClose: (action, instance, done) => {
           if (action === 'confirm') {
             instance.confirmButtonLoading = true
-            instance.confirmButtonText = '执行中...'
 
             const tempData = {
               'id': row.id,

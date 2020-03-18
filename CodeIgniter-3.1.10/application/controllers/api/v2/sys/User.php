@@ -46,16 +46,16 @@ class User extends RestController
 
         //签发的Token header.payload.signature 前两部分可以base64解密
         $jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC93d3cuaGVsbG93ZWJhLm5ldCIsImF1ZCI6Imh0dHA6XC9cL3d3dy5oZWxsb3dlYmEubmV0IiwiaWF0IjoxNTc3NjY4MDk0LCJuYmYiOjE1Nzc2NjgwOTQsImV4cCI6MTU3NzY2ODA5NCwiZGF0YSI6eyJ1c2VyaWQiOjIsInVzZXJuYW1lIjoiXHU2NzRlXHU1YzBmXHU5Zjk5In19.EM9G8aW7DCpRYW7L0vjTgTt7UevwIyocVaouq0rdn0I";
-//        $arr = explode('.', $jwt);
-//        var_dump($arr);
-//        var_dump(base64_decode($arr[1]));
-//        $object = json_decode(base64_decode($arr[1]));
-//        var_dump($object->data);
-//        // var_dump($object->data->username);
-//        return;
+        //        $arr = explode('.', $jwt);
+        //        var_dump($arr);
+        //        var_dump(base64_decode($arr[1]));
+        //        $object = json_decode(base64_decode($arr[1]));
+        //        var_dump($object->data);
+        //        // var_dump($object->data->username);
+        //        return;
         try {
             $decoded = JWT::decode($jwt, $key, ['HS256']); //HS256方式，这里要和签发的时候对应
-            $arr = (array)$decoded;
+            $arr = (array) $decoded;
             print_r($arr);
         } catch (\Firebase\JWT\SignatureInvalidException $e) {  //签名不正确
             echo $e->getMessage();
@@ -91,7 +91,7 @@ class User extends RestController
         // echo $response->getStatusCode(); // 200
         // echo $response->getHeaderLine('content-type'); // 'application/json; charset=utf8'
         // echo $response->getBody(); // '{"id": 1420053, "name": "guzzle", ...}'
-        
+
         // // Send an asynchronous request. 异步请求
         // $request = new \GuzzleHttp\Psr7\Request('GET', 'https://jsonplaceholder.typicode.com/todos');
         // $promise = $client->sendAsync($request)->then(function ($response) {
@@ -183,9 +183,19 @@ class User extends RestController
             $UserArr[$k]['role'] = [];
             $RoleArr = $this->User_model->getUserRoles($v['id']);
             foreach ($RoleArr as $kk => $vv) {
-                array_push($UserArr[$k]['role'], $vv['id']);
+                array_push($UserArr[$k]['role'], intval($vv['id'])); // 字符串转数字 前端treeselect value与option 的id 必须类型一致
             }
         }
+
+        // 遍历该用户所属部门信息
+        foreach ($UserArr as $k => $v) {
+            $UserArr[$k]['dept'] = [];
+            $DeptArr = $this->User_model->getUserDepts($v['id']);
+            foreach ($DeptArr as $kk => $vv) {
+                array_push($UserArr[$k]['dept'], intval($vv['dept_id'])); // 字符串转数字 前端treeselect value与option 的id 必须类型一致
+            }
+        }
+
         $message = [
             "code" => 20000,
             "data" => [
@@ -202,14 +212,37 @@ class User extends RestController
         $jwt_object = $this->permission->parseJWT($Token);
 
         $RoleArr = $this->User_model->getRoleOptions($jwt_object->user_id);
-        // string to boolean
+        // string to boolean / number
         foreach ($RoleArr as $k => $v) {
             $v['isDisabled'] === 'true' ? ($RoleArr[$k]['isDisabled'] = true) : ($RoleArr[$k]['isDisabled'] = false);
+            isset($v['id']) ? $RoleArr[$k]['id'] = intval($v['id']) : $RoleArr[$k]['id'] = '';
         }
 
         $message = [
             "code" => 20000,
             "data" => $RoleArr,
+        ];
+        $this->response($message, RestController::HTTP_OK);
+    }
+
+    function getdeptoptions_get()
+    {
+        $Token = $this->input->get_request_header('X-Token', true);
+        $jwt_object = $this->permission->parseJWT($Token);
+
+        $DeptArr = $this->User_model->getDeptOptions($jwt_object->user_id);
+        // string to boolean / number
+        foreach ($DeptArr as $k => $v) {
+            $v['isDisabled'] === 'true' ? ($DeptArr[$k]['isDisabled'] = true) : ($DeptArr[$k]['isDisabled'] = false);
+            isset($v['id']) ? $DeptArr[$k]['id'] = intval($v['id']) : $DeptArr[$k]['id'] = '';
+        }
+
+        // 转换成树型结构, id,pid 为数字形式
+        $DeptTree = $this->permission->genDeptTree($DeptArr, 'id', 'pid', 0);
+
+        $message = [
+            "code" => 20000,
+            "data" => $DeptTree,
         ];
         $this->response($message, RestController::HTTP_OK);
     }
@@ -222,6 +255,9 @@ class User extends RestController
         // 参数数据预处理
         $RoleArr = $parms['role'];
         unset($parms['role']);    // 剔除role数组
+        $DeptArr = $parms['dept'];
+        unset($parms['dept']);    // 剔除role数组
+
         // 加入新增时间
         $parms['create_time'] = time();
         $parms['password'] = md5($parms['password']);
@@ -236,6 +272,7 @@ class User extends RestController
             $this->response($message, RestController::HTTP_OK);
         }
 
+        // 处理关联角色
         $failed = false;
         $failedArr = [];
         foreach ($RoleArr as $k => $v) {
@@ -252,6 +289,27 @@ class User extends RestController
                 "code" => 20000,
                 "type" => 'error',
                 "message" => '用户关联角色失败 ' . json_encode($failedArr)
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        // 处理关联部门
+        $failed = false;
+        $failedArr = [];
+        foreach ($DeptArr as $k => $v) {
+            $arr = ['user_id' => $user_id, 'dept_id' => $v];
+            $ret = $this->Base_model->_insert_key('sys_user_dept', $arr);
+            if (!$ret) {
+                $failed = true;
+                array_push($failedArr, $arr);
+            }
+        }
+
+        if ($failed) {
+            $message = [
+                "code" => 20000,
+                "type" => 'error',
+                "message" => '用户关联部门失败 ' . json_encode($failedArr)
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -286,7 +344,13 @@ class User extends RestController
             $RoleArr[$k] = ['user_id' => $id, 'role_id' => $v];
         }
 
+        $DeptArr = [];
+        foreach ($parms['dept'] as $k => $v) {
+            $DeptArr[$k] = ['user_id' => $id, 'dept_id' => $v];
+        }
+
         unset($parms['role']);  // 剔除role数组
+        unset($parms['dept']);  // 剔除dept数组
         unset($parms['id']);    // 剔除索引id
         unset($parms['password']);    // 剔除密码
 
@@ -301,6 +365,7 @@ class User extends RestController
             $this->response($message, RestController::HTTP_OK);
         }
 
+        // 处理角色数组编辑操作
         $RoleSqlArr = $this->User_model->getRolesByUserId($id);
 
         $AddArr = $this->permission->array_diff_assoc2($RoleArr, $RoleSqlArr);
@@ -341,6 +406,51 @@ class User extends RestController
                 "code" => 20000,
                 "type" => 'error',
                 "message" => '用户关联角色失败 ' . json_encode($failedArr)
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        // 处理部门数组编辑操作
+        $DeptSqlArr = $this->User_model->getDeptsByUserId($id);
+
+        $AddArr = $this->permission->array_diff_assoc2($DeptArr, $DeptSqlArr);
+        // var_dump('------------只存在于前台传参 做添加操作-------------');
+        // var_dump($AddArr);
+        $failed = false;
+        $failedArr = [];
+        foreach ($AddArr as $k => $v) {
+            $ret = $this->Base_model->_insert_key('sys_user_dept', $v);
+            if (!$ret) {
+                $failed = true;
+                array_push($failedArr, $v);
+            }
+        }
+        if ($failed) {
+            $message = [
+                "code" => 20000,
+                "type" => 'error',
+                "message" => '用户关联部门失败 ' . json_encode($failedArr)
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        $DelArr = $this->permission->array_diff_assoc2($DeptSqlArr, $DeptArr);
+        // var_dump('------------只存在于后台数据库 删除操作-------------');
+        // var_dump($DelArr);
+        $failed = false;
+        $failedArr = [];
+        foreach ($DelArr as $k => $v) {
+            $ret = $this->Base_model->_delete_key('sys_user_dept', $v);
+            if (!$ret) {
+                $failed = true;
+                array_push($failedArr, $v);
+            }
+        }
+        if ($failed) {
+            $message = [
+                "code" => 20000,
+                "type" => 'error',
+                "message" => '用户关联部门失败 ' . json_encode($failedArr)
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -390,7 +500,6 @@ class User extends RestController
             "message" => $parms['username'] . ' - 用户删除成功'
         ];
         $this->response($message, RestController::HTTP_OK);
-
     }
 
     function login_post()
@@ -402,23 +511,23 @@ class User extends RestController
 
         // 用户名密码正确 生成token 返回
         if ($result['success']) {
-//            $Token = $this->_generate_token();
-//            $create_time = time();
-//            $expire_time = $create_time + 2 * 60 * 60;  // 2小时过期
-//
-//            $data = [
-//                'user_id' => $result['userinfo']['id'],
-//                'expire_time' => $expire_time,
-//                'create_time' => $create_time
-//            ];
-//
-//            if (!$this->_insert_token($Token, $data)) {
-//                $message = [
-//                    "code" => 20000,
-//                    "message" => 'Token 创建失败, 请联系管理员.'
-//                ];
-//                $this->response($message, RestController::HTTP_OK);
-//            }
+            //            $Token = $this->_generate_token();
+            //            $create_time = time();
+            //            $expire_time = $create_time + 2 * 60 * 60;  // 2小时过期
+            //
+            //            $data = [
+            //                'user_id' => $result['userinfo']['id'],
+            //                'expire_time' => $expire_time,
+            //                'create_time' => $create_time
+            //            ];
+            //
+            //            if (!$this->_insert_token($Token, $data)) {
+            //                $message = [
+            //                    "code" => 20000,
+            //                    "message" => 'Token 创建失败, 请联系管理员.'
+            //                ];
+            //                $this->response($message, RestController::HTTP_OK);
+            //            }
             $userInfo = $result['userinfo'];
 
             $time = time(); //当前时间
@@ -472,7 +581,7 @@ class User extends RestController
         $client_id = '94aae05609c96ffb7d3b';  // #gitignore
         $client_secret = '02e962159c91e76bfc18548f7c90c52bc18b1cc6';  // #gitignore
         $redirect_uri = 'http://localhost:9527/auth-redirect';   // #gitignore
-        
+
         // composer require league/oauth2-github
         $provider = new League\OAuth2\Client\Provider\Github([
             'clientId' => $client_id,    // The client ID assigned to you by the provider
@@ -488,10 +597,10 @@ class User extends RestController
             // urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
-            
+
             // Get the state generated for you and store it to the session.
             $_SESSION['oauth2state'] = $provider->getState();
-            
+
             // Redirect the user to the authorization URL.
             // header('Location: ' . $authorizationUrl);
             // exit;
@@ -501,7 +610,7 @@ class User extends RestController
             ];
             $this->response($message, RestController::HTTP_OK);
 
-        // Check given state against previously stored one to mitigate CSRF attack
+            // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($state) || (isset($_SESSION['oauth2state']) && $state !== $_SESSION['oauth2state'])) {
 
             if (isset($_SESSION['oauth2state'])) {
@@ -509,7 +618,6 @@ class User extends RestController
             }
 
             exit('Invalid state');
-
         } else {
             try {
                 // Try to get an access token (using the authorization code grant)
@@ -525,7 +633,7 @@ class User extends RestController
                 if (!empty($user)) {
 
                     $time = time(); //当前时间
-                        // 公用信息
+                    // 公用信息
                     $payload = [
                         'iat' => $time, //签发时间
                         'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
@@ -567,7 +675,6 @@ class User extends RestController
                 $this->response($message, RestController::HTTP_OK);
             }
         }
-
     } // function githubauth_get() end
 
     // 使用 oauth2-client 通用包来进行 github 认证登录, 配置参数较多，(备用参考使用)
@@ -585,7 +692,7 @@ class User extends RestController
         $client_id = '94aae05609c96ffb7d3b';  // #gitignore
         $client_secret = '02e962159c91e76bfc18548f7c90c52bc18b1cc6';  // #gitignore
         $redirect_uri = 'http://localhost:9527/auth-redirect';   // #gitignore
-        
+
         // composer 安装 oauth2-client 包
         // composer require league/oauth2-client
         $provider = new \League\OAuth2\Client\Provider\GenericProvider([
@@ -605,10 +712,10 @@ class User extends RestController
             // urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
-            
+
             // Get the state generated for you and store it to the session.
             $_SESSION['oauth2state'] = $provider->getState();
-            
+
             // Redirect the user to the authorization URL.
             // header('Location: ' . $authorizationUrl);
             // exit;
@@ -618,7 +725,7 @@ class User extends RestController
             ];
             $this->response($message, RestController::HTTP_OK);
 
-        // Check given state against previously stored one to mitigate CSRF attack
+            // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($state) || (isset($_SESSION['oauth2state']) && $state !== $_SESSION['oauth2state'])) {
 
             if (isset($_SESSION['oauth2state'])) {
@@ -626,14 +733,13 @@ class User extends RestController
             }
 
             exit('Invalid state');
-
         } else {
             try {
                 // Try to get an access token using the authorization code grant.
                 $accessToken = $provider->getAccessToken('authorization_code', [
                     'code' => $code
                 ]);
-               
+
                 // We have an access token, which we may use in authenticated
                 // requests against the service provider's API.
                 // echo 'Access Token: ' . $accessToken->getToken() . "<br>";
@@ -679,7 +785,7 @@ class User extends RestController
                     ];
                     $this->response($message, RestController::HTTP_OK);
                 }
-            // } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
+                // } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
             } catch (Exception $e) {
                 // 直接使用Exception $e 可捕获所有异常包括信赖包 guzzlehttp 里的错误异常 GuzzleHttp\Exception\ConnectException  Message: cURL error 35: OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to api.github.com:443
                 // 使用 \League\OAuth2\Client\Provider\Exception\IdentityProviderException 只能捕获 IdentityProviderException
@@ -691,7 +797,6 @@ class User extends RestController
                 $this->response($message, RestController::HTTP_OK);
             }
         }
-
     } // function githubauth_get() end
 
     // 使用 oauth2-client 通用包进行 gitee 码云认证登录
@@ -709,7 +814,7 @@ class User extends RestController
         $client_id = '15be551900242204c25e8aff5c49f8a41ba5bd889657512bade8ec2d12d956b9';  // #gitignore
         $client_secret = '23a2346a2c32c4ed7e793dbf1f03c0d3d7b2d1233d46ff0a2d4ae2087ebee562';  // #gitignore
         $redirect_uri = 'http://localhost:9527/auth-redirect';   // #gitignore
-        
+
         // composer 安装 oauth2-client 包
         // composer require league/oauth2-client
         $provider = new \League\OAuth2\Client\Provider\GenericProvider([
@@ -729,10 +834,10 @@ class User extends RestController
             // urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
-            
+
             // Get the state generated for you and store it to the session.
             $_SESSION['oauth2state'] = $provider->getState();
-            
+
             // Redirect the user to the authorization URL.
             // header('Location: ' . $authorizationUrl);
             // exit;
@@ -742,7 +847,7 @@ class User extends RestController
             ];
             $this->response($message, RestController::HTTP_OK);
 
-        // Check given state against previously stored one to mitigate CSRF attack
+            // Check given state against previously stored one to mitigate CSRF attack
         } elseif (empty($state) || (isset($_SESSION['oauth2state']) && $state !== $_SESSION['oauth2state'])) {
 
             if (isset($_SESSION['oauth2state'])) {
@@ -750,7 +855,6 @@ class User extends RestController
             }
 
             exit('Invalid state');
-
         } else {
             try {
                 // Try to get an access token using the authorization code grant.
@@ -767,7 +871,7 @@ class User extends RestController
                 // Using the access token, we may look up details about the
                 // resource owner.
                 $resourceOwner = $provider->getResourceOwner($accessToken);
-                
+
                 // 与业务系统绑定帐户时 应该以 login 为唯一名比较好，或者邮箱？
                 //  var_export($resourceOwner->toArray());
                 //  array (
@@ -829,7 +933,6 @@ class User extends RestController
                 exit($e->getMessage());
             }
         }
-
     } // function giteeauth_get() end
 
     function refreshtoken_post()
@@ -908,7 +1011,6 @@ class User extends RestController
             ];
             $this->response($message, RestController::HTTP_UNAUTHORIZED);
         }
-
     }
 
     // 根据token拉取用户信息 get
@@ -954,84 +1056,84 @@ class User extends RestController
                 "identify" => "410000000000000000",
                 "phone" => "13633838282",
                 "ctrlperm" => $CtrlPerm,
-//                "ctrlperm" => [
-//                    [
-//                        "path" => "/sys/menu/view"
-//                    ],
-//                    [
-//                        "path" => "/sys/menu/add"
-//                    ],
-//                    [
-//                        "path" => "/sys/menu/download"
-//                    ]
-//                ],
+                //                "ctrlperm" => [
+                //                    [
+                //                        "path" => "/sys/menu/view"
+                //                    ],
+                //                    [
+                //                        "path" => "/sys/menu/add"
+                //                    ],
+                //                    [
+                //                        "path" => "/sys/menu/download"
+                //                    ]
+                //                ],
                 "asyncRouterMap" => $asyncRouterMap
-//                "asyncRouterMap" => [
-//                [
-//                    "path" => '/sys',
-//                    "name" => 'sys',
-//                    "meta" => [
-//                        "title" => "系统管理",
-//                        "icon" => "sysset2"
-//                    ],
-//                    "component" => 'Layout',
-//                    "redirect" => '/sys/menu',
-//                    "children" => [
-//                        [
-//                            "path" => '/sys/menu',
-//                            "name" => 'menu',
-//                            "meta" => [
-//                                "title" => "菜单管理",
-//                                "icon" => "menu1"
-//                            ],
-//                            "component" => 'sys/menu/index',
-//                            "redirect" => '',
-//                            "children" => [
-//
-//                            ]
-//                        ],
-//                        [
-//                            "path" => '/sys/user',
-//                            "name" => 'user',
-//                            "meta" => [
-//                                "title" => "用户管理",
-//                                "icon" => "user"
-//                            ],
-//                            "component" => 'pdf/index',
-//                            "redirect" => '',
-//                            "children" => [
-//
-//                            ]
-//                        ],
-//                        [
-//                            "path" => '/sys/icon',
-//                            "name" => 'icon',
-//                            "meta" => [
-//                                "title" => "图标管理",
-//                                "icon" => "icon"
-//                            ],
-//                            "component" => 'svg-icons/index',
-//                            "redirect" => '',
-//                            "children" => [
-//
-//                            ]
-//                        ]
-//                    ]
-//                ],
-//                    [
-//                        "path" => '/sysx',
-//                        "name" => 'sysx',
-//                        "meta" => [
-//                            "title" => "其他管理",
-//                            "icon" => "plane"
-//                        ],
-//                        "component" => 'Layout',
-//                        "redirect" => '',
-//                        "children" => [
-//
-//                        ]
-//                    ]
-//                ]
+                //                "asyncRouterMap" => [
+                //                [
+                //                    "path" => '/sys',
+                //                    "name" => 'sys',
+                //                    "meta" => [
+                //                        "title" => "系统管理",
+                //                        "icon" => "sysset2"
+                //                    ],
+                //                    "component" => 'Layout',
+                //                    "redirect" => '/sys/menu',
+                //                    "children" => [
+                //                        [
+                //                            "path" => '/sys/menu',
+                //                            "name" => 'menu',
+                //                            "meta" => [
+                //                                "title" => "菜单管理",
+                //                                "icon" => "menu1"
+                //                            ],
+                //                            "component" => 'sys/menu/index',
+                //                            "redirect" => '',
+                //                            "children" => [
+                //
+                //                            ]
+                //                        ],
+                //                        [
+                //                            "path" => '/sys/user',
+                //                            "name" => 'user',
+                //                            "meta" => [
+                //                                "title" => "用户管理",
+                //                                "icon" => "user"
+                //                            ],
+                //                            "component" => 'pdf/index',
+                //                            "redirect" => '',
+                //                            "children" => [
+                //
+                //                            ]
+                //                        ],
+                //                        [
+                //                            "path" => '/sys/icon',
+                //                            "name" => 'icon',
+                //                            "meta" => [
+                //                                "title" => "图标管理",
+                //                                "icon" => "icon"
+                //                            ],
+                //                            "component" => 'svg-icons/index',
+                //                            "redirect" => '',
+                //                            "children" => [
+                //
+                //                            ]
+                //                        ]
+                //                    ]
+                //                ],
+                //                    [
+                //                        "path" => '/sysx',
+                //                        "name" => 'sysx',
+                //                        "meta" => [
+                //                            "title" => "其他管理",
+                //                            "icon" => "plane"
+                //                        ],
+                //                        "component" => 'Layout',
+                //                        "redirect" => '',
+                //                        "children" => [
+                //
+                //                        ]
+                //                    ]
+                //                ]
             ];
 
             $info = array_merge($info1, $info2);
@@ -1051,7 +1153,6 @@ class User extends RestController
 
             $this->response($message, RestController::HTTP_OK);
         }
-
     }
 
     function logout_post()
@@ -1062,5 +1163,4 @@ class User extends RestController
         ];
         $this->response($message, RestController::HTTP_OK);
     }
-
 }

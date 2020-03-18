@@ -131,7 +131,6 @@ class User_model extends CI_Model
      * 并且根据$userId 获取对应$userId用户所拥有的角色类权限选项
      * 当用户含有未拥有的角色类权限时 设置 isDisabled 禁用选择
      * 新增编辑时使用
-     *
      */
     function getRoleOptions($userId)
     {
@@ -173,8 +172,44 @@ class User_model extends CI_Model
     }
 
     /**
+     * 获取所有部门列表
+     * 并且根据$userId 获取对应$userId用户所拥有的部门类数据权限选项
+     * 当用户含有未拥有的部门类数据权限时 设置 isDisabled 禁用选择
+     * 新增编辑时使用
+     */
+    function getDeptOptions($userId)
+    {
+        $sql = "SELECT
+                    d.*,
+                IF (
+                    t.name IS NULL,
+                    'true',
+                    'false'
+                ) isDisabled
+                FROM
+                    sys_dept d
+                LEFT JOIN (
+                    SELECT
+                        d.*
+                    FROM
+                        sys_user_role ur,
+                        sys_role_perm rp,
+                        sys_perm p,
+                        sys_dept d
+                    WHERE
+                        ur.user_id = $userId
+                    AND ur.role_id = rp.role_id
+                    AND rp.perm_id = p.id
+                    AND p.perm_type = 'dept'
+                    AND p.r_id = d.id
+                    AND d. STATUS = 1
+                ) t ON d.id = t.id";
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    /**
      * 根据 用户ID 获取该用户被分配的角色
-     *
      */
     function getUserRoles($Id)
     {
@@ -189,6 +224,22 @@ class User_model extends CI_Model
                 WHERE
                     ur.role_id = r.id
                 AND ur.user_id =" . $Id;
+
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    /**
+     * 根据 用户ID 获取该用户归属的部门
+     */
+    function getUserDepts($Id)
+    {
+        $sql = "SELECT
+                    ud.dept_id
+                FROM
+                    sys_user_dept ud
+                WHERE
+                    ud.user_id =" . $Id;
 
         $query = $this->db->query($sql);
         return $query->result_array();
@@ -213,6 +264,24 @@ class User_model extends CI_Model
         return $query->result_array();
     }
 
+   /**
+     * 根据 用户ID 获取该用户所拥有的角色
+     * [
+     * ['user_id'=> 1, 'role_id'=>1]
+     * ...
+     * ]
+     */
+    function getDeptsByUserId($Id)
+    {
+        $sql = "SELECT
+                    ud.user_id, ud.dept_id
+                FROM
+                    sys_user_dept ud
+                 WHERE ud.user_id=" . $Id;
+
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
 
     /**
      * 根据 $userId 拉取用户信息
