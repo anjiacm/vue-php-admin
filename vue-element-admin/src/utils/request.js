@@ -132,6 +132,16 @@ service.interceptors.response.use(
     //   duration: 5 * 1000
     // })
 
+    // 拦截网络连接非 200 及 401 响应的错误, eg. Status Code: 500 Internal Server Error
+    if (error.response.status !== 200 && error.response.status !== 401) {
+      Message({
+        message: 'Status Code: ' + error.response.status + ' ' + error.response.statusText,
+        type: 'error',
+        duration: 3 * 1000
+      })
+      return
+    }
+
     if (error.response.status === 401 && error.response.data.code === 50014) {
       // Message({
       //   message: 'access_token过期,自动续期',
