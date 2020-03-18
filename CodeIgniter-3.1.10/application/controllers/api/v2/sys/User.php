@@ -1163,4 +1163,35 @@ class User extends RestController
         ];
         $this->response($message, RestController::HTTP_OK);
     }
+
+    function list_get()
+    {
+        //  $result = $this->some_model();
+        $result['success'] = TRUE;
+
+        if ($result['success']) {
+            $List = array(
+                array('order_no' => '201805138451313131', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
+                array('order_no' => '300000000000000000', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
+                array('order_no' => '444444444444444444', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'success'),
+                array('order_no' => '888888888888888888', 'timestamp' => 'iphone 7 ', 'username' => 'iphone 7 ', 'price' => 399, 'status' => 'pending'),
+            );
+
+            $message = [
+                "code" => 20000,
+                "data" => [
+                    "total" => count($List),
+                    "items" => $List
+                ]
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        } else {
+            $message = [
+                "code" => 50008,
+                "message" => 'Login failed, unable to get user details.'
+            ];
+
+            $this->response($message, RestController::HTTP_OK);
+        }
+    }
 }
