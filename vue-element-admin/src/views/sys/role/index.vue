@@ -202,7 +202,7 @@
               </el-col>
               <el-col v-if="dataPermScope == 4" :span="16">
                 <el-form-item label="勾选级联树" prop="jilian">
-                  <el-checkbox v-model="checkJianlian" :disabled="selectRole.id == null"/>
+                  <el-checkbox v-model="checkJianlian" :disabled="selectRole.id == null" />
                 </el-form-item>
               </el-col>
             </el-form>
@@ -499,6 +499,7 @@ export default {
       console.log('handleRoleSelectChange', val)
       if (val === null || val.id === null) {
         this.selectRole = {}
+        this.dataPermScope = ''
         return
       }
 
@@ -654,12 +655,14 @@ export default {
         rolePerms.push(rolePerm)
       }
 
+      const roleScope = this.dataPermScope
       // 获取选中的部门数据权限
-      if (this.dataPermScope === 4) {
+      if (roleScope === '4') {
         const checkedDeptNodes = this.$refs.deptTree.getCheckedNodes(
           false,
           true
         )
+
         for (let i = 0, len = checkedDeptNodes.length; i < len; i++) {
           const deptPerm = {
             role_id: roleId,
@@ -669,11 +672,6 @@ export default {
         }
       }
 
-      const roleScope = this.dataPermScope
-
-      console.log('rolePerms', rolePerms)
-      // this.authLoading = false
-      // return
       saveRolePerms(roleId, rolePerms, roleScope)
         .then(res => {
           // console.log('saveRolePerms...', res)
