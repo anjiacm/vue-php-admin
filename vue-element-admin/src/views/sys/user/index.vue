@@ -24,8 +24,8 @@
       </el-table-column>
     </data-tables-server>
 
-    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="" label-width="90px" style="width: 400px; margin-left:50px;">
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="width: 70%;">
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="" label-width="90px" style="width: 80%; margin-left:50px;">
         <el-form-item label="用户名" prop="username">
           <el-input v-model.trim="temp.username" :readonly="readonly" placeholder="请输入用户名" />
         </el-form-item>

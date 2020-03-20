@@ -36,6 +36,11 @@ router.beforeEach((to, from, next) => {
   // }
   // // 获取 code 结束
 
+  // 动态修改浏览器标签页标题
+  if (to.meta.title) {
+    document.title = to.meta.title + ' - Vue Element Admin'
+  }
+
   if (getToken()) { // determine if there has token
     /* has token*/
     if (to.path === '/login') {
