@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 |--------------------------------------------------------------------------
@@ -100,7 +100,7 @@ $config['charset'] = 'UTF-8';
 | setting this variable to TRUE (boolean).  See the user guide for details.
 |
 */
-//$config['enable_hooks'] = FALSE;
+// $config['enable_hooks'] = FALSE;
 $config['enable_hooks'] = TRUE;
 
 /*
@@ -532,8 +532,11 @@ $config['jwt_refresh_count'] = 7; // 调用refresh_token接口超过此次数时
 
 // 白名单里的uri不认证
 $config['jwt_white_list'] = [
-    '/example/users', // 测试api接口不认证  
-    '/sys/user/testapi', // 测试api接口不认证
+    'rest_server', // http://cirest.com:8890/rest_server 接口不认证 uri_string => rest_server
+    'welcome', // http://cirest.com:8890/welcome 接口不认证
+    '/example/users', // 测试api接口不认证    http://www.cirest.com:8890/api/example/users           uri_string => api/example/users
+    '/article/articles', // 测试api接口不认证 http://www.cirest.com:8890/api/v2/article/articles     uri_string => api/v2/article/articles
+    '/sys/user/testapi', // 测试api接口不认证 http://cirest.com:8890/api/v2/sys/user/testapi         uri_string => api/v2/sys/user/testapi
     '/sys/user/login',
     '/sys/user/logout',
     '/sys/user/refreshtoken', // 刷新token接口需要在控制器内作权限验证,比较特殊
@@ -562,3 +565,21 @@ $config['jwt_white_list'] = [
 // Exception 其他错误
 $config['jwt_token_expired'] = ["code" => 50014, "message" => "Token 过期了oo"];
 $config['jwt_token_exception'] = ['code' => 50008, 'message' => "非法的token"];
+
+// medoodb 初始化数据库全局配置, 注意与CI databases.php 区别
+$config['medoodb'] = [
+    'database_type' => 'mysql',
+    'database_name' => 'vueadminv2',
+    'server' => 'localhost',
+    'username' => 'root',
+    'password' => 'root',
+    'charset' => 'utf8',
+    //可选：端口
+    'port' => 3306,
+    //可选：表前缀
+    'prefix' => '',
+    // PDO驱动选项 http://www.php.net/manual/en/pdo.setattribute.php
+    'option' => [
+        PDO::ATTR_CASE => PDO::CASE_NATURAL
+    ]
+];
