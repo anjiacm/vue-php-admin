@@ -18,9 +18,9 @@ class ManageAuth
     //token及权限认证
     public function auth()
     {
-        // var_dump(uri_string()); // => api/v2/sys/user/login , api/example/users
-
-        $in_whiteList = Arrays::some(config_item('jwt_white_list'), function ($value) : bool {
+        // var_dump(uri_string()); // => api/v2/sys/user/login , api/example/users, rest_server, welcome
+        // uri_string() == '' 表示 http://www.cirest.com:8890/ 地址 uri_string 为空，同样在白名单不认证
+        $in_whiteList = uri_string() == '' ? true : Arrays::some(config_item('jwt_white_list'), function ($value): bool {
             // 白名单里的某一项 eg. '/sys/user/testapi' 包含于 uri_string() => 'api/v2/sys/user/testapi' 中则立即返回true, 所有项都不包含于才返回false
             return Strings::contains(uri_string(), $value);
         });
