@@ -40,6 +40,14 @@ class Article extends RestController
         // ]
         $data = $this->Medoodb->insert('article', $parms); // 返回PDOStatement
 
+        // // Returns the ID of the last inserted row
+        // var_dump($this->Medoodb->id());
+
+        // // update(), insert() and delete() method will return the PDO::Statement object
+        // echo $data->rowCount(); // The number of affected row
+        // echo $data->errorInfo(); // Fetch extended error information for this query
+        // // Read more: http://php.net/manual/en/class.pdostatement.php
+
         // 捕获错误信息
         $err = $this->Medoodb->error();
         // array(3) => ["42S02", 1146, "Table 'vueadminv2.articlex' doesn't exist"]
@@ -74,7 +82,7 @@ class Article extends RestController
             $data = $this->Medoodb->select(
                 'article',
                 '*'
-            ); // 返回 array
+                ); // 返回 array
         } else if ($id <= 0) { // Validate the id.
             // Set the response and exit
             $message = [
@@ -103,7 +111,7 @@ class Article extends RestController
             // var_dump($err[2]);
             // var_dump($this->Medoodb->log());
             $message = [
-                "code" => 200400,
+                "code" => 20400,
                 "data" => $err[2]
             ];
             $this->response($message, RestController::HTTP_BAD_REQUEST); // BAD_REQUEST (400) being the HTTP response code
