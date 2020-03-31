@@ -3,8 +3,8 @@ import request from '@/utils/request'
 // 操作：列出菜单
 export function getRoleList(form) {
   return request({
-    url: '/sys/role/view',
-    method: 'post',
+    url: '/sys/role/roles',
+    method: 'get',
     data: form
   })
 }
@@ -12,7 +12,7 @@ export function getRoleList(form) {
 // 添加按钮
 export function createRole(form) {
   return request({
-    url: '/sys/role/add',
+    url: '/sys/role/roles',
     method: 'post',
     data: form
   })
@@ -21,18 +21,17 @@ export function createRole(form) {
 // 编辑按钮
 export function updateRole(form) {
   return request({
-    url: '/sys/role/edit',
-    method: 'post',
+    url: '/sys/role/roles',
+    method: 'put',
     data: form
   })
 }
 
 // 删除按钮
-export function deleteRole(form) {
+export function deleteRole(id) {
   return request({
-    url: '/sys/role/del',
-    method: 'post',
-    data: form
+    url: `/sys/role/roles/${id}`,
+    method: 'delete'
   })
 }
 

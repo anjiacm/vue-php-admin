@@ -13,14 +13,7 @@
       </el-select>
       <el-button
         v-waves
-        v-perm="['/sys/role/view']"
-        class="filter-item"
-        type="primary"
-        icon="el-icon-search"
-        @click="handleFilter"
-      >查询</el-button>
-      <el-button
-        v-perm="['/sys/role/add']"
+        v-perm="['/sys/role/roles/post']"
         class="filter-item"
         style="margin-left: 10px;"
         type="primary"
@@ -29,7 +22,7 @@
       >{{ $t('table.add') }}</el-button>
     </div>
 
-    <data-tables-server
+    <data-tables
       :data="list"
       :filters="filters"
       :loading="listLoading"
@@ -57,20 +50,20 @@
       <el-table-column label="操作" align="center" min-width="100px">
         <template slot-scope="scope">
           <el-button
-            v-perm="['/sys/role/edit']"
+            v-perm="['/sys/role/roles/put']"
             :size="btnsize"
             type="success"
             @click="handleUpdate(scope.row)"
           >编辑</el-button>
           <el-button
-            v-perm="['/sys/role/edit']"
+            v-perm="['/sys/role/roles/delete']"
             :size="btnsize"
             type="danger"
             @click="handleDelete(scope.row)"
           >删除</el-button>
         </template>
       </el-table-column>
-    </data-tables-server>
+    </data-tables>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form
@@ -143,7 +136,7 @@
           />
         </el-tab-pane>
         <el-tab-pane label="角色类" name="role">
-          <data-tables-server
+          <data-tables
             ref="roleTable"
             :data="roleData"
             :table-props="tableProps"
@@ -166,7 +159,7 @@
                 >{{ scope.row.status | statusChange }}</el-tag>
               </template>
             </el-table-column>
-          </data-tables-server>
+          </data-tables>
         </el-tab-pane>
         <el-tab-pane label="数据权限" name="dept">
           <el-row :gutter="0">
@@ -223,7 +216,7 @@
         </div>
         <div style="float:right;padding-right:15px;padding-top:4px;padding-bottom:4px;">
           <el-button
-            v-perm="['/sys/role/edit']"
+            v-perm="['/sys/role/roles/put']"
             v-waves
             :disabled="selectRole.id == null"
             :size="btnsize"
@@ -231,7 +224,7 @@
             @click="resetSelection"
           >重置</el-button>
           <el-button
-            v-perm="['/sys/role/saveroleperm']"
+            v-perm="['/sys/role/saveroleperm/post']"
             v-waves
             :loading="authLoading"
             :disabled="selectRole.id == null"
@@ -584,7 +577,7 @@ export default {
       }
     },
     // 重置选择
-    resetSelection() {
+    async resetSelection() {
       this.checkAll = false
       // 重置当前菜单类权限
       this.$refs.menuTree.setCheckedNodes(this.currentRoleMenus)
@@ -603,8 +596,12 @@ export default {
         }
       }
       // 重置当前部门数据类权限
-      console.log(this.selectRole)
+      console.log(this.selectRole, this.currentRoleDepts)
       this.dataPermScope = this.selectRole.scope
+      // TODO: 从全部到自定义重置时会出错，没有及时找到deptTree,需要单击两次，可以在 watch() 监听变量 dataPermScope== 4 时再调用下面语句
+      if (this.dataPermScope === '4') {
+        this.$refs.deptTree.setCheckedNodes(this.currentRoleDepts)
+      }
     },
     // 全选操作
     handleCheckAll() {
@@ -797,13 +794,9 @@ export default {
         beforeClose: (action, instance, done) => {
           if (action === 'confirm') {
             instance.confirmButtonLoading = true
-            instance.confirmButtonText = '执行中...'
-            const tempData = {
-              id: row.id,
-              name: row.name
-            }
+
             // 调用api删除数据
-            deleteRole(tempData)
+            deleteRole(row.id)
               .then(res => {
                 // 如果删除成功，后台重新更新数据,否则不更新数据
                 done()
@@ -813,7 +806,7 @@ export default {
                 }
                 this.$notify({
                   //  title: '错误',
-                  message: res.message,
+                  message: '角色: ' + row.name + ' ' + res.message,
                   type: res.type
                 })
               })
@@ -837,10 +830,6 @@ export default {
         .catch(() => {
           // console.log(err)  // cancel
         })
-    },
-    handleFilter() {
-      this.listQuery.page = 1
-      // this.getList()
     }
   }
 }

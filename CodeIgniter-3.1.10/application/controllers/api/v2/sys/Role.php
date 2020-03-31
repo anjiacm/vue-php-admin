@@ -14,7 +14,7 @@ class Role extends RestController
     }
 
     // 增
-    function add_post()
+    function roles_post()
     {
         $parms = $this->post();  // 获取表单参数，类型为数组
 
@@ -65,9 +65,9 @@ class Role extends RestController
     }
 
     // 改
-    function edit_post()
+    function roles_put()
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
+        $parms = $this->put();  // 获取表单参数，类型为数组
 
         // 参数检验/数据预处理
         // 超级管理员角色不允许修改
@@ -105,17 +105,16 @@ class Role extends RestController
     }
 
     // 删
-    function del_post()
+    function roles_delete($id)
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
 
         // 参数检验/数据预处理
         // 超级管理员角色不允许删除
-        if ($parms['id'] == 1) {
+        if ($id == 1) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['name'] . ' - 角色不允许删除'
+                "message" =>'不允许删除'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -125,7 +124,7 @@ class Role extends RestController
         // 2. 删除sys_role_perm 中perm_id记录
         // 3. 删除sys_perm中 perm_type='role' and r_id = role_id 记录,即第1步中获取的 perm_id， 一一对应
         // 4. 删除sys_role 中 id = role_id 的记录
-        $where = 'perm_type="role" and r_id=' . $parms['id'];
+        $where = 'perm_type="role" and r_id=' . $id;
         $arr = $this->Base_model->_get_key('sys_perm', '*', $where);
         if (empty($arr)) {
             var_dump($this->uri->uri_string . ' 未查找到 sys_perm 表中记录');
@@ -135,17 +134,17 @@ class Role extends RestController
 
         $perm_id = $arr[0]['id']; // 正常只有一条记录
         $this->Base_model->_delete_key('sys_role_perm', ['perm_id' => $perm_id]); // 必须删除权限id 因为超级管理员角色自动拥有该权限否则会造成删除关联错误
-        $this->Base_model->_delete_key('sys_role_perm', ['role_id' => $parms['id']]); // 再删除该角色对应的权限id（原有的菜单）
+        $this->Base_model->_delete_key('sys_role_perm', ['role_id' => $id]); // 再删除该角色对应的权限id（原有的菜单）
         $this->Base_model->_delete_key('sys_perm', ['id' => $perm_id]);
 
-        $this->Base_model->_delete_key('sys_user_role', ['role_id' => $parms['id']]);
+        $this->Base_model->_delete_key('sys_user_role', ['role_id' => $id]);
 
         // 删除基础表 sys_role
-        if (!$this->Base_model->_delete_key('sys_role', $parms)) {
+        if (!$this->Base_model->_delete_key('sys_role', ['id' => $id])) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['name'] . ' - 角色删除错误'
+                "message" => '删除失败'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -153,13 +152,13 @@ class Role extends RestController
         $message = [
             "code" => 20000,
             "type" => 'success',
-            "message" => $parms['name'] . ' - 角色删除成功'
+            "message" => '删除成功'
         ];
         $this->response($message, RestController::HTTP_OK);
     }
 
     // 查
-    function view_post()
+    function roles_get()
     {
         $RoleArr = $this->Role_model->getRoleList();
         $message = [
