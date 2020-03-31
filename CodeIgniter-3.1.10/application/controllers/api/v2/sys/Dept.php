@@ -2,21 +2,26 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 use chriskacerguis\RestServer\RestController;
+// Using Medoo namespace
+use Medoo\Medoo;
 
 class Dept extends RestController
 {
+    private $Medoodb;
 
     function __construct()
     {
         parent::__construct();
         $this->load->model('Base_model');
-        $this->load->model('Dept_model');
         // $this->config->load('config', true);
+        // Initialize
+        $this->Medoodb = new Medoo(config_item('medoodb'));
     }
 
     // 增
-    function add_post()
+    function depts_post()
     {
+
         $parms = $this->post();  // 获取表单参数，类型为数组
 
         if ($this->Base_model->_key_exists('sys_dept', ['name' => $parms['name']])) {
@@ -63,19 +68,24 @@ class Dept extends RestController
     }
 
     // 删
-    function del_post()
+    function depts_delete($id)
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
-        // var_dump($parms['path']);
+        // $parms = $this->delete();  // delete() 不能使用此方法获取表单参数，根据规范只能使用 url /sys/dept/depts/2 传参方式
+        // var_dump($id);
 
         // 参数检验/数据预处理
         // 含有子节点不允许删除
-        $hasChild = $this->Dept_model->hasChildDept($parms['id']);
-        if ($hasChild) {
+        $data = $this->Medoodb->get(
+            'sys_dept',
+            '*',
+            ['pid' => $id]
+        ); // 返回一条记录 或 null ， 比 select()效率要高？
+
+        if (!empty($data)) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['name'] . ' - 存在子节点不能删除'
+                "message" => '存在子节点不能删除'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -84,8 +94,8 @@ class Dept extends RestController
         // 1. 根据sys_dept id及'dept' 查找 perm_id
         // 2. 删除sys_role_perm中perm_id记录
         // 3. 删除sys_perm中 perm_type='role' and r_id = role_id 记录,即第1步中获取的 perm_id， 一一对应
-        // 4. 删除sys_user_dept中 dept_id = $parms['id']) 的记录
-        $where = 'perm_type="dept" and r_id=' . $parms['id'];
+        // 4. 删除sys_user_dept中 dept_id = $id) 的记录
+        $where = 'perm_type="dept" and r_id=' . $id;
         $arr = $this->Base_model->_get_key('sys_perm', '*', $where);
         if (empty($arr)) {
             var_dump($this->uri->uri_string . ' 未查找到 sys_perm 表中记录');
@@ -97,14 +107,14 @@ class Dept extends RestController
         $this->Base_model->_delete_key('sys_role_perm', ['perm_id' => $perm_id]); // 必须删除权限id 因为超级管理员角色自动拥有该权限否则会造成删除关联错误
         $this->Base_model->_delete_key('sys_perm', ['id' => $perm_id]);
 
-        $this->Base_model->_delete_key('sys_user_dept', ['dept_id' => $parms['id']]);
+        $this->Base_model->_delete_key('sys_user_dept', ['dept_id' => $id]);
 
         // 删除基础表 sys_dept
-        if (!$this->Base_model->_delete_key('sys_dept', ['id' => $parms['id']])) {
+        if (!$this->Base_model->_delete_key('sys_dept', ['id' => $id])) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['name'] . ' - 机构删除失败'
+                "message" => '删除失败'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -112,15 +122,15 @@ class Dept extends RestController
         $message = [
             "code" => 20000,
             "type" => 'success',
-            "message" => $parms['name'] . ' - 机构删除成功'
+            "message" => '删除成功'
         ];
         $this->response($message, RestController::HTTP_OK);
     }
 
     // 改
-    function edit_post()
+    function depts_put()
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
+        $parms = $this->put();  // 获取表单参数，类型为数组
         // var_dump($parms['path']);
 
         // 参数检验/数据预处理
@@ -156,12 +166,24 @@ class Dept extends RestController
         $this->response($message, RestController::HTTP_OK);
     }
 
-
-
     // 查
-    function view_post()
+    function depts_get()
     {
-        $DeptArr = $this->Dept_model->getDeptList();
+        $DeptArr = $this->Medoodb->select(
+            'sys_dept',
+            [
+                'id',
+                'pid',
+                'name',
+                'aliasname',
+                'listorder',
+                'status'
+            ],
+            [
+                "ORDER" => ["listorder" => "DESC"]
+            ]
+        );
+
         $DeptTree = $this->permission->genDeptTree($DeptArr, 'id', 'pid', 0);
 
         $message = [
