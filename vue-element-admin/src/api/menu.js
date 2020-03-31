@@ -3,8 +3,8 @@ import request from '@/utils/request'
 // 操作：列出菜单 TableData
 export function getMenuTree(form) {
   return request({
-    url: '/sys/menu/view',
-    method: 'post',
+    url: '/sys/menu/menus',
+    method: 'get',
     data: form
   })
 }
@@ -12,7 +12,7 @@ export function getMenuTree(form) {
 // 添加按钮
 export function createMenu(form) {
   return request({
-    url: '/sys/menu/add',
+    url: '/sys/menu/menus',
     method: 'post',
     data: form
   })
@@ -21,24 +21,16 @@ export function createMenu(form) {
 // 编辑按钮
 export function updateMenu(form) {
   return request({
-    url: '/sys/menu/edit',
-    method: 'post',
+    url: '/sys/menu/menus',
+    method: 'put',
     data: form
   })
 }
 // 删除按钮
-export function deleteMenu(form) {
+export function deleteMenu(id) {
   return request({
-    url: '/sys/menu/del',
-    method: 'post',
-    data: form
-  })
-}
-// 查询按钮
-export function viewMenuTree(rmvFile, filename) {
-  return request({
-    url: '/sys/menu/view',
-    method: 'get'
+    url: `/sys/menu/menus/${id}`,
+    method: 'delete'
   })
 }
 

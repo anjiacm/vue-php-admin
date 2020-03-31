@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 use chriskacerguis\RestServer\RestController;
 
@@ -13,7 +13,7 @@ class Menu extends RestController
     }
 
     // 增
-    function add_post()
+    function menus_post()
     {
         $parms = $this->post();  // 获取表单参数，类型为数组
 
@@ -58,10 +58,9 @@ class Menu extends RestController
     }
 
     // 改
-    function edit_post()
+    function menus_put()
     {
-        // $id = $this->post('id'); // POST param
-        $parms = $this->post();  // 获取表单参数，类型为数组
+        $parms = $this->put();  // 获取表单参数，类型为数组
         // var_dump($parms['path']);
 
         // 参数检验/数据预处理
@@ -105,19 +104,19 @@ class Menu extends RestController
     }
 
     // 删
-    function del_post()
+    function menus_delete($id)
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
-        // var_dump($parms['path']);
+        // $parms = $this->delete();  // delete() 不能使用此方法获取表单参数，根据规范只能使用 url /sys/dept/depts/2 传参方式
+        // var_dump($id);
 
         // 参数检验/数据预处理
         // 存在子节点 不能删除返回
-        $hasChild = $this->Base_model->hasChildMenu($parms['id']);
+        $hasChild = $this->Base_model->hasChildMenu($id);
         if ($hasChild) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['title'] . ' - 存在子节点不能删除'
+                "message" => '存在子节点不能删除'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -127,11 +126,11 @@ class Menu extends RestController
         // 2. 删除sys_role_perm 中perm_id记录
         // 3. 删除sys_perm中 perm_type='menu' and r_id = menu_id 记录,即第1步中获取的 perm_id， 一一对应
         // 4. 删除sys_menu 中 id = menu_id 的记录
-        $where = 'perm_type="menu" and r_id=' . $parms['id'];
+        $where = 'perm_type="menu" and r_id=' . $id;
         $arr = $this->Base_model->_get_key('sys_perm', '*', $where);
         if (empty($arr)) {
-//            var_dump($this->uri->uri_string . ' 未查找到 sys_perm 表中记录');
-//            var_dump($where);
+            // var_dump($this->uri->uri_string . ' 未查找到 sys_perm 表中记录');
+            // var_dump($where);
 
             $message = [
                 "code" => 20000,
@@ -146,11 +145,11 @@ class Menu extends RestController
         $this->Base_model->_delete_key('sys_perm', ['id' => $perm_id]);
 
         // 删除基础表 sys_menu
-        if (!$this->Base_model->_delete_key('sys_menu', $parms)) {
+        if (!$this->Base_model->_delete_key('sys_menu', ['id' => $id])) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['title'] . ' - 菜单删除错误'
+                "message" => '删除错误'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -158,14 +157,13 @@ class Menu extends RestController
         $message = [
             "code" => 20000,
             "type" => 'success',
-            "message" => $parms['title'] . ' - 菜单删除成功'
+            "message" => '删除成功'
         ];
         $this->response($message, RestController::HTTP_OK);
-
     }
 
     // 查
-    function view_post()
+    function menus_get()
     {
         $Token = $this->input->get_request_header('X-Token', TRUE);
         $jwt_object = $this->permission->parseJWT($Token);
@@ -196,5 +194,4 @@ class Menu extends RestController
         ];
         $this->response($message, RestController::HTTP_OK);
     }
-
 }

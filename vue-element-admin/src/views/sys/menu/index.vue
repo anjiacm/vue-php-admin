@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-        v-perm="['/sys/menu/view']"
+        v-perm="['/sys/menu/menus/get']"
         ref="filterText"
         v-model.trim="filterText"
         placeholder="菜单名称"
@@ -11,7 +11,7 @@
       />
       <!-- <el-button v-waves class="filter-item" type="primary" :size="btnsize" icon="el-icon-search" v-perm="['/sys/menu/view']" @click="handleFilter">查询</el-button> -->
       <el-button
-        v-perm="['/sys/menu/add']"
+        v-perm="['/sys/menu/menus/post']"
         class="filter-item"
         style="margin-left: 10px;"
         type="primary"
@@ -37,18 +37,18 @@
       <el-table-column label="菜单路由" prop="path">
         <template slot-scope="scope">
           <span v-if="scope.row.type!==2">{{ scope.row.path }}</span>
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/post$/g)">
-            {{ scope.row.path.replace(/\/post$/, '') }}
-          </span>
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/get$/g)">
-            {{ scope.row.path.replace(/\/get$/, '') }}
-          </span>
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/put$/g)">
-            {{ scope.row.path.replace(/\/put$/, '') }}
-          </span>
-          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)">
-            {{ scope.row.path.replace(/\/delete$/, '') }}
-          </span>
+          <span
+            v-else-if="scope.row.type===2 && scope.row.path.match(/\/post$/g)"
+          >{{ scope.row.path.replace(/\/post$/, '') }}</span>
+          <span
+            v-else-if="scope.row.type===2 && scope.row.path.match(/\/get$/g)"
+          >{{ scope.row.path.replace(/\/get$/, '') }}</span>
+          <span
+            v-else-if="scope.row.type===2 && scope.row.path.match(/\/put$/g)"
+          >{{ scope.row.path.replace(/\/put$/, '') }}</span>
+          <span
+            v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)"
+          >{{ scope.row.path.replace(/\/delete$/, '') }}</span>
           <span v-else-if="scope.row.type===2">{{ scope.row.path }}</span>
         </template>
       </el-table-column>
@@ -56,16 +56,16 @@
         <template slot-scope="scope">
           <svg-icon v-if="scope.row.type!==2" :icon-class="scope.row.icon" />
           <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/post$/g)">
-            <el-tag size="small" type="success" effect="dark">post</el-tag>
+            <el-tag size="small" type="success" effect="dark">POST</el-tag>
           </span>
           <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/get$/g)">
-            <el-tag size="small" type effect="dark">get</el-tag>
+            <el-tag size="small" type effect="dark">GET</el-tag>
           </span>
           <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/put$/g)">
-            <el-tag size="small" type="warning" effect="dark">put</el-tag>
+            <el-tag size="small" type="warning" effect="dark">PUT</el-tag>
           </span>
           <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)">
-            <el-tag size="small" type="danger" effect="dark">delete</el-tag>
+            <el-tag size="small" type="danger" effect="dark">DELETE</el-tag>
           </span>
         </template>
       </el-table-column>
@@ -84,13 +84,13 @@
       <el-table-column prop="operation" label="操作" align="center" min-width="180" fixed="right">
         <template slot-scope="scope">
           <el-button
-            v-perm="['/sys/menu/edit']"
+            v-perm="['/sys/menu/menus/put']"
             :size="btnsize"
             type="success"
             @click="handleUpdate(scope.row)"
           >编辑</el-button>
           <el-button
-            v-perm="['/sys/menu/del']"
+            v-perm="['/sys/menu/menus/delete']"
             :size="btnsize"
             type="danger"
             @click="handleDelete(scope.row)"
@@ -612,14 +612,9 @@ export default {
               return
             }
             instance.confirmButtonLoading = true
-            instance.confirmButtonText = '执行中...'
 
-            const tempData = {
-              id: row.id,
-              title: row.title
-            }
             // 调用api删除数据
-            deleteMenu(tempData)
+            deleteMenu(row.id)
               .then(res => {
                 // 如果删除成功，后台重新更新数据,否则不更新数据
                 // console.log(res)
@@ -631,7 +626,7 @@ export default {
                 }
                 this.$notify({
                   //  title: '错误',
-                  message: res.message,
+                  message: '菜单: ' + row.title + ' ' + res.message,
                   type: res.type
                 })
               })
