@@ -33,11 +33,40 @@
       @trigger="onTrigger"
     >
       <el-table-column label="菜单ID" prop="id" />
-      <el-table-column label="菜单路由" prop="path" />
       <el-table-column label="路由别名" prop="name" />
+      <el-table-column label="菜单路由" prop="path">
+        <template slot-scope="scope">
+          <span v-if="scope.row.type!==2">{{ scope.row.path }}</span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/post$/g)">
+            {{ scope.row.path.replace(/\/post$/, '') }}
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/get$/g)">
+            {{ scope.row.path.replace(/\/get$/, '') }}
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/put$/g)">
+            {{ scope.row.path.replace(/\/put$/, '') }}
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)">
+            {{ scope.row.path.replace(/\/delete$/, '') }}
+          </span>
+          <span v-else-if="scope.row.type===2">{{ scope.row.path }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="图标" prop="icon" align="center">
         <template slot-scope="scope">
-          <svg-icon :icon-class="scope.row.icon" />
+          <svg-icon v-if="scope.row.type!==2" :icon-class="scope.row.icon" />
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/post$/g)">
+            <el-tag size="small" type="success" effect="dark">post</el-tag>
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/get$/g)">
+            <el-tag size="small" type effect="dark">get</el-tag>
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/put$/g)">
+            <el-tag size="small" type="warning" effect="dark">put</el-tag>
+          </span>
+          <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)">
+            <el-tag size="small" type="danger" effect="dark">delete</el-tag>
+          </span>
         </template>
       </el-table-column>
 
