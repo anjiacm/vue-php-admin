@@ -577,7 +577,7 @@ export default {
       }
     },
     // 重置选择
-    async resetSelection() {
+    resetSelection() {
       this.checkAll = false
       // 重置当前菜单类权限
       this.$refs.menuTree.setCheckedNodes(this.currentRoleMenus)
