@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-        v-perm="['/sys/dept/view']"
+        v-perm="['/sys/dept/depts/get']"
         ref="filterText"
         v-model.trim="filterText"
         placeholder="机构名称"
@@ -10,7 +10,7 @@
         class="filter-item"
       />
       <el-button
-        v-perm="['/sys/dept/add']"
+        v-perm="['/sys/dept/depts/post']"
         class="filter-item"
         style="margin-left: 10px;"
         type="primary"
@@ -39,13 +39,13 @@
         <span>{{ node.label }}</span>
         <span>
           <el-button
-            v-perm="['/sys/dept/edit']"
+            v-perm="['/sys/dept/depts/put']"
             :size="btnsize"
             type="text"
             @click="() => handleUpdate(data)"
           >编辑</el-button>
           <el-button
-            v-perm="['/sys/dept/del']"
+            v-perm="['/sys/dept/depts/delete']"
             :size="btnsize"
             type="text"
             @click="() => handleDelete(node, data)"
@@ -288,6 +288,7 @@ export default {
         if (valid) {
           // 调用api编辑数据入库
           this.updateLoading = true
+          console.log(this.temp)
           updateDept(this.temp).then(res => {
             this.updateLoading = false
             if (res.type === 'success') {
@@ -321,12 +322,8 @@ export default {
           if (action === 'confirm') {
             instance.confirmButtonLoading = true
 
-            const tempData = {
-              id: data.id,
-              name: data.name
-            }
             // 调用api删除数据
-            deleteDept(tempData)
+            deleteDept(data.id)
               .then(res => {
                 // 如果删除成功，后台重新更新数据,否则不更新数据
                 done()
@@ -340,7 +337,7 @@ export default {
                 this.dialogFormVisible = false
                 this.$notify({
                   //  title: '错误',
-                  message: res.message,
+                  message: '部门:' + data.name + ' ' + res.message,
                   type: res.type
                 })
               })

@@ -3,8 +3,8 @@ import request from '@/utils/request'
 // 操作：列出机构
 export function getDeptList(form) {
   return request({
-    url: '/sys/dept/view',
-    method: 'post',
+    url: '/sys/dept/depts',
+    method: 'get',
     data: form
   })
 }
@@ -12,7 +12,7 @@ export function getDeptList(form) {
 // 添加按钮
 export function createDept(form) {
   return request({
-    url: '/sys/dept/add',
+    url: '/sys/dept/depts',
     method: 'post',
     data: form
   })
@@ -21,17 +21,16 @@ export function createDept(form) {
 // 编辑按钮
 export function updateDept(form) {
   return request({
-    url: '/sys/dept/edit',
-    method: 'post',
+    url: '/sys/dept/depts',
+    method: 'put',
     data: form
   })
 }
 
 // 删除按钮
-export function deleteDept(form) {
+export function deleteDept(id) {
   return request({
-    url: '/sys/dept/del',
-    method: 'post',
-    data: form
+    url: `/sys/dept/depts/${id}`,
+    method: 'delete'
   })
 }
