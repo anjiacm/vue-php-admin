@@ -71,6 +71,8 @@ class Article extends RestController
     // restful get
     public function articles_get()
     {
+        // TODO: 指定条件 $filters, 分页查询 user_model.php
+        // nginx proxy 获取实际地址？？
         // config/routes.php 里可以重新定义路由规则，根据控制器中获取的参数 将不规则的路由 重新定义成规则的路由
         // Example 4 , api/example/users/3 转换成 api/example/users/id/3 的标准形式
         // $route['api/v2/article/articles/(:num)'] = 'api/v2/article/articles/id/$1'; 
@@ -82,7 +84,7 @@ class Article extends RestController
             $data = $this->Medoodb->select(
                 'article',
                 '*'
-                ); // 返回 array
+            ); // 返回 array
         } else if ($id <= 0) { // Validate the id.
             // Set the response and exit
             $message = [
@@ -185,11 +187,20 @@ class Article extends RestController
     }
 
     // restful delete
-    public function articles_delete()
+    public function articles_delete($id)
     {
-        // var_dump($this->delete()); // ['id' => 22]
-        $parms = $this->delete();
+        // https://github.com/yurychika/codeIgniter-RESTServer-demo
+        // 对于PUT、GET、POST等HTTP请求动词，可以通过以下方法来获取参数：
+        // $this->get('blah'); // GET param  可以获取多个参数 api/user/id/2/blah/3  
+        // $this->post('blah'); // POST param
+        // $this->put('blah'); // PUT param
+        // The HTTP spec for DELETE requests precludes the use of parameters. For delete requests, you can add items to the URL
+        // 而对于DELETE请求，则只能通过在方法中添加参数，然后通过URL传入参数，来进行访问：
+        
+        // DELETE http://www.cirest.com:8890/api/v2/article/articles/22
+        var_dump($id); // $id => 22
 
+        $parms = ['id' => $id];
         $data = $this->Medoodb->delete(
             'article',
             $parms // ['id' => 15]
