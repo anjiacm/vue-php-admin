@@ -134,7 +134,6 @@ class Article extends RestController
             $where["ORDER"] = [];
             $sortArr = explode(",", $sort);
             foreach ($sortArr as $k => $v) {
-                $tmpArr = [];
                 if (Strings::startsWith($v, '-')) { // true DESC
                     $key = Strings::substring($v, 1); //  去 '-'
                     $where["ORDER"][$key] = "DESC";
@@ -149,11 +148,8 @@ class Article extends RestController
         // GET articles/?offset=1&limit=5&sort=-manufactorer,+model&fields=id,author,title
         // fields: 显示字段参数过滤配置,不设置则为全部
         $fields = $this->get('fields');
-        if ($fields) {
-            $columns = explode(",", $fields);
-        } else {
-            $columns = "*";
-        }
+        $fields ? $columns = explode(",", $fields) : $columns = "*";
+
         // 显示字段过滤配置结束
 
         // GET articles/?offset=1&limit=5&sort=-manufactorer,+model&fields=id,author,title&author=pocoyo&title=hello
@@ -208,7 +204,7 @@ class Article extends RestController
         return;
 
 
-        
+
 
         $id = $this->get('id');
 
