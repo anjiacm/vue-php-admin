@@ -65,7 +65,7 @@
             <el-tag size="small" type="warning" effect="dark">PUT</el-tag>
           </span>
           <span v-else-if="scope.row.type===2 && scope.row.path.match(/\/delete$/g)">
-            <el-tag size="small" type="danger" effect="dark">DELETE</el-tag>
+            <el-tag size="small" type="danger" effect="dark">DEL</el-tag>
           </span>
         </template>
       </el-table-column>
@@ -131,7 +131,7 @@
         <el-form-item label="路由" prop="path">
           <el-input
             v-model.trim="temp.path"
-            :placeholder="menuTypeList[temp.type] + '路由, 例 /sys, /sys/menu'"
+            :placeholder="menuTypeList[temp.type] + ', 如 /sys, /sys/menu/menus/post'"
           />
         </el-form-item>
         <el-form-item v-if="dialogStatus !=='create'" label="路由别名" prop="name">

@@ -305,19 +305,18 @@ export default {
     // 获取数据
     fetchData(queryInfo) {
       // console.log('queryInfo', queryInfo)
-      if (!queryInfo) {
-        queryInfo = this.defaultQueryInfo
-        // console.log(queryInfo)
-      }
-      // init 类型比较特殊在 created 时发射，保存默认的查询信息，更新数据后调用 fetchData 时 queryInfo为空时调用
-      if (queryInfo.type === 'init') {
-        this.defaultQueryInfo = queryInfo
-        // console.log('defaultQueryInfo', this.defaultQueryInfo)
-      }
-      this.listLoading = true
+      // 页面调用 fetchData 时会清空queryInfo， 重载该状态值
+      // 页面 created 时及翻页时， queryInfo 不会空均会变化， 需要保留此状态，以备fetchData里 queryInfo为空时，重新加载该值
+      !queryInfo
+        ? (queryInfo = this.defaultQueryInfo)
+        : (this.defaultQueryInfo = queryInfo)
 
-      // TODO: queryInfo 处理 生成url 参数
-      // URLDecoder.decode(url,"UTF-8"); 将特殊字符转义
+      // if (!queryInfo) {
+      //   queryInfo = this.defaultQueryInfo
+      // }
+      // this.defaultQueryInfo = queryInfo
+
+      this.listLoading = true
 
       // GET /users?offset=1&limit=20&fields=id,username,email,listorder&sort=-listorder,+id&query=~username,status&username=admin&status=1
       // {"type":"init","page":1,"pageSize":5,"sort":{"prop":"listorder","order":"ascending"},"filters":[{"prop":"username","value":""},{"prop":"status","value":""}]}
@@ -325,7 +324,7 @@ export default {
       const offset = queryInfo.page
       const limit = queryInfo.pageSize
       const sort =
-        (queryInfo.sort.order === 'ascending' ? '-' : '+') + queryInfo.sort.prop
+        (queryInfo.sort.order === 'ascending' ? '+' : '-') + queryInfo.sort.prop
 
       let queryStr = ''
       _.forEach(queryInfo.filters, function(value, key) {
@@ -473,12 +472,8 @@ export default {
           if (action === 'confirm') {
             instance.confirmButtonLoading = true
 
-            const tempData = {
-              id: row.id,
-              username: row.username
-            }
             // 调用api删除数据
-            deleteUser(tempData)
+            deleteUser(row.id)
               .then(res => {
                 // 如果删除成功，后台重新更新数据,否则不更新数据
                 done()
@@ -488,7 +483,7 @@ export default {
                 }
                 this.$notify({
                   //  title: '错误',
-                  message: res.message,
+                  message: '用户: ' + row.username + ' ' + res.message,
                   type: res.type
                 })
               })

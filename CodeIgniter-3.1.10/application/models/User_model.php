@@ -42,89 +42,89 @@ class User_model extends CI_Model
         return $result;
     }
 
-    /**
-     * 获取所有用户列表
-     */
-    function getUserList($filters, $sort, $page, $pageSize)
-    {
+    // /**
+    //  * 获取所有用户列表
+    //  */
+    // function getUserList($filters, $sort, $page, $pageSize)
+    // {
 
-        // 默认排序
-        $orderStr = '';
-        if ($sort['prop'] && $sort['order']) {
-            $orderStr = " ORDER BY " . $sort['prop'] . " " . ($sort['order'] === 'ascending' ? 'asc' : 'desc');
-        }
+    //     // 默认排序
+    //     $orderStr = '';
+    //     if ($sort['prop'] && $sort['order']) {
+    //         $orderStr = " ORDER BY " . $sort['prop'] . " " . ($sort['order'] === 'ascending' ? 'asc' : 'desc');
+    //     }
 
-        $filterStr = '';
-        $j = 0;
-        foreach ($filters as $k => $v) {
-            if ($v['value'] !== '' && !is_null($v['value'])) {
-                if ($j) {
-                    $filterStr = $filterStr . " and ";
-                }
+    //     $filterStr = '';
+    //     $j = 0;
+    //     foreach ($filters as $k => $v) {
+    //         if ($v['value'] !== '' && !is_null($v['value'])) {
+    //             if ($j) {
+    //                 $filterStr = $filterStr . " and ";
+    //             }
 
-                if ($v['prop'] === 'username') {
-                    $filterStr .= $v['prop'] . " like '%" . $v['value'] . "%' ";
-                }
-                if ($v['prop'] === 'status') {
-                    $filterStr .= $v['prop'] . "=" . $v['value'];
-                }
+    //             if ($v['prop'] === 'username') {
+    //                 $filterStr .= $v['prop'] . " like '%" . $v['value'] . "%' ";
+    //             }
+    //             if ($v['prop'] === 'status') {
+    //                 $filterStr .= $v['prop'] . "=" . $v['value'];
+    //             }
 
-                $j++;
-            }
-        }
+    //             $j++;
+    //         }
+    //     }
 
-        if ($filterStr) {
-            $filterStr = " and " . $filterStr;
-        }
+    //     if ($filterStr) {
+    //         $filterStr = " and " . $filterStr;
+    //     }
 
-        $sql = "SELECT
-                     *
-                FROM
-                    sys_user where 1=1 "
-            . $filterStr
-            . $orderStr . " limit " . ($page - 1) * $pageSize . "," . $pageSize;
+    //     $sql = "SELECT
+    //                  *
+    //             FROM
+    //                 sys_user where 1=1 "
+    //         . $filterStr
+    //         . $orderStr . " limit " . ($page - 1) * $pageSize . "," . $pageSize;
 
-        $query = $this->db->query($sql);
-        return $query->result_array();
-    }
+    //     $query = $this->db->query($sql);
+    //     return $query->result_array();
+    // }
 
-    function getUserListCnt($filters)
-    {
-        $filterStr = '';
-        $j = 0;
-        foreach ($filters as $k => $v) {
-            if ($v['value'] !== '' && !is_null($v['value'])) {
-                if ($j) {
-                    $filterStr = $filterStr . " and ";
-                }
+    // function getUserListCnt($filters)
+    // {
+    //     $filterStr = '';
+    //     $j = 0;
+    //     foreach ($filters as $k => $v) {
+    //         if ($v['value'] !== '' && !is_null($v['value'])) {
+    //             if ($j) {
+    //                 $filterStr = $filterStr . " and ";
+    //             }
 
-                if ($v['prop'] === 'username') {
-                    $filterStr .= $v['prop'] . " like '%" . $v['value'] . "%' ";
-                }
-                if ($v['prop'] === 'status') {
-                    $filterStr .= $v['prop'] . "=" . $v['value'];
-                }
+    //             if ($v['prop'] === 'username') {
+    //                 $filterStr .= $v['prop'] . " like '%" . $v['value'] . "%' ";
+    //             }
+    //             if ($v['prop'] === 'status') {
+    //                 $filterStr .= $v['prop'] . "=" . $v['value'];
+    //             }
 
-                $j++;
-            }
-        }
+    //             $j++;
+    //         }
+    //     }
 
-        if ($filterStr) {
-            $filterStr = " and " . $filterStr;
-        }
-        $sql = "SELECT
-                    count(u.id) cnt
-                FROM
-                    sys_user u  where 1=1 " . $filterStr;
+    //     if ($filterStr) {
+    //         $filterStr = " and " . $filterStr;
+    //     }
+    //     $sql = "SELECT
+    //                 count(u.id) cnt
+    //             FROM
+    //                 sys_user u  where 1=1 " . $filterStr;
 
-        $query = $this->db->query($sql);
-        if (empty($query->result_array())) {
-            return 0;
-        } else {
-            $result = $query->result_array();
-            return $result[0]['cnt'];
-        }
-    }
+    //     $query = $this->db->query($sql);
+    //     if (empty($query->result_array())) {
+    //         return 0;
+    //     } else {
+    //         $result = $query->result_array();
+    //         return $result[0]['cnt'];
+    //     }
+    // }
 
     /**
      * 获取所有角色列表

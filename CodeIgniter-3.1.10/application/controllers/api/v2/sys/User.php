@@ -3,16 +3,22 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 use \Firebase\JWT\JWT;
 use chriskacerguis\RestServer\RestController;
+use Nette\Utils\Arrays;
+use Nette\Utils\Strings;
+// Using Medoo namespace
+use Medoo\Medoo;
 
 class User extends RestController
 {
+    private $Medoodb;
 
     function __construct()
     {
         parent::__construct();
         $this->load->model('Base_model');
         $this->load->model('User_model');
-        // $this->config->load('config', true);
+        // Initialize
+        $this->Medoodb = new Medoo(config_item('medoodb'));
     }
 
     public function index_get()
@@ -165,18 +171,93 @@ class User extends RestController
     }
 
     // 查
-    function view_post()
+    function users_get()
     {
-        $parms = $this->post();
-        //  $type = $parms['type'];
-        $filters = $parms['filters'];
-        $sort = $parms['sort'];
-        $page = $parms['page'];
-        $pageSize = $parms['pageSize'];
+        // GET /users?offset=1&limit=20&fields=id,username,email,listorder&sort=-listorder,+id&query=~username,status&username=admin&status=1
+        // fields: 显示字段参数过滤配置,不设置则为全部
+        $fields = $this->get('fields');
+        $fields ? $columns = explode(",", $fields) : $columns = "*";
+        // 显示字段过滤配置结束
 
-        $UserArr = $this->User_model->getUserList($filters, $sort, $page, $pageSize);
+        // GET /users?offset=1&limit=20&fields=id,username,email,listorder&sort=-listorder,+id&query=~username,status&username=admin&status=1
+        // 分页参数配置
+        $limit = $this->get('limit') ? $this->get('limit') : 10;
+        $offset = $this->get('offset') ?  ($this->get('offset') - 1) *  $limit : 0; // 第几页
+        $where = [
+            "LIMIT" => [$offset, $limit]
+        ];
+        // 分页参数配置结束
 
-        $total = $this->User_model->getUserListCnt($filters);
+        // GET /users?offset=1&limit=20&fields=id,username,email,listorder&sort=-listorder,+id&query=~username,status&username=admin&status=1
+        // 存在排序参数则 获取排序参数 加入 $where，否则不添加ORDER条件
+        $sort = $this->get('sort');
+        if ($sort) {
+            $where["ORDER"] = [];
+            $sortArr = explode(",", $sort);
+            foreach ($sortArr as $k => $v) {
+                if (Strings::startsWith($v, '-')) { // true DESC
+                    $key = Strings::substring($v, 1); //  去 '-'
+                    $where["ORDER"][$key] = "DESC";
+                } else {
+                    $key = Strings::substring($v, 1); //  去 '+'
+                    $where["ORDER"][$key] = "ASC";
+                }
+            }
+        }
+        // 排序参数结束
+
+        // GET /users?offset=1&limit=20&fields=id,username,email,listorder&sort=-listorder,+id&query=~username,status&username=admin&status=1
+        // 指定条件模糊或搜索查询,author like %pocoyo%, status=1 此时 total $wherecnt 条件也要发生变化
+        // 查询字段及字段值获取
+        // 如果存在query 参数以,分隔，且每个参数的有值才会增加条件
+        $wherecnt = []; // 计算total使用条件，默认为全部
+        $query = $this->get('query');
+        if ($query) { // 存在才进行过滤,否则不过滤
+            $queryArr = explode(",", $query);
+            foreach ($queryArr as $k => $v) {
+                if (Strings::startsWith($v, '~')) { // true   query=~username&status=1 以~开头表示模糊查询
+                    $tmpKey = Strings::substring($v, 1); // username
+
+                    $tmpValue = $this->get($tmpKey);
+                    if (!is_null($tmpValue)) {
+                        $where[$tmpKey . '[~]'] = $tmpValue;
+                        $wherecnt[$tmpKey . '[~]'] = $tmpValue;
+                    }
+                } else {
+                    $tmpValue = $this->get($v);
+                    if (!is_null($tmpValue)) {
+                        $where[$v] = $tmpValue;
+                        $wherecnt[$v] = $tmpValue;
+                    }
+                }
+            }
+        }
+        // 查询字段及字段值获取结束
+
+        // 执行查询
+        $UserArr = $this->Medoodb->select(
+            "sys_user",
+            $columns,
+            $where
+        );
+
+        $sqlCmd = $this->Medoodb->log()[0];
+
+        // 捕获错误信息
+        $err = $this->Medoodb->error();
+        // array(3) => ["42S02", 1146, "Table 'vueadminv2.articlex' doesn't exist"]
+        if ($err[1]) { // 如果出错 否则为空
+            // var_dump($err[2]);
+            // var_dump($this->Medoodb->log());
+            $message = [
+                "code" => 20400,
+                "data" => $err[2]
+            ];
+            $this->response($message, RestController::HTTP_BAD_REQUEST); // BAD_REQUEST (400) being the HTTP response code
+        }
+
+        // 获取记录总数
+        $total = $this->Medoodb->count("sys_user",  $wherecnt);
 
         // 遍历该用户所属角色信息
         foreach ($UserArr as $k => $v) {
@@ -200,7 +281,8 @@ class User extends RestController
             "code" => 20000,
             "data" => [
                 'items' => $UserArr,
-                'total' => intval($total)
+                'total' => $total,
+                "sql" => $sqlCmd
             ]
         ];
         $this->response($message, RestController::HTTP_OK);
@@ -248,7 +330,7 @@ class User extends RestController
     }
 
     // 增
-    function add_post()
+    function users_post()
     {
         $parms = $this->post();  // 获取表单参数，类型为数组
 
@@ -323,9 +405,9 @@ class User extends RestController
     }
 
     // 改
-    function edit_post()
+    function users_put()
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
+        $parms = $this->put();  // 获取表单参数，类型为数组
 
         // 参数检验/数据预处理
         // 超级管理员角色不允许修改
@@ -464,32 +546,30 @@ class User extends RestController
     }
 
     // 删
-    function del_post()
+    function users_delete($id)
     {
-        $parms = $this->post();  // 获取表单参数，类型为数组
-        // var_dump($parms['path']);
-
+        // $parms = $this->delete(); // delete() 不能使用此方法获取表单参数，根据规范只能使用 url /sys/dept/depts/2 传参方式
         // 参数检验/数据预处理
-        // 超级管理员角色不允许删除
-        if ($parms['id'] == 1) {
+        // 超级管理员用户不允许删除
+        if ($id == 1) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['username'] . ' - 超级管理员不允许删除'
+                "message" => '超级管理员不允许删除'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
 
         // 删除外键关联表 sys_user_role, sys_user_dept
-        $this->Base_model->_delete_key('sys_user_role', ['user_id' => $parms['id']]);
-        $this->Base_model->_delete_key('sys_user_dept', ['user_id' => $parms['id']]);
+        $this->Base_model->_delete_key('sys_user_role', ['user_id' => $id]);
+        $this->Base_model->_delete_key('sys_user_dept', ['user_id' => $id]);
 
         // 删除基础表 sys_user
-        if (!$this->Base_model->_delete_key('sys_user', $parms)) {
+        if (!$this->Base_model->_delete_key('sys_user', ['id' => $id])) {
             $message = [
                 "code" => 20000,
                 "type" => 'error',
-                "message" => $parms['username'] . ' - 用户删除错误'
+                "message" => '删除失败'
             ];
             $this->response($message, RestController::HTTP_OK);
         }
@@ -497,7 +577,7 @@ class User extends RestController
         $message = [
             "code" => 20000,
             "type" => 'success',
-            "message" => $parms['username'] . ' - 用户删除成功'
+            "message" => '删除成功'
         ];
         $this->response($message, RestController::HTTP_OK);
     }
