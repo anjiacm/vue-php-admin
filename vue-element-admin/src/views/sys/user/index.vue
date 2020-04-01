@@ -1,31 +1,86 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-perm="['/sys/user/view']" v-model="filters[0].value" placeholder="用户名" style="width: 200px;" class="filter-item" />
-      <el-select v-perm="['/sys/user/view']" v-model="filters[1].value" clearable class="filter-item">
+      <el-input
+        v-perm="['/sys/user/users/get']"
+        v-model="filters[0].value"
+        placeholder="用户名"
+        style="width: 200px;"
+        class="filter-item"
+      />
+      <el-select
+        v-perm="['/sys/user/users/get']"
+        v-model="filters[1].value"
+        clearable
+        class="filter-item"
+      >
         <el-option label="启用" value="1" />
         <el-option label="禁用" value="0" />
       </el-select>
-      <el-button v-perm="['/sys/user/add']" class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-plus" @click="handleCreate">添加</el-button>
+      <el-button
+        v-perm="['/sys/user/users/post']"
+        class="filter-item"
+        style="margin-left: 10px;"
+        type="primary"
+        icon="el-icon-plus"
+        @click="handleCreate"
+      >添加</el-button>
     </div>
 
-    <data-tables-server :data="list" :search-def="searchDef" :total="total" :filters="filters" :table-props="tableProps" :loading="listLoading" :page-size="5" :pagination-props="{ background: true, pageSizes: [5,10,20] }" layout="table,pagination" @query-change="fetchData">
-      <el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.label" sortable="custom" />
+    <data-tables-server
+      :data="list"
+      :search-def="searchDef"
+      :total="total"
+      :filters="filters"
+      :table-props="tableProps"
+      :loading="listLoading"
+      :page-size="5"
+      :pagination-props="{ background: true, pageSizes: [5,10,20] }"
+      layout="table,pagination"
+      @query-change="fetchData"
+    >
+      <el-table-column
+        v-for="title in titles"
+        :prop="title.prop"
+        :label="title.label"
+        :key="title.label"
+        sortable="custom"
+      />
       <el-table-column label="状态" min-width="100px">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter" size="small">{{ scope.row.status | statusChange }}</el-tag>
+          <el-tag
+            :type="scope.row.status | statusFilter"
+            size="small"
+          >{{ scope.row.status | statusChange }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" min-width="100px">
         <template slot-scope="scope">
-          <el-button v-perm="['/sys/user/edit']" :size="btnsize" type="success" @click="handleUpdate(scope.row)">编辑</el-button>
-          <el-button v-perm="['/sys/user/del']" :size="btnsize" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button
+            v-perm="['/sys/user/users/put']"
+            :size="btnsize"
+            type="success"
+            @click="handleUpdate(scope.row)"
+          >编辑</el-button>
+          <el-button
+            v-perm="['/sys/user/users/delete']"
+            :size="btnsize"
+            type="danger"
+            @click="handleDelete(scope.row)"
+          >删除</el-button>
         </template>
       </el-table-column>
     </data-tables-server>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" style="width: 70%;">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="" label-width="90px" style="width: 80%; margin-left:50px;">
+      <el-form
+        ref="dataForm"
+        :rules="rules"
+        :model="temp"
+        label-position
+        label-width="90px"
+        style="width: 80%; margin-left:50px;"
+      >
         <el-form-item label="用户名" prop="username">
           <el-input v-model.trim="temp.username" :readonly="readonly" placeholder="请输入用户名" />
         </el-form-item>
@@ -42,27 +97,54 @@
         <el-form-item label="角色" prop="role">
           <!-- <el-select v-model="temp.role" class="filter-item" multiple="multiple" @remove-tag="removeTag()">
             <el-option v-for="item in roleOptions" :key="item.id" :label="item.name" :value="item.id" :disabled="item.disabled" />
-          </el-select> -->
-          <treeselect v-model="temp.role" :multiple="true" :clearable="false" :normalizer="normalizer" :options="roleOptions" placeholder="请选择角色..." />
+          </el-select>-->
+          <treeselect
+            v-model="temp.role"
+            :multiple="true"
+            :clearable="false"
+            :normalizer="normalizer"
+            :options="roleOptions"
+            placeholder="请选择角色..."
+          />
         </el-form-item>
         <el-form-item label="部门" prop="dept">
-          <treeselect v-model="temp.dept" :multiple="true" :clearable="false" :flat="true" :normalizer="normalizer" :options="deptOptions" placeholder="请选择部门..." />
+          <treeselect
+            v-model="temp.dept"
+            :multiple="true"
+            :clearable="false"
+            :flat="true"
+            :normalizer="normalizer"
+            :options="deptOptions"
+            placeholder="请选择部门..."
+          />
         </el-form-item>
         <el-form-item label="排序ID">
           <!-- onkeypress 防止录入e 及其他字符 -->
-          <el-input-number v-model.trim="temp.listorder" :min="0" controls-position="right" onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))" />
+          <el-input-number
+            v-model.trim="temp.listorder"
+            :min="0"
+            controls-position="right"
+            onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))"
+          />
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-switch v-model="temp.status" inactive-color="#ff4949" active-value="1" inactive-value="0" />
+          <el-switch
+            v-model="temp.status"
+            inactive-color="#ff4949"
+            active-value="1"
+            inactive-value="0"
+          />
         </el-form-item>
-
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
-        <el-button :loading="updateLoading" type="primary" @click="dialogStatus==='create'?createData():updateData()">确定</el-button>
+        <el-button
+          :loading="updateLoading"
+          type="primary"
+          @click="dialogStatus==='create'?createData():updateData()"
+        >确定</el-button>
       </div>
     </el-dialog>
-
   </div>
 </template>
 
@@ -70,13 +152,21 @@
 import waves from '@/directive/waves' // Waves directive
 import perm from '@/directive/perm/index.js' // 权限判断指令
 
-import { createUser, updateUser, deleteUser, getUserList, getRoleOptions, getDeptOptions } from '@/api/user'
+import {
+  createUser,
+  updateUser,
+  deleteUser,
+  getUserList,
+  getRoleOptions,
+  getDeptOptions
+} from '@/api/user'
 
 // import random from 'string-random'
 // import the component
 import Treeselect from '@riophae/vue-treeselect'
 // import the styles
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+import _ from 'lodash'
 
 export default {
   name: 'SysUserPhjc',
@@ -117,13 +207,16 @@ export default {
         debounceTime: 3000
       },
       defaultQueryInfo: '',
-      filters: [{
-        prop: 'username',
-        value: ''
-      }, {
-        prop: 'status',
-        value: ''
-      }],
+      filters: [
+        {
+          prop: 'username',
+          value: ''
+        },
+        {
+          prop: 'status',
+          value: ''
+        }
+      ],
       list: [],
       total: 0,
       listLoading: true,
@@ -187,8 +280,12 @@ export default {
         listorder: 1000
       },
       rules: {
-        username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }],
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, trigger: 'blur', validator: validatePassword }
+        ],
         role: [{ required: true, message: '请选择角色', trigger: 'blur' }]
         // dept: [{ required: true, message: '请选择部门', trigger: 'blur' }]
       }
@@ -207,18 +304,49 @@ export default {
     },
     // 获取数据
     fetchData(queryInfo) {
-      console.log('queryInfo', queryInfo)
+      // console.log('queryInfo', queryInfo)
       if (!queryInfo) {
         queryInfo = this.defaultQueryInfo
-        console.log(queryInfo)
+        // console.log(queryInfo)
       }
       // init 类型比较特殊在 created 时发射，保存默认的查询信息，更新数据后调用 fetchData 时 queryInfo为空时调用
       if (queryInfo.type === 'init') {
         this.defaultQueryInfo = queryInfo
-        console.log('defaultQueryInfo', this.defaultQueryInfo)
+        // console.log('defaultQueryInfo', this.defaultQueryInfo)
       }
       this.listLoading = true
-      getUserList(queryInfo).then(res => {
+
+      // TODO: queryInfo 处理 生成url 参数
+      // URLDecoder.decode(url,"UTF-8"); 将特殊字符转义
+
+      // GET /users?offset=1&limit=20&fields=id,username,email,listorder&sort=-listorder,+id&query=~username,status&username=admin&status=1
+      // {"type":"init","page":1,"pageSize":5,"sort":{"prop":"listorder","order":"ascending"},"filters":[{"prop":"username","value":""},{"prop":"status","value":""}]}
+      // 初始化分页/排序/查询字符串，与后端一致符合 Restful 风格
+      const offset = queryInfo.page
+      const limit = queryInfo.pageSize
+      const sort =
+        (queryInfo.sort.order === 'ascending' ? '-' : '+') + queryInfo.sort.prop
+
+      let queryStr = ''
+      _.forEach(queryInfo.filters, function(value, key) {
+        if (value.value) {
+          queryStr += '&' + value.prop + '=' + value.value
+        }
+      })
+
+      // &query=~username,status 根据业务情况写死
+      const queryParms =
+        'offset=' +
+        offset +
+        '&limit=' +
+        limit +
+        '&sort=' +
+        sort +
+        '&query=~username,status' +
+        queryStr
+      // console.log(queryParms)
+
+      getUserList(queryParms).then(res => {
         console.log('getUserList', res)
         this.list = res.data.items
         this.total = res.data.total
@@ -228,15 +356,19 @@ export default {
 
     // 初始化角色树，部门树选项
     initOptions() {
-      getRoleOptions().then(res => {
-        console.log('getRoleOptions', res)
-        this.roleOptions = res.data
-      }).catch(() => { })
+      getRoleOptions()
+        .then(res => {
+          console.log('getRoleOptions', res)
+          this.roleOptions = res.data
+        })
+        .catch(() => {})
 
-      getDeptOptions().then(res => {
-        console.log('getDeptOptions', res)
-        this.deptOptions = res.data
-      }).catch(() => { })
+      getDeptOptions()
+        .then(res => {
+          console.log('getDeptOptions', res)
+          this.deptOptions = res.data
+        })
+        .catch(() => {})
     },
 
     resetTemp() {
@@ -262,26 +394,28 @@ export default {
       })
     },
     createData() {
-      this.$refs['dataForm'].validate((valid) => {
+      this.$refs['dataForm'].validate(valid => {
         if (valid) {
           console.log('createData valid done...', this.temp)
 
           // 调用api创建数据入库
           this.updateLoading = true
-          createUser(this.temp).then(res => {
-            // 成功后 关闭窗口
-            this.updateLoading = false
-            console.log('createUser...', res)
-            this.fetchData()
-            this.dialogFormVisible = false
-            this.$notify({
-              message: res.message,
-              type: res.type
+          createUser(this.temp)
+            .then(res => {
+              // 成功后 关闭窗口
+              this.updateLoading = false
+              console.log('createUser...', res)
+              this.fetchData()
+              this.dialogFormVisible = false
+              this.$notify({
+                message: res.message,
+                type: res.type
+              })
             })
-          }).catch(err => {
-            console.log(err)
-            this.updateLoading = true
-          })
+            .catch(err => {
+              console.log(err)
+              this.updateLoading = true
+            })
         }
       })
     },
@@ -297,27 +431,29 @@ export default {
       })
     },
     updateData() {
-      this.$refs['dataForm'].validate((valid) => {
+      this.$refs['dataForm'].validate(valid => {
         if (valid) {
           // 调用api编辑数据入库
           this.updateLoading = true
-          updateUser(this.temp).then(res => {
-            this.updateLoading = false
-            if (res.type === 'success') {
-              // 后台重新更新数据
-              this.fetchData()
-              // this.$refs.TreeTable.updateTreeNode(this.temp) // 只能更新自身以下的节点
-              this.dialogFormVisible = false
-            }
-            this.$notify({
-              //  title: '错误',
-              message: res.message,
-              type: res.type
+          updateUser(this.temp)
+            .then(res => {
+              this.updateLoading = false
+              if (res.type === 'success') {
+                // 后台重新更新数据
+                this.fetchData()
+                // this.$refs.TreeTable.updateTreeNode(this.temp) // 只能更新自身以下的节点
+                this.dialogFormVisible = false
+              }
+              this.$notify({
+                //  title: '错误',
+                message: res.message,
+                type: res.type
+              })
             })
-          }).catch(err => {
-            console.log(err)
-            this.updateLoading = true
-          })
+            .catch(err => {
+              console.log(err)
+              this.updateLoading = true
+            })
         }
       })
     },
@@ -338,26 +474,28 @@ export default {
             instance.confirmButtonLoading = true
 
             const tempData = {
-              'id': row.id,
-              'username': row.username
+              id: row.id,
+              username: row.username
             }
             // 调用api删除数据
-            deleteUser(tempData).then(res => {
-              // 如果删除成功，后台重新更新数据,否则不更新数据
-              done()
-              instance.confirmButtonLoading = false
-              if (res.type === 'success') {
-                this.fetchData()
-              }
-              this.$notify({
-                //  title: '错误',
-                message: res.message,
-                type: res.type
+            deleteUser(tempData)
+              .then(res => {
+                // 如果删除成功，后台重新更新数据,否则不更新数据
+                done()
+                instance.confirmButtonLoading = false
+                if (res.type === 'success') {
+                  this.fetchData()
+                }
+                this.$notify({
+                  //  title: '错误',
+                  message: res.message,
+                  type: res.type
+                })
               })
-            }).catch(err => {
-              console.log(err)
-              instance.confirmButtonLoading = false
-            })
+              .catch(err => {
+                console.log(err)
+                instance.confirmButtonLoading = false
+              })
           } else {
             done()
             console.log('click cancel.....')
@@ -365,14 +503,16 @@ export default {
           }
         }
         // }).then(action => {
-      }).then(() => {
-        // this.$message({
-        //   type: 'info',
-        //   message: 'action: ' + action // confirm
-        // })
-      }).catch(() => {
-        // console.log(err)  // cancel
       })
+        .then(() => {
+          // this.$message({
+          //   type: 'info',
+          //   message: 'action: ' + action // confirm
+          // })
+        })
+        .catch(() => {
+          // console.log(err)  // cancel
+        })
     },
     handleFilter() {
       this.listQuery.page = 1

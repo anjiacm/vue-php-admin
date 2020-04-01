@@ -1,18 +1,17 @@
 import request from '@/utils/request'
 
 // 查询框或按钮 无参数时查询所有
-export function getUserList(form) {
+export function getUserList(parms) {
   return request({
-    url: '/sys/user/view',
-    method: 'post',
-    data: form
+    url: `/sys/user/users?${parms}`,
+    method: 'get'
   })
 }
 
 // 添加按钮
 export function createUser(form) {
   return request({
-    url: '/sys/user/add',
+    url: '/sys/user/users',
     method: 'post',
     data: form
   })
@@ -21,18 +20,17 @@ export function createUser(form) {
 // 编辑按钮
 export function updateUser(form) {
   return request({
-    url: '/sys/user/edit',
-    method: 'post',
+    url: '/sys/user/users',
+    method: 'put',
     data: form
   })
 }
 
 // 删除按钮
-export function deleteUser(form) {
+export function deleteUser(id) {
   return request({
-    url: '/sys/user/del',
-    method: 'post',
-    data: form
+    url: `/sys/user/users/${id}`,
+    method: 'delete'
   })
 }
 
