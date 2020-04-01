@@ -167,13 +167,13 @@ class Article extends RestController
                     $tmpKey = Strings::substring($v, 1); // username
 
                     $tmpValue = $this->get($tmpKey);
-                    if ($tmpValue) {
+                    if (!is_null($tmpValue)) {
                         $where[$tmpKey . '[~]'] = $tmpValue;
                         $wherecnt[$tmpKey . '[~]'] = $tmpValue;
                     }
                 } else {
                     $tmpValue = $this->get($v);
-                    if ($tmpValue) {
+                    if (!is_null($tmpValue)) {
                         $where[$v] = $tmpValue;
                         $wherecnt[$v] = $tmpValue;
                     }
