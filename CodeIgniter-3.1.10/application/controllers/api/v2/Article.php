@@ -3,6 +3,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 use chriskacerguis\RestServer\RestController;
 use Nette\Utils\Arrays;
+use Nette\Utils\Strings;
 
 // Using Medoo namespace
 use Medoo\Medoo;
@@ -81,8 +82,7 @@ class Article extends RestController
         // 测试 $this->get() 获取的参数完全包含 $this->query() 的参数，后者参数只是 get url？后面的值
 
         // www.cirest.com:8890/api/v2/article/articles/id/222/blah/333?color=red&seats=<2&sort=-manufactorer,+model&fields=manufacturer,model,id,color&offset=10&limit=5
-        var_dump($this->get()); 
-
+        // var_dump($this->get());
         // array(8) {
         //     ["id"]=>
         //     string(3) "222"
@@ -118,6 +118,97 @@ class Article extends RestController
         //         string(1) "5"
         //     }
 
+        // var_dump($this->get());
+        // www.cirest.com:8890/api/v2/article/articles?offset=1&limit=5&sort=-manufactorer,+model
+        // 分页参数配置
+        $limit = $this->get('limit') ? $this->get('limit') : 10;
+        $offset = $this->get('offset') ?  ($this->get('offset') - 1) *  $limit : 0; // 第几页
+        $where = [
+            "LIMIT" => [$offset, $limit]
+        ];
+        // 分页参数配置结束
+
+        // 存在排序参数则 获取排序参数 加入 $where，否则不添加ORDER条件
+        $sort = $this->get('sort');
+        if ($sort) {
+            $where["ORDER"] = [];
+            $sortArr = explode(",", $sort);
+            foreach ($sortArr as $k => $v) {
+                $tmpArr = [];
+                if (Strings::startsWith($v, '-')) { // true DESC
+                    $key = Strings::substring($v, 1); //  去 '-'
+                    $where["ORDER"][$key] = "DESC";
+                } else {
+                    $key = Strings::substring($v, 1); //  去 '+'
+                    $where["ORDER"][$key] = "ASC";
+                }
+            }
+        }
+        // 排序参数结束
+
+        // GET articles/?offset=1&limit=5&sort=-manufactorer,+model&fields=id,author,title
+        // fields: 显示字段参数过滤配置,不设置则为全部
+        $fields = $this->get('fields');
+        if ($fields) {
+            $columns = explode(",", $fields);
+        } else {
+            $columns = "*";
+        }
+        // 显示字段过滤配置结束
+
+        // GET articles/?offset=1&limit=5&sort=-manufactorer,+model&fields=id,author,title&author=pocoyo&title=hello
+        // 指定条件模糊或搜索查询,author like %pocoyo%, status=1 此时 total $wherecnt 条件也要发生变化
+        // var_dump($this->get('author')); var_dump($this->get('title'));
+
+        $author = $this->get('author');
+        $title = $this->get('title');
+
+        $wherecnt = []; // 计算total使用条件，默认为全部
+        if ($author) {
+            $where["author[~]"] = $author;
+            $wherecnt["author[~]"] = $author;
+        }
+        if ($title) {
+            $where["title"] =  $title;
+            $wherecnt["title"] = $title;
+        }
+        // 指定条件模糊或搜索查询结束
+
+        $data = $this->Medoodb->select(
+            "article",
+            $columns,
+            $where
+        );
+
+        // var_dump($this->Medoodb->log());
+        // var_dump($this->Medoodb->error());
+
+        // 捕获错误信息
+        $err = $this->Medoodb->error();
+        // array(3) => ["42S02", 1146, "Table 'vueadminv2.articlex' doesn't exist"]
+        if ($err[1]) { // 如果出错 否则为空
+            // var_dump($err[2]);
+            // var_dump($this->Medoodb->log());
+            $message = [
+                "code" => 20400,
+                "data" => $err[2]
+            ];
+            $this->response($message, RestController::HTTP_BAD_REQUEST); // BAD_REQUEST (400) being the HTTP response code
+        }
+
+        $total = $this->Medoodb->count("article",  $wherecnt);
+        $message = [
+            "code" => 20000,
+            "data" => [
+                "items" => $data,
+                "total" => $total
+            ]
+        ];
+        $this->response($message, RestController::HTTP_OK);
+        return;
+
+
+        
 
         $id = $this->get('id');
 
@@ -237,7 +328,7 @@ class Article extends RestController
         // $this->put('blah'); // PUT param
         // The HTTP spec for DELETE requests precludes the use of parameters. For delete requests, you can add items to the URL
         // 而对于DELETE请求，则只能通过在方法中添加参数，然后通过URL传入参数，来进行访问：
-        
+
         // DELETE http://www.cirest.com:8890/api/v2/article/articles/22
         var_dump($id); // $id => 22
 
