@@ -119,7 +119,7 @@ class Article extends RestController
         //     }
 
         // var_dump($this->get());
-        // www.cirest.com:8890/api/v2/article/articles?offset=1&limit=5&sort=-manufactorer,+model
+        // GET /articles?offset=1&limit=30&sort=-id&author=888&title=&fields=id,title,author&query=~author,title&author=888&title=world
         // 分页参数配置
         $limit = $this->get('limit') ? $this->get('limit') : 10;
         $offset = $this->get('offset') ?  ($this->get('offset') - 1) *  $limit : 0; // 第几页
@@ -128,6 +128,7 @@ class Article extends RestController
         ];
         // 分页参数配置结束
 
+        // GET /articles?offset=1&limit=30&sort=-id&author=888&title=&fields=id,title,author&query=~author,title&author=888&title=world
         // 存在排序参数则 获取排序参数 加入 $where，否则不添加ORDER条件
         $sort = $this->get('sort');
         if ($sort) {
@@ -145,30 +146,41 @@ class Article extends RestController
         }
         // 排序参数结束
 
-        // GET articles/?offset=1&limit=5&sort=-manufactorer,+model&fields=id,author,title
+        // GET /articles?offset=1&limit=30&sort=-id&author=888&title=&fields=id,title,author&query=~author,title&author=888&title=world
         // fields: 显示字段参数过滤配置,不设置则为全部
         $fields = $this->get('fields');
         $fields ? $columns = explode(",", $fields) : $columns = "*";
 
         // 显示字段过滤配置结束
 
-        // GET articles/?offset=1&limit=5&sort=-manufactorer,+model&fields=id,author,title&author=pocoyo&title=hello
+        // GET /articles?offset=1&limit=30&sort=-id&author=888&title=&fields=id,title,author&query=~author,title&author=888&title=world
         // 指定条件模糊或搜索查询,author like %pocoyo%, status=1 此时 total $wherecnt 条件也要发生变化
         // var_dump($this->get('author')); var_dump($this->get('title'));
-
-        $author = $this->get('author');
-        $title = $this->get('title');
-
+        // 查询字段及字段值获取
+        // 如果存在query 参数以,分隔，且每个参数的有值才会增加条件
         $wherecnt = []; // 计算total使用条件，默认为全部
-        if ($author) {
-            $where["author[~]"] = $author;
-            $wherecnt["author[~]"] = $author;
+        $query = $this->get('query');
+        if ($query) { // 存在才进行过滤,否则不过滤
+            $queryArr = explode(",", $query);
+            foreach ($queryArr as $k => $v) {
+                if (Strings::startsWith($v, '~')) { // true   query=~username&status=1 以~开头表示模糊查询
+                    $tmpKey = Strings::substring($v, 1); // username
+
+                    $tmpValue = $this->get($tmpKey);
+                    if ($tmpValue) {
+                        $where[$tmpKey . '[~]'] = $tmpValue;
+                        $wherecnt[$tmpKey . '[~]'] = $tmpValue;
+                    }
+                } else {
+                    $tmpValue = $this->get($v);
+                    if ($tmpValue) {
+                        $where[$v] = $tmpValue;
+                        $wherecnt[$v] = $tmpValue;
+                    }
+                }
+            }
         }
-        if ($title) {
-            $where["title"] =  $title;
-            $wherecnt["title"] = $title;
-        }
-        // 指定条件模糊或搜索查询结束
+        // 查询字段及字段值获取结束
 
         $data = $this->Medoodb->select(
             "article",
@@ -176,7 +188,7 @@ class Article extends RestController
             $where
         );
 
-        // var_dump($this->Medoodb->log());
+        var_dump($this->Medoodb->log());
         // var_dump($this->Medoodb->error());
 
         // 捕获错误信息
