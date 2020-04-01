@@ -2,10 +2,23 @@
 MySQL Backup
 Source Server Version: 8.0.12
 Source Database: vueadminv2
-Date: 2020/3/18 11:53:42
+Date: 2020/3/31 11:30:24
 */
 
 SET FOREIGN_KEY_CHECKS=0;
+
+-- ----------------------------
+--  Table structure for `article`
+-- ----------------------------
+DROP TABLE IF EXISTS `article`;
+CREATE TABLE `article` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '文章id',
+  `author` varchar(32) NOT NULL,
+  `title` varchar(32) NOT NULL,
+  `content` varchar(512) NOT NULL,
+  `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `keys`
@@ -87,7 +100,7 @@ CREATE TABLE `sys_perm` (
   `perm_type` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '权限类型：menu:菜单路由类,role:角色类,file:文件类',
   `r_id` int(11) NOT NULL COMMENT '实际基础表的关联id，如菜单表ID，角色表ID，文件表ID等',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='系统权限表\r\n\r\n基础表（菜单表，角色表，文件表及其他需要权限控制的表）每新增一个记录，此表同时插入一条对应记录，如\r\nsys_menu表加入一条记录，此处需要对应加入  类型 menu 的 r_id 为menu id的记录';
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='系统权限表\r\n\r\n基础表（菜单表，角色表，文件表及其他需要权限控制的表）每新增一个记录，此表同时插入一条对应记录，如\r\nsys_menu表加入一条记录，此处需要对应加入  类型 menu 的 r_id 为menu id的记录';
 
 -- ----------------------------
 --  Table structure for `sys_perm_type`
@@ -117,7 +130,7 @@ CREATE TABLE `sys_role` (
   `update_time` int(11) DEFAULT NULL,
   `listorder` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `sys_role_perm`
@@ -132,7 +145,7 @@ CREATE TABLE `sys_role_perm` (
   KEY `perm_id` (`perm_id`),
   CONSTRAINT `sys_role_perm_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `sys_role` (`id`),
   CONSTRAINT `sys_role_perm_ibfk_2` FOREIGN KEY (`perm_id`) REFERENCES `sys_perm` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `sys_user`
@@ -182,7 +195,7 @@ CREATE TABLE `sys_user_role` (
   KEY `role_id` (`role_id`),
   CONSTRAINT `sys_user_role_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
   CONSTRAINT `sys_user_role_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `sys_role` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `sys_user_token`
@@ -241,11 +254,11 @@ DELIMITER ;
 -- ----------------------------
 INSERT INTO `keys` VALUES ('1','0','oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks','10','1','0',NULL,'1551173554'), ('2','0','00kgsog84kooc44kgwkwccow48kggc48s4gcwwcg','0','1','0',NULL,'1551173554');
 INSERT INTO `sys_dept` VALUES ('1','0','长城','','99','1'), ('2','0','黄河','','99','1'), ('3','1','敦煌','','99','1'), ('4','1','玉门关','','99','1');
-INSERT INTO `sys_menu` VALUES ('1','0','SysDhdv','/sys','Layout','0','系统管理','sysset2','/sys/menu','0','1','','99',NULL,NULL), ('2','1','SysMenuSnIc','/sys/menu','sys/menu/index','1','菜单管理','menu1','','0','1','','80',NULL,NULL), ('3','1','SysRoleCkoF','/sys/role','sys/role/index','1','角色管理','role','','0','1','','99',NULL,NULL), ('4','1','SysUserPhjc','/sys/user','sys/user/index','1','用户管理','user','','0','1','','99',NULL,NULL), ('5','0','Sysxfgoy','/sysx','Layout','0','测试菜单','github','/sysx/xiangjun','0','1','','100',NULL,NULL), ('6','2','SysMenuAddTbtv','/sys/menu/add','','2','添加','','','0','1','','90',NULL,NULL), ('7','2','SysMenuEditSJvm','/sys/menu/edit','','2','编辑','','','0','1','','95',NULL,NULL), ('8','2','SysMenuDelTtub','/sys/menu/del','','2','删除','','','0','1','','99',NULL,NULL), ('9','2','SysMenuViewJbtm','/sys/menu/view','','2','查看','','','0','1','','80',NULL,NULL), ('10','5','SysxXiangjunAles','/sysx/xiangjun','xiangjun/index','1','vue课堂测试','form','','0','1','','95',NULL,NULL), ('11','5','SysxUploadimgRafb','/sysx/uploadimg','uploadimg/index','1','上传证件照','yidong','','0','1','','100',NULL,NULL), ('12','1','SysIconQjyw','/sys/icon','svg-icons/index','1','图标管理','icon','','0','1','','100',NULL,NULL), ('13','3','SysRoleViewTyli','/sys/role/view','','2','查看','','','0','1','','90',NULL,NULL), ('14','3','SysRoleAddAtyq','/sys/role/add','','2','添加','','','0','1','','91',NULL,NULL), ('15','3','SysRoleEditRezj','/sys/role/edit','','2','编辑','','','0','1','','92',NULL,NULL), ('16','3','SysRoleDelEvyv','/sys/role/del','','2','删除','','','0','1','','101',NULL,NULL), ('17','4','SysUserViewAzlk','/sys/user/view','','2','查看','','','0','1','','96',NULL,NULL), ('18','4','SysUserAddIhml','/sys/user/add','','2','添加','','','0','1','','97',NULL,NULL), ('19','4','SysUserEditKzij','/sys/user/edit','','2','编辑','','','0','1','','99',NULL,NULL), ('20','4','SysUserDelZurb','/sys/user/del','','2','删除','','','0','1','','100',NULL,NULL), ('21','3','SysRoleSaverolepermTjxy','/sys/role/saveroleperm','','2','角色授权','','','0','1','','120',NULL,NULL), ('23','1','SysDeptEvbb','/sys/dept','sys/dept/index','1','部门管理','dept','','0','1','','85',NULL,NULL), ('24','23','SysDeptViewEscq','/sys/dept/view','','2','查看','','','0','1','','99',NULL,NULL), ('25','23','SysDeptAddMdcy','/sys/dept/add','','2','添加','','','0','1','','100',NULL,NULL), ('26','23','SysDeptEditXgzi','/sys/dept/edit','','2','编辑','','','0','1','','102',NULL,NULL), ('27','23','SysDeptDelIjuq','/sys/dept/del','','2','删除','','','0','1','','104',NULL,NULL);
-INSERT INTO `sys_perm` VALUES ('1','role','1'), ('2','menu','1'), ('3','menu','2'), ('4','menu','3'), ('5','menu','4'), ('6','menu','5'), ('7','menu','6'), ('8','menu','7'), ('9','menu','8'), ('10','menu','9'), ('11','menu','10'), ('12','menu','11'), ('13','menu','12'), ('14','menu','13'), ('15','menu','14'), ('16','menu','15'), ('17','menu','16'), ('18','menu','17'), ('19','menu','18'), ('20','menu','19'), ('21','menu','20'), ('27','menu','21'), ('29','menu','23'), ('30','menu','24'), ('31','menu','25'), ('32','menu','26'), ('33','menu','27'), ('34','dept','1'), ('35','dept','2'), ('36','dept','3'), ('37','dept','4');
+INSERT INTO `sys_menu` VALUES ('1','0','SysDhdv','/sys','Layout','0','系统管理','sysset2','/sys/menu','0','1','','99',NULL,NULL), ('2','1','SysMenuSnIc','/sys/menu','sys/menu/index','1','菜单管理','menu1','','0','1','','80',NULL,NULL), ('3','1','SysRoleCkoF','/sys/role','sys/role/index','1','角色管理','role','','0','1','','99',NULL,NULL), ('4','1','SysUserPhjc','/sys/user','sys/user/index','1','用户管理','user','','0','1','','99',NULL,NULL), ('5','0','Sysxfgoy','/sysx','Layout','0','测试菜单','github','/sysx/xiangjun','0','1','','100',NULL,NULL), ('6','2','SysMenuAddTbtv','/sys/menu/menus/post','','2','添加','','','0','1','','90',NULL,NULL), ('7','2','SysMenuEditSJvm','/sys/menu/menus/put','','2','编辑','','','0','1','','95',NULL,NULL), ('8','2','SysMenuDelTtub','/sys/menu/menus/delete','','2','删除','','','0','1','','99',NULL,NULL), ('9','2','SysMenuViewJbtm','/sys/menu/menus/get','','2','查看','','','0','1','','80',NULL,NULL), ('10','5','SysxXiangjunAles','/sysx/xiangjun','xiangjun/index','1','vue课堂测试','form','','0','1','','95',NULL,NULL), ('11','5','SysxUploadimgRafb','/sysx/uploadimg','uploadimg/index','1','上传证件照','yidong','','0','1','','100',NULL,NULL), ('12','1','SysIconQjyw','/sys/icon','svg-icons/index','1','图标管理','icon','','0','1','','100',NULL,NULL), ('13','3','SysRoleViewTyli','/sys/role/roles/get','','2','查看','','','0','1','','90',NULL,NULL), ('14','3','SysRoleAddAtyq','/sys/role/roles/post','','2','添加','','','0','1','','91',NULL,NULL), ('15','3','SysRoleEditRezj','/sys/role/roles/put','','2','编辑','','','0','1','','92',NULL,NULL), ('16','3','SysRoleDelEvyv','/sys/role/roles/delete','','2','删除','','','0','1','','101',NULL,NULL), ('17','4','SysUserViewAzlk','/sys/user/users/get','','2','查看','','','0','1','','96',NULL,NULL), ('18','4','SysUserAddIhml','/sys/user/users/post','','2','添加','','','0','1','','97',NULL,NULL), ('19','4','SysUserEditKzij','/sys/user/users/put','','2','编辑','','','0','1','','99',NULL,NULL), ('20','4','SysUserDelZurb','/sys/user/users/delete','','2','删除','','','0','1','','100',NULL,NULL), ('21','3','SysRoleSaverolepermTjxy','/sys/role/saveroleperm/post','','2','角色授权','','','0','1','','120',NULL,NULL), ('23','1','SysDeptEvbb','/sys/dept','sys/dept/index','1','部门管理','dept','','0','1','','85',NULL,NULL), ('24','23','SysDeptViewEscq','/sys/dept/depts/get','','2','查看','','','0','1','','99',NULL,NULL), ('25','23','SysDeptAddMdcy','/sys/dept/depts/post','','2','添加','','','0','1','','100',NULL,NULL), ('26','23','SysDeptEditXgzi','/sys/dept/depts/put','','2','编辑','','','0','1','','102',NULL,NULL), ('27','23','SysDeptDelIjuq','/sys/dept/depts/delete','','2','删除','','','0','1','','104',NULL,NULL);
+INSERT INTO `sys_perm` VALUES ('1','role','1'), ('2','menu','1'), ('3','menu','2'), ('4','menu','3'), ('5','menu','4'), ('6','menu','5'), ('7','menu','6'), ('8','menu','7'), ('9','menu','8'), ('10','menu','9'), ('11','menu','10'), ('12','menu','11'), ('13','menu','12'), ('14','menu','13'), ('15','menu','14'), ('16','menu','15'), ('17','menu','16'), ('18','menu','17'), ('19','menu','18'), ('20','menu','19'), ('21','menu','20'), ('27','menu','21'), ('29','menu','23'), ('30','menu','24'), ('31','menu','25'), ('32','menu','26'), ('33','menu','27'), ('34','dept','1'), ('35','dept','2'), ('36','dept','3'), ('37','dept','4'), ('38','role','2');
 INSERT INTO `sys_perm_type` VALUES ('1','role','sys_role','角色类',NULL), ('2','menu','sys_menu','菜单类',NULL), ('3','file','sys_file','文件类',NULL), ('4','dept','sys_dept','部门类',NULL);
-INSERT INTO `sys_role` VALUES ('1','超级管理员','0','1','拥有网站最高管理员权限！','0','1329633709','1329633709','1');
-INSERT INTO `sys_role_perm` VALUES ('1','1','1'), ('2','1','2'), ('3','1','3'), ('4','1','4'), ('5','1','5'), ('6','1','6'), ('7','1','7'), ('8','1','8'), ('9','1','9'), ('10','1','10'), ('11','1','11'), ('12','1','12'), ('13','1','13'), ('14','1','14'), ('15','1','15'), ('16','1','16'), ('17','1','17'), ('18','1','18'), ('19','1','19'), ('20','1','20'), ('21','1','21'), ('30','1','27'), ('38','1','29'), ('39','1','30'), ('40','1','31'), ('41','1','32'), ('42','1','33'), ('43','1','34'), ('44','1','35'), ('45','1','36'), ('46','1','37');
+INSERT INTO `sys_role` VALUES ('1','超级管理员','0','1','拥有网站最高管理员权限！','0','1329633709','1329633709','1'), ('2','test','0','1','','4','1584524771',NULL,'99');
+INSERT INTO `sys_role_perm` VALUES ('1','1','1'), ('2','1','2'), ('3','1','3'), ('4','1','4'), ('5','1','5'), ('6','1','6'), ('7','1','7'), ('8','1','8'), ('9','1','9'), ('10','1','10'), ('11','1','11'), ('12','1','12'), ('13','1','13'), ('14','1','14'), ('15','1','15'), ('16','1','16'), ('17','1','17'), ('18','1','18'), ('19','1','19'), ('20','1','20'), ('21','1','21'), ('30','1','27'), ('38','1','29'), ('39','1','30'), ('40','1','31'), ('41','1','32'), ('42','1','33'), ('43','1','34'), ('44','1','35'), ('45','1','36'), ('46','1','37'), ('47','1','38'), ('48','2','2'), ('49','2','5'), ('50','2','18'), ('51','2','19'), ('52','2','20'), ('53','2','21'), ('57','2','35'), ('58','2','37'), ('59','2','36');
 INSERT INTO `sys_user` VALUES ('1','admin','21232f297a57a5a743894a0e4a801fc3','admin','qkbeyond@gmail.com','https://avatars0.githubusercontent.com/u/428884?s=460&v=4','0','127.0.0.1','1493103488','1487868050','1','1'), ('2','qiaokun','026a4f42edc4e5016daa1f0a263242ee','','79464972@qq.com','https://portrait.gitee.com/uploads/avatars/user/1599/4797475_emacle_1583807883.png',NULL,NULL,NULL,'1554800129','1','1002'), ('3','editor','5aee9dbd2a188839105073571bee1b1f','','','',NULL,'',NULL,'1554803362','1','1003');
-INSERT INTO `sys_user_role` VALUES ('1','1','1');
+INSERT INTO `sys_user_role` VALUES ('1','1','1'), ('2','2','2');
 INSERT INTO `upload_tbl` VALUES ('410000000000000000','13633838282','/uploads/image/T410000000000000000/201903/20190327101840_75319.png','/uploads/image/T410000000000000000/201903/20190327101843_79603.jpg','待审核');

@@ -26,7 +26,8 @@
 - [x] 6. 图标管理：vue-element-admin 原有封装组件
 - [x] 7. **使用jwt token 前后端实现 access_token过期后无痛无缝在刷新, refreshtoken 加入计数器,在有效期内接口调用超过一定次数自动续期, CI模式使用hooks做控制器方法调用前的token及权限认证功能** 
 - [x] 8. 图形验证码（`gregwar/captcha` 包生成）, 企业微信扫码登录, 见 [vue-php-admin-V3](https://github.com/emacle/vue-php-admin-V3.git)
-- [ ] 9. 界面主题优化
+- [X] 9. **以 restful 风格重新构建代码 20200401 ,GET/POST/PUT/DELETE**
+- [ ] 10. 界面主题优化
 
 ## 开发环境
 - phpstudy_pro `php 7.3.4nts` + `Apache 2.4.39`
@@ -36,6 +37,23 @@
  - 后端 [PHP CI 3.1.10 RESTful](https://github.com/chriskacerguis/codeigniter-restserver)
  - 前端 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin/)
  
+## RESTful 风格
+ - restful风格增删改查完整示例 见 [Article.php 控制器](https://github.com/emacle/vue-php-admin/blob/master/CodeIgniter-3.1.10/application/controllers/api/v2/Article.php)
+ - 引入了 catfan/medoo 包数据库操作，替换CI框架的部分model， TODO: 使用medoo 完全替换CI的数据库的操作
+ - 使用 catfan/medoo 实现 **复杂分页过滤排序** 见 [article_get()](https://github.com/emacle/vue-php-admin/blob/master/CodeIgniter-3.1.10/application/controllers/api/v2/Article.php) 及 [users_get()](https://github.com/emacle/vue-php-admin/blob/master/CodeIgniter-3.1.10/application/controllers/api/v2/sys/User.php#L176) 与 [vue前端 GET 请求构造参数](https://github.com/emacle/vue-php-admin/blob/master/vue-element-admin/src/views/sys/user/index.vue#L321)
+    
+    前端GET请求参数与使用的 table 组件有关 这里使用 [vue-data-tables](https://www.njleonzhang.com/vue-data-tables/#/) 组件
+
+    ```
+    GET /articles?offset=1&limit=30&sort=-id&author=888&title=&fields=id,title,author&query=~author,title&author=888&title=world
+
+    limit:  每页记录数，后台会配置默认值
+    offset: 第几页，后台会配置默认值
+    sort:   支持多个参数 &sort=-id,+author => id降序 author 升序
+    fileds: 指定要获取的显示字段 => 降低网络流量
+    query:  支持多个参数 &query=~author,title => author like 模糊查询， title精确查询 &author=888&title=world 需要配合query参数才有意义
+    ```
+
 ## 角色权限说明
 1. 这里将权限抽象成三种权限（可扩展更多），菜单类权限（包括控件按钮），角色类权限（用户可分配的角色），部门数据类权限（用户可查看的部门数据），参考 [角色权限组+资源分配](https://blog.csdn.net/qiuziqiqi/article/details/65437123)
 2. 前端添加菜单，角色，部门的时候，后端生成对应的权限，写入 `sys_perm` 表，系统的超级管理员角色自动拥有了所有权限（也可根据需要）
