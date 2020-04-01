@@ -448,7 +448,10 @@ export default {
         .then(res => {
           // console.log('getRoleList', res)
           this.list = res.data.items
-          this.total = res.data.total
+          this.total = res.data.total // 可不用 total 由于此处角色数量不会超过500条，使用data-tables 数据为全部数据，不需要使用 total属性
+          // data-tables 组件的 data 属性代表着所有的数据，pagination 上显示的所有的 total 值就等于 data.length，
+          // 所以使用 data-tables 组件的时候并不需要传入 total 属性; 而 data-tables-server 的 data 属性只是当前页的数据，
+          // total 属性代表着全部的数据量， 他们都需要使用的时候来传入。
           this.listLoading = false
         })
         .catch(() => {
