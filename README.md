@@ -28,6 +28,7 @@
 - [x] 8. 图形验证码（`gregwar/captcha` 包生成）, 企业微信扫码登录, 见 [vue-php-admin-V3](https://github.com/emacle/vue-php-admin-V3.git)
 - [X] 9. **以 restful 风格重新构建代码 20200401 ,GET/POST/PUT/DELETE**
 - [ ] 10. 界面主题优化
+- [ ] 11. **完全弃用 CI 自带数据库操作，使用 catfan/medoo 进行数据库操作**
 
 ## 开发环境
 - phpstudy_pro `php 7.3.4nts` + `Apache 2.4.39`
@@ -118,8 +119,28 @@
         'hostname' => 'localhost',
         'username' => 'root',
         'password' => 'root',
-        'database' => 'vueadmin',
+        'database' => 'vueadminv2',
         ...
+    ```
+    cat application\config\config.php
+    ```php
+    // medoodb 初始化数据库全局配置, 注意与CI databases.php 区别, TODO： 完全弃用 CI 自带数据库操作，使用medoodb
+    $config['medoodb'] = [
+        'database_type' => 'mysql',
+        'database_name' => 'vueadminv2',
+        'server' => 'localhost',
+        'username' => 'root',
+        'password' => 'root',
+        'charset' => 'utf8',
+        //可选：端口
+        'port' => 3306,
+        //可选：表前缀
+        'prefix' => '',
+        // PDO驱动选项 http://www.php.net/manual/en/pdo.setattribute.php
+        'option' => [
+            PDO::ATTR_CASE => PDO::CASE_NATURAL
+        ]
+    ];
     ```
 4. CodeIgniter-3.1.10目录， composer 安装相关依赖包 php-jwt 与 codeigniter-restserver
     ```php
@@ -131,7 +152,8 @@
     composer require chriskacerguis/codeigniter-restserver
     composer require firebase/php-jwt
     composer require league/oauth2-github
-	composer require nette/http
+    composer require nette/http
+    composer require catfan/medoo
     ```
 
     
@@ -141,7 +163,7 @@
 
     api接口调用使用示例：
     ```html    
-    http://www.cirest.com:8889/api/v2/sys/user/testapi # 免token认证测试接口正常
+    http://www.cirest.com:8889/api/v2/sys/user/testapi # 免token认证测试接口正常  对应 GET 请求
     http://www.cirest.com:8889/index.php/api/v2/sys/user/testapi
     ```
 
@@ -149,12 +171,14 @@
 
     ```php
     $config['jwt_white_list'] = [
-        '/sys/user/testapi', // 测试api接口不认证
-        '/sys/user/login',
-        '/sys/user/logout',
-        '/sys/user/refreshtoken', // 刷新token接口需要在控制器内作权限验证,比较特殊
-        '/sys/user/githubauth', // github认证免授权
-        '/sys/user/giteeauth', // gitee码云认证免授权
+        '/example/users/get',
+        '/example/users/post',
+        '/example/users/delete',
+        '/article/articles/get', // 测试api接口不认证 http://www.cirest.com:8890/api/v2/article/articles     uri_string => api/v2/article/articles
+        '/article/articles/post',
+        '/article/articles/put',
+        '/article/articles/delete',
+        '/sys/user/testapi/get',
     ]
     ```
     ~~request header 配置 X-API-KEY: oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks~~ 默认禁用API-KEY 可在CodeIgniter-3.1.10/config/rest.php中
