@@ -2,6 +2,8 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use Nette\Utils\Strings;
+
 /**
  * Permission Class
  *
@@ -156,7 +158,7 @@ class Permission
      * return ['code' => 50016, 'message' => "无操作权限"];
      * return ['code' => 50000, 'message' => "有操作权限"];
      */
-    function HasPermit($userId, $uri)
+    function HasPermit($userId, $uri, $http_method)
     {
         $CI = &get_instance();
         $CI->load->model('Base_model');
@@ -185,10 +187,27 @@ class Permission
             return ['code' => 50016, 'message' => "无操作权限 " . $uri, 'data' => $PermArr];
         }
 
-        //          var_dump($uri); // string(19) "api/v2/sys/menu/add"
-        //        var_dump($PermArr);
+        // var_dump($uri); // string(19) "api/v2/sys/menu/add"
+        // var_dump($PermArr);
+        // api/v2/menu/menus/id/2   '/sys/menu/menus/get'
         foreach ($PermArr as $k => $v) {
-            if (strpos($uri, $v['path'])) {
+            // var_dump($v['path']);
+            // $res = explode("/",'/sys/menu/menus/get');
+            // // var_dump($res);
+            // var_dump(array_pop($res)); // 获取最后一个元素，并且原数组删除最后一个
+            // var_dump($res);
+            // var_dump(implode("/",$res));
+
+            $res = explode("/", $v['path']);
+            $http_method_db = array_pop($res); // 获取最后一个元素，并且原数组删除最后一个
+
+            $uri_db = implode("/", $res);
+
+            // var_dump($http_method_db);
+
+            // var_dump($uri_db);
+
+            if (Strings::contains($uri, $uri_db) && $http_method === $http_method_db) {
                 return ['code' => 50000, 'message' => "有操作权限 " . $uri, 'data' => $PermArr];
             }
         }

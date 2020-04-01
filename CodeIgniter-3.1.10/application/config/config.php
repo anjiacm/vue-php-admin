@@ -532,30 +532,37 @@ $config['jwt_refresh_count'] = 7; // 调用refresh_token接口超过此次数时
 
 // 白名单里的uri不认证
 $config['jwt_white_list'] = [
-    'rest_server', // http://cirest.com:8890/rest_server 接口不认证 uri_string => rest_server
-    'welcome', // http://cirest.com:8890/welcome 接口不认证
-    '/example/users', // 测试api接口不认证    http://www.cirest.com:8890/api/example/users           uri_string => api/example/users
-    '/article/articles', // 测试api接口不认证 http://www.cirest.com:8890/api/v2/article/articles     uri_string => api/v2/article/articles
-    '/sys/user/testapi', // 测试api接口不认证 http://cirest.com:8890/api/v2/sys/user/testapi         uri_string => api/v2/sys/user/testapi
-    '/sys/user/login',
-    '/sys/user/logout',
-    '/sys/user/refreshtoken', // 刷新token接口需要在控制器内作权限验证,比较特殊
-    '/sys/user/githubauth', // github认证免授权
-    '/sys/user/giteeauth', // gitee码云认证免授权
+    '/sys/user/login/post',
+    '/sys/user/logout/post',
+    '/sys/user/refreshtoken/post', // 刷新token接口需要在控制器内作权限验证,比较特殊
+    '/sys/user/githubauth/get', // github认证免授权
+    '/sys/user/giteeauth/get', // gitee码云认证免授权
     // 下面接口uri 可以在菜单权限里面添加,再分配给对应角色即可, 方便/安全?
     // 如果不想在前端菜单里添加,也可以直接在后端在控制器里单独做token验证,不用做权限认证
     // 参考/sys/user/refreshtoken
-    '/sys/user/info',
-    '/sys/user/list',
-    '/sys/user/getroleoptions',
-    '/sys/user/getdeptoptions',
-    '/sys/role/allroles',
-    '/sys/role/allmenus',
-    '/sys/role/alldepts',
-    '/sys/role/rolemenu',
-    '/sys/role/rolerole',
-    '/sys/role/roledept',
-    '/sys/menu/treeoptions'
+    '/sys/user/info/get',
+    '/sys/user/list/get',
+    '/sys/user/getroleoptions/get',
+    '/sys/user/getdeptoptions/get',
+    '/sys/role/allroles/get',
+    '/sys/role/allmenus/get',
+    '/sys/role/alldepts/get',
+    '/sys/role/rolemenu/post',
+    '/sys/role/rolerole/post',
+    '/sys/role/roledept/post',
+    '/sys/menu/treeoptions/get',
+
+    // 以下均为测试接口
+    'rest_server/get', // http://cirest.com:8890/rest_server 接口不认证 uri_string => rest_server
+    'welcome/get', // http://cirest.com:8890/welcome 接口不认证
+    '/example/users/get',
+    '/example/users/post',
+    '/example/users/delete',
+    '/article/articles/get', // 测试api接口不认证 http://www.cirest.com:8890/api/v2/article/articles     uri_string => api/v2/article/articles
+    '/article/articles/post',
+    '/article/articles/put',
+    '/article/articles/delete',
+    '/sys/user/testapi/get', // 测试api接口不认证 http://cirest.com:8890/api/v2/sys/user/testapi         uri_string => api/v2/sys/user/testapi
 ];
 
 // 自定义jwt token 过期或异常返回值,根据前端需要可以分开

@@ -9,10 +9,11 @@ use Nette\Utils\Strings;
 class ManageAuth
 {
     private $CI;
-
+    private $http_method;
     function __construct()
     {
         $this->CI = &get_instance();  //获取CI对象
+        $this->http_method = Strings::lower($_SERVER['REQUEST_METHOD']); // => get/post/put/delete
     }
 
     //token及权限认证
@@ -22,7 +23,18 @@ class ManageAuth
         // uri_string() == '' 表示 http://www.cirest.com:8890/ 地址 uri_string 为空，同样在白名单不认证
         $in_whiteList = uri_string() == '' ? true : Arrays::some(config_item('jwt_white_list'), function ($value): bool {
             // 白名单里的某一项 eg. '/sys/user/testapi' 包含于 uri_string() => 'api/v2/sys/user/testapi' 中则立即返回true, 所有项都不包含于才返回false
-            return Strings::contains(uri_string(), $value);
+            $res = explode("/", $value);
+            $http_method_wl = array_pop($res); // 获取最后一个元素，并且原数组删除最后一个
+            $uri_wl = implode("/", $res);
+
+            // var_dump($http_method_wl);
+            // var_dump($uri_wl);
+            // var_dump(uri_string());
+            // var_dump(Strings::contains(uri_string(), $uri_wl));
+            // var_dump($this->http_method === $http_method_wl);
+            // var_dump(Strings::contains(uri_string(), $uri_wl) && $this->http_method === $http_method_wl);
+
+            return Strings::contains(uri_string(), $uri_wl) && $this->http_method === $http_method_wl;
         });
 
         if (!$in_whiteList) { // 不在白名单里需要校验 token
@@ -32,7 +44,8 @@ class ManageAuth
             try {
                 $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
                 $userId = $decoded->user_id;
-                $retPerm = $this->CI->permission->HasPermit($userId, uri_string());
+
+                $retPerm = $this->CI->permission->HasPermit($userId, uri_string(), $this->http_method);
                 if ($retPerm['code'] != 50000) {
                     $this->CI->response($retPerm, RestController::HTTP_OK);
                 }
