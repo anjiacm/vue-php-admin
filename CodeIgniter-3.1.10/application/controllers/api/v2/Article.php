@@ -78,6 +78,47 @@ class Article extends RestController
         // $route['api/v2/article/articles/(:num)'] = 'api/v2/article/articles/id/$1'; 
         // var_dump($this->get('id'));  // 参数带id
         // var_dump($this->get('blah'));  // http://www.cirest.com:8889/api/article/articles/id/2/blah/3 可以传多个参数 可获取id,blah参数
+        // 测试 $this->get() 获取的参数完全包含 $this->query() 的参数，后者参数只是 get url？后面的值
+
+        // www.cirest.com:8890/api/v2/article/articles/id/222/blah/333?color=red&seats=<2&sort=-manufactorer,+model&fields=manufacturer,model,id,color&offset=10&limit=5
+        var_dump($this->get()); 
+
+        // array(8) {
+        //     ["id"]=>
+        //     string(3) "222"
+        //     ["blah"]=>
+        //     string(3) "333"
+        //     ["color"]=>
+        //     string(3) "red"
+        //     ["seats"]=>
+        //     string(2) "<2"
+        //     ["sort"]=>
+        //     string(20) "-manufactorer, model"
+        //     ["fields"]=>
+        //     string(27) "manufacturer,model,id,color"
+        //     ["offset"]=>
+        //     string(2) "10"
+        //     ["limit"]=>
+        //     string(1) "5"
+        //   }
+
+        // var_dump($this->query()); // =>
+        // array(6) {
+        //     ["color"]=>
+        //         string(3) "red"
+        //     ["seats"]=>
+        //         string(2) "<2" 
+        //     ["sort"]=>
+        //         string(20) "-manufactorer, model"
+        //     ["fields"]=>
+        //         string(27) "manufacturer,model,id,color"
+        //     ["offset"]=>
+        //         string(2) "10"
+        //     ["limit"]=>
+        //         string(1) "5"
+        //     }
+
+
         $id = $this->get('id');
 
         if ($id === NULL) { // id === NULL 查询全部
