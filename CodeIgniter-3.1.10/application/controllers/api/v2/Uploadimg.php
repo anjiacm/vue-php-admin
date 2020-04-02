@@ -12,7 +12,41 @@ class Uploadimg extends RestController
         $this->load->model('Base_model');
     }
 
+    function goods_get()
+    {
 
+        $items = array(
+            array('id' => 1, 'title' => 'iphone 7 ', 'price' => 399, 'num' => 1),
+            array('id' => 2, 'title' => 'hdcms 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 3, 'title' => 'aaaas 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 4, 'title' => 'iphone 7 ', 'price' => 399, 'num' => 1),
+            array('id' => 5, 'title' => 'hdcms 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 6, 'title' => 'aaaas 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 7, 'title' => 'iphone 7 ', 'price' => 399, 'num' => 1),
+            array('id' => 8, 'title' => 'hdcms 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 9, 'title' => 'aaaas 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 10, 'title' => 'iphone 7 ', 'price' => 399, 'num' => 1),
+            array('id' => 11, 'title' => 'hdcms 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 31, 'title' => 'aaaas 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 13, 'title' => 'iphone 7 ', 'price' => 399, 'num' => 1),
+            array('id' => 24, 'title' => 'hdcms 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 35, 'title' => 'aaaas 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 19, 'title' => 'iphone 7 ', 'price' => 399, 'num' => 1),
+            array('id' => 22, 'title' => 'hdcms 7 ', 'price' => 2000, 'num' => 2),
+            array('id' => 33, 'title' => 'aaaas 7 ', 'price' => 2000, 'num' => 2),
+        );
+
+        $message = [
+            "code" => 20000,
+            "data" => [
+                "items" => $items
+            ]
+        ];
+
+        $this->response($message, RestController::HTTP_OK);
+
+    }
+    
     public function testapi_get()
     {
         echo "test api ok...";
