@@ -37,8 +37,18 @@ class ManageAuth
             return Strings::contains(uri_string(), $uri_wl) && $this->http_method === $http_method_wl;
         });
 
-        if (!$in_whiteList) { // 不在白名单里需要校验 token
+        if (!$in_whiteList) { // 不在白名单里需要校验 token expired etc..
             $headers = $this->CI->input->request_headers();
+
+            // 防止在浏览器直接进入api，页面抛出异常错误
+            if (!array_key_exists('X-Token', $headers)) {
+                $message = [
+                    "code" => 50015,
+                    "message" => 'request_headers has not token info.'
+                ];
+                $this->CI->response($message, RestController::HTTP_FORBIDDEN);
+            }
+
             $Token = $headers['X-Token'];
 
             try {
