@@ -203,11 +203,10 @@ import Treeselect from '@riophae/vue-treeselect'
 // import the styles
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import IconSelect from '@/components/IconSelect'
-import random from 'string-random'
 import _ from 'lodash'
 
 export default {
-  name: 'SysMenuSnIc',
+  name: 'SysMenu',
   // 所以在编写路由 router 和路由对应的 view component 的时候一定要确保 两者的 name 是完全一致的。
   // register the component Treeselect, TreeTableComponent
   components: { Treeselect, IconSelect },
@@ -336,16 +335,16 @@ export default {
       }
       console.log('onTrigger...treeExpandedKeys', this.treeExpandedKeys)
     },
-    expandQuery() {
-      // const els = this.$refs.TreeTable.$el.getElementsByClassName('el-table__expand-icon')
-      const els = this.$refs.TreeTable.$el.getElementsByClassName('trigger')
-      // console.info('expandAll els...', els)
-      // el-icon-arrow-right
-      // console.log('els..length/2....', els.length / 2) // 必须除以2
-      for (let i = 0; i < els.length / 2; i++) {
-        els[i].click()
-      }
-    },
+    // expandQuery() {
+    //   // const els = this.$refs.TreeTable.$el.getElementsByClassName('el-table__expand-icon')
+    //   const els = this.$refs.TreeTable.$el.getElementsByClassName('trigger')
+    //   // console.info('expandAll els...', els)
+    //   // el-icon-arrow-right
+    //   // console.log('els..length/2....', els.length / 2) // 必须除以2
+    //   for (let i = 0; i < els.length / 2; i++) {
+    //     els[i].click()
+    //   }
+    // },
     // 遍历json树 过滤符合条件节点，并且扁平化成array
     TravelTree(jsonTree, filterText) {
       var ret = {
@@ -501,16 +500,10 @@ export default {
     createData() {
       this.$refs['dataForm'].validate(valid => {
         if (valid) {
-          // 处理路由别名生成唯一 /sys/menu
-          this.temp.name = this.stringToCamel(
-            this.temp.path +
-              '/' +
-              random(4, {
-                specials: false,
-                numbers: false,
-                letters: 'abcdefghijklmnopqrstuvwxyz'
-              })
-          )
+          // 处理路由别名生成唯一 /sys/menu => SysMenu
+          if (this.temp.type !== 2) { // 不是 功能按钮时，不用设置别名
+            this.temp.name = this.stringToCamel(this.temp.path)
+          }
           // console.log('createData valid done...', this.temp)
 
           // 调用api创建数据入库
