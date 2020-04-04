@@ -9,7 +9,6 @@
         style="width: 200px;"
         class="filter-item"
       />
-      <!-- <el-button v-waves class="filter-item" type="primary" :size="btnsize" icon="el-icon-search" v-perm="['/sys/menu/view']" @click="handleFilter">查询</el-button> -->
       <el-button
         v-perm="['/sys/menu/menus/post']"
         class="filter-item"
@@ -34,7 +33,7 @@
     >
       <!-- <el-table-column label="菜单ID" prop="id" /> -->
       <el-table-column label="路由别名" prop="name" />
-      <el-table-column label="菜单路由" prop="path">
+      <el-table-column label="路由" prop="path">
         <template slot-scope="scope">
           <span v-if="scope.row.type!==2">{{ scope.row.path }}</span>
           <span
@@ -72,9 +71,7 @@
 
       <el-table-column prop="type" label="类型" align="center">
         <template slot-scope="scope">
-          <el-tag v-if="scope.row.type===0" size="small">目录</el-tag>
-          <el-tag v-else-if="scope.row.type===1" size="small" type="success">菜单</el-tag>
-          <el-tag v-else-if="scope.row.type===2" size="small" type="info">功能</el-tag>
+          <el-tag :type="!scope.row.type?'':scope.row.type===1?'success':'warning'" size="small">{{ menuTypeList[scope.row.type] }}</el-tag>
         </template>
       </el-table-column>
 
@@ -128,11 +125,11 @@
             placeholder="请选择上级菜单..."
           />
         </el-form-item>
-        <el-form-item label="路由" prop="path">
+        <el-form-item :label="temp.type!==2?'路由':'操作'" prop="path">
           <el-tooltip placement="right">
             <div slot="content">
               目录/菜单：/sys, /sys/role
-              <br>功能：/sys/user/users/post,
+              <br>操作：/sys/user/users/post,
               <br>以小写 get,post,put,delete 结尾
             </div>
             <el-input
@@ -255,7 +252,7 @@ export default {
         update: '编辑',
         create: '新增'
       },
-      menuTypeList: ['目录', '菜单', '功能'],
+      menuTypeList: ['目录', '菜单', '操作'],
       temp: {
         id: undefined,
         path: '',
@@ -510,7 +507,7 @@ export default {
         if (valid) {
           // 处理路由别名生成唯一 /sys/menu => SysMenu
           if (this.temp.type !== 2) {
-            // 不是 功能按钮时，不用设置别名
+            // 不是 功能操作按钮时，不用设置别名
             this.temp.name = this.stringToCamel(this.temp.path)
           }
           // console.log('createData valid done...', this.temp)

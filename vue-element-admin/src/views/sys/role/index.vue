@@ -696,10 +696,10 @@ export default {
           </span>
           <span style='text-algin:center;margin-right:200px;'>
             <el-tag
-              type={data.type === 0 ? '' : data.type === 1 ? 'success' : 'info'}
+              type={data.type === 0 ? '' : data.type === 1 ? 'success' : 'warning'}
               size='small'
             >
-              {data.type === 0 ? '目录' : data.type === 2 ? '功能' : '菜单'}
+              {data.type === 0 ? '目录' : data.type === 1 ? '菜单' : '操作'}
             </el-tag>
           </span>
           <span style='text-algin:center;margin-right:80px;'>
