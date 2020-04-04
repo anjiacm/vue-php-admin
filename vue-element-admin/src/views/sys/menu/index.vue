@@ -32,7 +32,7 @@
       border
       @trigger="onTrigger"
     >
-      <el-table-column label="菜单ID" prop="id" />
+      <!-- <el-table-column label="菜单ID" prop="id" /> -->
       <el-table-column label="路由别名" prop="name" />
       <el-table-column label="菜单路由" prop="path">
         <template slot-scope="scope">
@@ -129,13 +129,21 @@
           />
         </el-form-item>
         <el-form-item label="路由" prop="path">
-          <el-input
-            v-model.trim="temp.path"
-            :placeholder="menuTypeList[temp.type] + ', 如 /sys, /sys/menu/menus/post'"
-          />
+          <el-tooltip placement="right">
+            <div slot="content">
+              目录/菜单：/sys, /sys/role
+              <br>功能：/sys/user/users/post,
+              <br>以小写 get,post,put,delete 结尾
+            </div>
+            <el-input
+              v-model.trim="temp.path"
+              :placeholder="menuTypeList[temp.type] + ', 如 /sys, /sys/menu/menus/get'"
+            />
+          </el-tooltip>
         </el-form-item>
-        <el-form-item v-if="dialogStatus !=='create'" label="路由别名" prop="name">
-          <el-input v-model.trim="temp.name" placeholder="@view component name 必须与该路由别名一致" />
+
+        <el-form-item v-if="dialogStatus !=='create' && temp.type !==2" label="路由别名" prop="name">
+          <el-input v-model.trim="temp.name" placeholder="@view component name 必须与该别名一致" />
         </el-form-item>
         <el-form-item v-if="temp.type===1" label="组件" prop="component">
           <el-input v-model.trim="temp.component" placeholder="对应 @/views 目录, 例 sys/menu/index" />
@@ -501,7 +509,8 @@ export default {
       this.$refs['dataForm'].validate(valid => {
         if (valid) {
           // 处理路由别名生成唯一 /sys/menu => SysMenu
-          if (this.temp.type !== 2) { // 不是 功能按钮时，不用设置别名
+          if (this.temp.type !== 2) {
+            // 不是 功能按钮时，不用设置别名
             this.temp.name = this.stringToCamel(this.temp.path)
           }
           // console.log('createData valid done...', this.temp)
