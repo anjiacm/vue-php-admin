@@ -8,17 +8,17 @@ Date: 2020/4/3 22:02:31
 SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
---  Table structure for `article`
+-- Table structure for article
 -- ----------------------------
 DROP TABLE IF EXISTS `article`;
 CREATE TABLE `article` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '文章id',
+  `title` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `author` varchar(32) NOT NULL,
-  `title` varchar(32) NOT NULL,
-  `content` varchar(512) NOT NULL,
-  `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `pageviews` varchar(512) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `display_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 --  Table structure for `keys`
@@ -252,6 +252,8 @@ DELIMITER ;
 -- ----------------------------
 --  Records 
 -- ----------------------------
+INSERT INTO `article` VALUES ('1', 'hello', 'po', '288', '2020-04-04 23:14:09');
+INSERT INTO `article` VALUES ('2', 'wordl', 'qq', '8000', '2020-04-04 23:14:25');
 INSERT INTO `keys` VALUES ('1','0','oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks','10','1','0',NULL,'1551173554'), ('2','0','00kgsog84kooc44kgwkwccow48kggc48s4gcwwcg','0','1','0',NULL,'1551173554');
 INSERT INTO `sys_dept` VALUES ('1','0','长城','','99','1'), ('2','0','黄河','','99','1'), ('3','1','敦煌','','99','1'), ('4','1','玉门关','','99','1');
 INSERT INTO `sys_menu` VALUES ('1','0','Sys','/sys','Layout','0','系统管理','sysset2','/sys/menu','0','1','','99',NULL,NULL), ('2','1','SysMenu','/sys/menu','sys/menu/index','1','菜单管理','menu1','','0','1','','80',NULL,NULL), ('3','1','SysRole','/sys/role','sys/role/index','1','角色管理','role','','0','1','','99',NULL,NULL), ('4','1','SysUser','/sys/user','sys/user/index','1','用户管理','user','','0','1','','99',NULL,NULL), ('5','0','Sysx','/sysx','Layout','0','测试菜单','github','/sysx/xiangjun','0','1','','100',NULL,NULL), ('6','2','','/sys/menu/menus/post','','2','添加','','','0','1','','90',NULL,NULL), ('7','2','','/sys/menu/menus/put','','2','编辑','','','0','1','','95',NULL,NULL), ('8','2','','/sys/menu/menus/delete','','2','删除','','','0','1','','99',NULL,NULL), ('9','2','','/sys/menu/menus/get','','2','查看','','','0','1','','80',NULL,NULL), ('10','5','SysxXiangjun','/sysx/xiangjun','xiangjun/index','1','vue课堂测试','form','','0','1','','95',NULL,NULL), ('11','5','SysxUploadimg','/sysx/uploadimg','uploadimg/index','1','上传证件照','yidong','','0','1','','100',NULL,NULL), ('12','1','SysIcon','/sys/icon','svg-icons/index','1','图标管理','icon','','0','1','','100',NULL,NULL), ('13','3','','/sys/role/roles/get','','2','查看','','','0','1','','90',NULL,NULL), ('14','3','','/sys/role/roles/post','','2','添加','','','0','1','','91',NULL,NULL), ('15','3','','/sys/role/roles/put','','2','编辑','','','0','1','','92',NULL,NULL), ('16','3','','/sys/role/roles/delete','','2','删除','','','0','1','','101',NULL,NULL), ('17','4','','/sys/user/users/get','','2','查看','','','0','1','','96',NULL,NULL), ('18','4','','/sys/user/users/post','','2','添加','','','0','1','','97',NULL,NULL), ('19','4','','/sys/user/users/put','','2','编辑','','','0','1','','99',NULL,NULL), ('20','4','','/sys/user/users/delete','','2','删除','','','0','1','','100',NULL,NULL), ('21','3','','/sys/role/saveroleperm/post','','2','角色授权','','','0','1','','120',NULL,NULL), ('23','1','SysDept','/sys/dept','sys/dept/index','1','部门管理','dept','','0','1','','85',NULL,NULL), ('24','23','','/sys/dept/depts/get','','2','查看','','','0','1','','99',NULL,NULL), ('25','23','','/sys/dept/depts/post','','2','添加','','','0','1','','100',NULL,NULL), ('26','23','','/sys/dept/depts/put','','2','编辑','','','0','1','','102',NULL,NULL), ('27','23','','/sys/dept/depts/delete','','2','删除','','','0','1','','104',NULL,NULL);
