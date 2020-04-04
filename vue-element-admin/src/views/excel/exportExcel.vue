@@ -36,7 +36,7 @@
       <el-table-column align="center" label="Date" width="220">
         <template slot-scope="scope">
           <i class="el-icon-time"/>
-          <span>{{ scope.row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
+          <span>{{ scope.row.display_time | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
     </el-table>
@@ -79,7 +79,9 @@ export default {
     handleDownload() {
       this.downloadLoading = true
       import('@/vendor/Export2Excel').then(excel => {
+        // tHeader 导出时的标题栏
         const tHeader = ['Id', 'Title', 'Author', 'Readings', 'Date']
+        // filterVal 要过滤出的 json key与 tHeader 保持对应
         const filterVal = ['id', 'title', 'author', 'pageviews', 'display_time']
         const list = this.list
         const data = this.formatJson(filterVal, list)

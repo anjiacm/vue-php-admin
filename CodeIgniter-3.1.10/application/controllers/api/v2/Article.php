@@ -188,7 +188,7 @@ class Article extends RestController
             $where
         );
 
-        var_dump($this->Medoodb->log());
+        // var_dump($this->Medoodb->log());
         // var_dump($this->Medoodb->error());
 
         // 捕获错误信息

@@ -282,7 +282,8 @@ export const constantRouterMap = [
 
       {
         path: '/excel',
-        component: () => import('@/views/excel/exportExcel'),
+        // 作为二级嵌套路由指定上 具体组件， Layout与父组件冲突
+        component: () => import('@/views/excel/index'),
         redirect: '/excel/export-excel',
         name: 'Excel',
         meta: {

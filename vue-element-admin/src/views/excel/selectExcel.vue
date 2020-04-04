@@ -73,6 +73,7 @@ export default {
     },
     handleSelectionChange(val) {
       this.multipleSelection = val
+      console.log(this.multipleSelection)
     },
     handleDownload() {
       if (this.multipleSelection.length) {
@@ -81,6 +82,7 @@ export default {
           const tHeader = ['Id', 'Title', 'Author', 'Readings', 'Date']
           const filterVal = ['id', 'title', 'author', 'pageviews', 'display_time']
           const list = this.multipleSelection
+          console.log(list)
           const data = this.formatJson(filterVal, list)
           excel.export_json_to_excel({
             header: tHeader,
