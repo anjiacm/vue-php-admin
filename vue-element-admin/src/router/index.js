@@ -304,6 +304,12 @@ export const constantRouterMap = [
             meta: { title: 'selectExcel' }
           },
           {
+            path: 'merge-header',
+            component: () => import('@/views/excel/MergeHeader'),
+            name: 'MergeHeader',
+            meta: { title: 'MergeHeader' }
+          },
+          {
             path: 'upload-excel',
             component: () => import('@/views/excel/uploadExcel'),
             name: 'UploadExcel',
