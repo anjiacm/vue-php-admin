@@ -130,7 +130,12 @@ export const constantRouterMap = [
   //     }
   //   ]
   // },
-
+  // pdf下载路由菜单放在一级路由下，防止打印出侧边栏及面包屑栏
+  {
+    path: '/pdf/download',
+    component: () => import('@/views/pdf/download'),
+    hidden: true
+  },
   {
     path: '/examplex',
     name: 'ExampleX',
@@ -346,12 +351,6 @@ export const constantRouterMap = [
           }
         ]
       },
-      {
-        path: '/pdf/download',
-        component: () => import('@/views/pdf/download'),
-        hidden: true
-      },
-
       {
         path: '/theme',
         component: () => import('@/views/theme/index'),
