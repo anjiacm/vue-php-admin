@@ -562,7 +562,9 @@ $config['jwt_white_list'] = [
     '/article/articles/post',
     '/article/articles/put',
     '/article/articles/delete',
+    '/article/upload/post',
     '/uploadimg/goods/get',
+    '/uploadimg/upload/post',
     '/sys/user/testapi/get', // 测试api接口不认证 http://cirest.com:8890/api/v2/sys/user/testapi         uri_string => api/v2/sys/user/testapi
 ];
 

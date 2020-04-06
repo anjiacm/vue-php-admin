@@ -369,4 +369,64 @@ class Article extends RestController
             $this->response($message, RestController::HTTP_OK);
         }
     }
+
+    // excel 上传入库测试
+    public function upload_post()
+    {
+        // set excel 上传目录
+        $uploadDir = FCPATH . 'uploads/excel/';
+        $storage = new \Upload\Storage\FileSystem($uploadDir);
+
+        $file = new \Upload\File('file', $storage); // 其中 file 前端传递的 file 参数,表单 name = 'file'
+        
+        // Optionally you can rename the file on upload
+        $new_filename = uniqid();
+        $file->setName($new_filename); // => name => 5e8b3bfe95302
+        // Validate file upload
+        // MimeType List => http://www.iana.org/assignments/media-types/media-types.xhtml
+        $file->addValidations([
+            //You can also add multi mimetype validation
+            new \Upload\Validation\Mimetype([
+                'application/vnd.ms-excel', //.xls
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' //.xlsx
+            ]),
+            // Ensure file is no larger than 5M (use "B", "K", M", or "G")
+            new \Upload\Validation\Size('5M')
+
+        ]);
+
+        // Access data about the file that has been uploaded
+        $data = array(
+            'name'       => $file->getNameWithExtension(),
+            'extension'  => $file->getExtension(),
+            'mime'       => $file->getMimetype(),
+            'size'       => $file->getSize(),
+            'md5'        => $file->getMd5(),
+            'dimensions' => $file->getDimensions()
+        );
+
+        // var_dump($data);
+
+        // Try to upload file
+        try {
+            // Success!
+            $file->upload();
+
+            $message = [
+                "code" => 20000,
+                "url" => base_url('uploads/excel/') . $data['name'],
+                "data" => $data
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        } catch (\Exception $e) {
+            // Fail!
+            $errors = $file->getErrors();
+            $errMsg = implode(',', $errors); // $errors是数组
+            $message = [
+                "code" => 50015,
+                "message" => $errMsg
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+    }
 } // class Article end
