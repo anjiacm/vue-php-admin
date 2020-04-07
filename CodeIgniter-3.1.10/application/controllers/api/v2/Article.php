@@ -378,7 +378,7 @@ class Article extends RestController
         $storage = new \Upload\Storage\FileSystem($uploadDir);
 
         $file = new \Upload\File('file', $storage); // 其中 file 前端传递的 file 参数,表单 name = 'file'
-        
+
         // Optionally you can rename the file on upload
         $new_filename = uniqid();
         $file->setName($new_filename); // => name => 5e8b3bfe95302
@@ -412,10 +412,43 @@ class Article extends RestController
             // Success!
             $file->upload();
 
+            // phpoffice/phpspreadsheet read excel
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
+            $reader->setReadDataOnly(TRUE);
+            $spreadsheet = $reader->load($uploadDir . $data['name']); //载入excel表格
+
+            $worksheet = $spreadsheet->getActiveSheet();
+            $highestRow = $worksheet->getHighestRow(); // 总行数 索引以 1 开头
+            // $highestColumn = $worksheet->getHighestColumn(); // 总列数
+
+            $lines = $highestRow - 2;
+            if ($lines <= 0) {
+                exit('Excel表格中没有数据');
+            }
+
+            $sql = "INSERT INTO `article` (`title`, `author`, `pageviews`, `display_time`) VALUES ";
+            // 循环读取指定 2 3 4 5 列 数据
+            for ($row = 3; $row <= $highestRow; ++$row) {
+                $title = $worksheet->getCellByColumnAndRow(2, $row)->getValue(); //title
+                $author = $worksheet->getCellByColumnAndRow(3, $row)->getValue(); //author
+                $pageviews = $worksheet->getCellByColumnAndRow(4, $row)->getValue(); //pageviews
+                $display_time = $worksheet->getCellByColumnAndRow(5, $row)->getValue(); //display_time
+
+                $sql .= "('$title','$author','$pageviews','$display_time'),";
+            }
+            $sql = rtrim($sql, ","); //去掉最后一个,号
+            // phpoffice/phpspreadsheet read excel end
+
+            // 入库
+            $this->Medoodb->query($sql); // 执行sql语句
+            $err = $this->Medoodb->error(); // 捕获错误信息
+
             $message = [
                 "code" => 20000,
+                "message" => '上传入库成功',
                 "url" => base_url('uploads/excel/') . $data['name'],
-                "data" => $data
+                "data" => $data,
+                "sqlInfo" => ['sql' => $this->Medoodb->log(), 'errInfo' => $err]
             ];
             $this->response($message, RestController::HTTP_OK);
         } catch (\Exception $e) {
