@@ -378,7 +378,6 @@ export const constantRouterMap = [
           }
         ]
       },
-
       {
         path: '/i18n',
         component: () => import('@/views/i18n-demo/index'),
@@ -388,6 +387,18 @@ export const constantRouterMap = [
             component: () => import('@/views/i18n-demo/index'),
             name: 'I18n',
             meta: { title: 'i18n', icon: 'international' }
+          }
+        ]
+      },
+      {
+        path: '/iframe',
+        component: () => import('@/views/iframe/index'),
+        children: [
+          {
+            path: 'index',
+            component: () => import('@/views/iframe/index'),
+            name: 'Iframe',
+            meta: { title: 'Iframe嵌入页面', icon: 'link' }
           }
         ]
       },
