@@ -388,7 +388,8 @@ class Article extends RestController
             //You can also add multi mimetype validation
             new \Upload\Validation\Mimetype([
                 'application/vnd.ms-excel', //.xls
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' //.xlsx
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', //.xlsx
+                'application/zip' // 前端xlsx导出的 xlsx mime type是 zip类型 https://github.com/SheetJS/sheetjs/issues/1402
             ]),
             // Ensure file is no larger than 5M (use "B", "K", M", or "G")
             new \Upload\Validation\Size('5M')
