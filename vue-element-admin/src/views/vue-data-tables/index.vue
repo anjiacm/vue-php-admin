@@ -1,5 +1,9 @@
 <template>
   <div class="app-container">
+    <el-divider content-position="left">关闭当前TAB页面测试</el-divider>
+    <el-button type="primary" @click="closeCurrentTab">关闭</el-button>
+
+    <el-divider content-position="left">el-link test</el-divider>
     <el-link href="https://element.eleme.io" target="_blank">默认链接</el-link>
     <el-link type="primary" href="https://element.eleme.io">主要链接</el-link>
     <el-link type="success">成功链接</el-link>
@@ -7,29 +11,49 @@
     <el-link type="danger">危险链接</el-link>
     <el-link type="info">信息链接</el-link>
 
+    <el-divider content-position="left">el-scrollbar test</el-divider>
     <el-scrollbar>
       <ul style="height: 200px;">
-        <li v-for="item in 100" :key="item"> {{ item }}</li>
+        <li v-for="item in 100" :key="item">{{ item }}</li>
       </ul>
     </el-scrollbar>
 
-    <h2>websocket test</h2>
-    <el-input ref="websockTxt" v-model="websockTxt" placeholder="请输入文本消息" style="width: 200px;" class="filter-item" @keyup.enter.native="sendMessage" />
+    <el-divider content-position="left">websocket test</el-divider>
+    <el-input
+      ref="websockTxt"
+      v-model="websockTxt"
+      placeholder="请输入文本消息"
+      style="width: 200px;"
+      class="filter-item"
+      @keyup.enter.native="sendMessage"
+    />
     <el-button class="filter-item" style="margin-left: 10px;" type="primary" @click="sendMessage">发送</el-button>
     <li v-for="v in websockMsgList" :key="v.nickname">
       <el-tag type="success">{{ v.nickname }}</el-tag>
       <el-tag type="info">{{ v.message }}</el-tag>
     </li>
-    <hr>
 
-    <el-link href="https://www.jianshu.com/p/33c6787de842" icon="el-icon-s-opportunity" type="primary" target="_blank">Vue--使用vue-qr生成二维码、canvas合成二维码+下方文字标题、jsZip批量压缩图片、FileSaver下载压缩图片</el-link>
+    <el-divider content-position="left">vue-qr生成二维码 test</el-divider>
+    <el-link
+      href="https://www.jianshu.com/p/33c6787de842"
+      icon="el-icon-s-opportunity"
+      type="primary"
+      target="_blank"
+    >Vue--使用vue-qr生成二维码、canvas合成二维码+下方文字标题、jsZip批量压缩图片、FileSaver下载压缩图片</el-link>
     <div id="1">
-      <vue-qr :correct-level="3" :size="200" :margin="5" :dot-scale="1" text="http://www.sina.com.cn" style="margin: 0px" />
+      <vue-qr
+        :correct-level="3"
+        :size="200"
+        :margin="5"
+        :dot-scale="1"
+        text="http://www.sina.com.cn"
+        style="margin: 0px"
+      />
     </div>
     <canvas id="box" style="display: none;background: #FFFFFF;" width="250px" height="280px" />
     <Button @click="paintCanvas(1,'single')">合并图片说明并下载</Button>
 
-    <hr>
+    <el-divider content-position="left">data-tables test</el-divider>
     <div style="margin-left: 10px;margin-top: 10px;margin-bottom: 10px">
       <el-row>
         <el-col :span="18">
@@ -44,7 +68,14 @@
       </el-row>
     </div>
 
-    <data-tables :search-def="searchDef" :data="data" :action-col="actionCol" :filters="filters" layout="pagination, tool, table" @selection-change="handleSelectionChange">
+    <data-tables
+      :search-def="searchDef"
+      :data="data"
+      :action-col="actionCol"
+      :filters="filters"
+      layout="pagination, tool, table"
+      @selection-change="handleSelectionChange"
+    >
       <el-row slot="tool" style="margin: 10px 0">
         <el-col :span="5" :offset="4">
           <el-input v-model="filters[0].value" />
@@ -52,12 +83,26 @@
       </el-row>
 
       <el-table-column type="selection" width="55" />
-      <el-table-column v-for="title in titles" :prop="title.prop" :label="title.label" :key="title.prop" sortable="custom" />
+      <el-table-column
+        v-for="title in titles"
+        :prop="title.prop"
+        :label="title.label"
+        :key="title.prop"
+        sortable="custom"
+      />
     </data-tables>
+
+    <el-divider content-position="left">data-tables toggleSelection test</el-divider>
 
     <data-tables ref="multipleTable" :data="tableData" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />
-      <el-table-column v-for="title in rtitles" :prop="title.prop" :label="title.label" :key="title.prop" sortable="custom" />
+      <el-table-column
+        v-for="title in rtitles"
+        :prop="title.prop"
+        :label="title.label"
+        :key="title.prop"
+        sortable="custom"
+      />
     </data-tables>
     <div style="margin-top: 20px">
       <el-button @click="toggleSelection(tableData)">全选</el-button>
@@ -65,57 +110,45 @@
 
       <el-button @click="toggleSelection()">取消选择</el-button>
     </div>
-    <el-alert>
-      vue-data-tables - 基于element-ui的Vue2.0数据表 本库导出了2个组件 data-tables 和 data-tables-server. 在一些业务场景中，数据量并不大（比如500条数据）， 可以把所有数据加载到前台，甚至于直接写在前台代码里， 此时数据分页和过滤均发生在前台，data-tables 适用于这种场景。
-    </el-alert>
-    <el-alert>
-      在另外的业务场景中，数据量很大，不可能一次性的返回给前台，此时数据分页和过滤均发生在后台， data-tables-server 则适用于这种场景。
-    </el-alert>
-    <el-alert>
-      正如前文中提到的，本库依赖于 element-ui 的 el-table, el-table-column, el-button 和 el-pagination 组件 ， 所以在引入 vue-data-tables 之前, 我们需要先完整的引入 element-ui 或者按需引入 el-table, el-table-column, el-button 和 el-pagination 这4个组件。
-    </el-alert>
-    <el-alert>
-      # npm install vue-data-tables main.js 里 _在引入 element-ui 后面 引入_ // 同时使用 DataTables 和 DataTablesServer import VueDataTables from 'vue-data-tables' Vue.use(VueDataTables)
-    </el-alert>
-    <el-tag>
-      引用方法时 使用双层$refs 来引用el-table的方法： this.$refs.multipleTable.$refs.elTable.toggleRowSelection(row);
-    </el-tag>
+    <el-alert>vue-data-tables - 基于element-ui的Vue2.0数据表 本库导出了2个组件 data-tables 和 data-tables-server. 在一些业务场景中，数据量并不大（比如500条数据）， 可以把所有数据加载到前台，甚至于直接写在前台代码里， 此时数据分页和过滤均发生在前台，data-tables 适用于这种场景。</el-alert>
+    <el-alert>在另外的业务场景中，数据量很大，不可能一次性的返回给前台，此时数据分页和过滤均发生在后台， data-tables-server 则适用于这种场景。</el-alert>
+    <el-alert>正如前文中提到的，本库依赖于 element-ui 的 el-table, el-table-column, el-button 和 el-pagination 组件 ， 所以在引入 vue-data-tables 之前, 我们需要先完整的引入 element-ui 或者按需引入 el-table, el-table-column, el-button 和 el-pagination 这4个组件。</el-alert>
+    <el-alert># npm install vue-data-tables main.js 里 _在引入 element-ui 后面 引入_ // 同时使用 DataTables 和 DataTablesServer import VueDataTables from 'vue-data-tables' Vue.use(VueDataTables)</el-alert>
+    <el-tag>引用方法时 使用双层$refs 来引用el-table的方法： this.$refs.multipleTable.$refs.elTable.toggleRowSelection(row);</el-tag>
 
-    <password-validator/>
+    <el-divider content-position="left">PasswordValidator test</el-divider>
+    <password-validator />
 
-    <div>
-      <el-form ref="loginForm" auto-complete="on" label-position="left" label-width="90px" style="width: 400px; margin-left:50px;">
-        <el-form-item label="username" prop="username">
+    <el-divider content-position="left">密码框加显示隐藏图标 test</el-divider>
+    <el-form
+      ref="loginForm"
+      auto-complete="on"
+      label-position="left"
+      label-width="90px"
+      style="width: 400px; margin-left:50px;"
+    >
+      <el-form-item label="username" prop="username">
+        <el-input v-model="user.email" name="email" type="text" auto-complete="on" />
+      </el-form-item>
 
-          <el-input v-model="user.email" name="email" type="text" auto-complete="on" />
-        </el-form-item>
-
-        <el-form-item label="password" prop="password">
-
-          <el-input v-model="user.password" :type="passwordType" name="password" auto-complete="on">
-            <i slot="suffix" class="el-input__icon el-icon-eye" @click="showPwd">
-              <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-            </i>
-          </el-input>
-          <!-- <span class="show-pwd" @click="showPwd">
+      <el-form-item label="password" prop="password">
+        <el-input v-model="user.password" :type="passwordType" name="password" auto-complete="on">
+          <i slot="suffix" class="el-input__icon el-icon-eye" @click="showPwd">
             <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-          </span> -->
-        </el-form-item>
-      </el-form>
-    </div>
-
+          </i>
+        </el-input>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
 <script>
 import PasswordValidator from 'vue-password-validator'
-import VuePassword from 'vue-password'
 import VueQr from 'vue-qr' // 引入VueQr
 
 export default {
   components: {
     PasswordValidator,
-    VuePassword,
     VueQr
   },
   data() {
@@ -162,63 +195,76 @@ export default {
           label: 'address'
         }
       ],
-      filters: [{
-        prop: 'flow_no',
-        value: ''
-      }],
+      filters: [
+        {
+          prop: 'flow_no',
+          value: ''
+        }
+      ],
       actionCol: {
         props: {
           label: '操作'
         },
-        buttons: [{
-          props: {
-            type: 'primary'
+        buttons: [
+          {
+            props: {
+              type: 'primary'
+            },
+            handler: row => {
+              this.$message('Edit clicked')
+              row.flow_no = 'hello word' + Math.random()
+              row.content = Math.random() > 0.5 ? 'Water flood' : 'Lock broken'
+              row.flow_type = Math.random() > 0.5 ? 'Repair' : 'Help'
+            },
+            label: '编辑'
           },
-          handler: row => {
-            this.$message('Edit clicked')
-            row.flow_no = 'hello word' + Math.random()
-            row.content = Math.random() > 0.5 ? 'Water flood' : 'Lock broken'
-            row.flow_type = Math.random() > 0.5 ? 'Repair' : 'Help'
-          },
-          label: '编辑'
-        }, {
-          handler: row => {
-            this.data.splice(this.data.indexOf(row), 1)
-            this.$message('delete success')
-          },
-          label: '删除'
-        }]
+          {
+            handler: row => {
+              this.data.splice(this.data.indexOf(row), 1)
+              this.$message('delete success')
+            },
+            label: '删除'
+          }
+        ]
       },
       selectedRow: [],
-      tableData: [{
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-08',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-06',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-07',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }],
+      tableData: [
+        {
+          date: '2016-05-03',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          date: '2016-05-02',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          date: '2016-05-04',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          date: '2016-05-01',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          date: '2016-05-08',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          date: '2016-05-06',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          date: '2016-05-07',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        }
+      ],
       multipleSelection: []
     }
   },
@@ -230,7 +276,15 @@ export default {
     this.websocketclose()
   },
   methods: {
-    initWebSocket() { // 初始化weosocket
+    closeCurrentTab() {
+      this.$store.dispatch('delCurrentView', {
+        view: this.$route,
+        $router: this.$router
+      })
+    },
+
+    initWebSocket() {
+      // 初始化weosocket
       const wsuri = 'ws://127.0.0.1:8181' // 这个地址由后端童鞋提供
       this.websock = new WebSocket(wsuri)
       this.websock.onopen = this.websocketonopen
@@ -242,17 +296,22 @@ export default {
       console.log('Connection to server opened')
       // todo: this.websock.send(this.websockTxt) // 可以做一些消息发送
     },
-    websocketonerror() { // 连接建立失败重连
+    websocketonerror() {
+      // 连接建立失败重连
       this.initWebSocket()
     },
     websocketonmessage(e) {
       var data = JSON.parse(e.data)
       console.log('接收服务器消息', data)
       console.log('ID: [%s] = %s', data.id, data.message)
-      this.websockMsgList.push({ 'nickname': data.nickname, 'message': data.message })
+      this.websockMsgList.push({
+        nickname: data.nickname,
+        message: data.message
+      })
       console.log(this.websockMsgList)
     },
-    websocketclose(e) { // 关闭
+    websocketclose(e) {
+      // 关闭
       this.websock.close()
     },
     // 发送消息
@@ -265,11 +324,12 @@ export default {
         }
       }
     },
-    paintCanvas(id, type) { // id表示对应的二维码标签的id   type表示画布的类型
+    paintCanvas(id, type) {
+      // id表示对应的二维码标签的id   type表示画布的类型
       const c = document.getElementById('box') // 获取canvas画布 画布大小和canvas大小一致
       const picName = '测试图片' + id
       const ctx = c.getContext('2d')
-      c.height = c.height// 清空画布，重新绘制
+      c.height = c.height // 清空画布，重新绘制
       let div = null // 设置div变量
       console.log(id, type)
       // 判断类型：single 单张  batch  批量

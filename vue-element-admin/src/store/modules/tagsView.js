@@ -99,6 +99,21 @@ const tagsView = {
         resolve([...state.visitedViews])
       })
     },
+    // tab 页面内关闭当前tab 调用方法参数
+    // this.$store.dispatch('delCurrentView', {
+    //   view: this.$route,
+    //   $router: this.$router
+    // })
+    delCurrentView({ commit, state }, params) {
+      commit('DEL_VISITED_VIEW', params.view)
+      const latestView = [...state.visitedViews].slice(-1)[0]
+      // console.log('latestView......', latestView)
+      if (latestView) {
+        params.$router.push(latestView)
+      } else {
+        params.$router.push('/')
+      }
+    },
     delCachedView({ commit, state }, view) {
       return new Promise(resolve => {
         commit('DEL_CACHED_VIEW', view)
