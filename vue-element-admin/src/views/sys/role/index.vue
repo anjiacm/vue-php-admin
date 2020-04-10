@@ -176,7 +176,7 @@
                   </el-select>
                 </el-form-item>
               </el-col>
-              <el-col v-if="dataPermScope == 4" :span="12">
+              <el-col v-show="dataPermScope == 4" :span="12">
                 <el-form-item label="部门数据" prop="dept">
                   <el-tree
                     v-loading="deptLoading"
@@ -193,7 +193,7 @@
                   <!-- @check-change="handleDeptCheckChange" -->
                 </el-form-item>
               </el-col>
-              <el-col v-if="dataPermScope == 4" :span="16">
+              <el-col v-show="dataPermScope == 4" :span="16">
                 <el-form-item label="勾选级联树" prop="jilian">
                   <el-checkbox v-model="checkJianlian" :disabled="selectRole.id == null" />
                 </el-form-item>
@@ -601,7 +601,7 @@ export default {
       // 重置当前部门数据类权限
       console.log(this.selectRole, this.currentRoleDepts)
       this.dataPermScope = this.selectRole.scope
-      // TODO: 从全部到自定义重置时会出错，没有及时找到deptTree,需要单击两次，可以在 watch() 监听变量 dataPermScope== 4 时再调用下面语句
+      // DONE: 从全部到自定义重置时会出错，没有找到$refs.deptTree, 使用v-show 代替v-if替换组件显示解决
       if (this.dataPermScope === '4') {
         this.$refs.deptTree.setCheckedNodes(this.currentRoleDepts)
       }
