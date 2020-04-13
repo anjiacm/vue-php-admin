@@ -21,12 +21,21 @@ class User extends RestController
         $this->Medoodb = new Medoo(config_item('medoodb'));
     }
 
+    // 重写（覆盖）RestController 中的方法 early_checks()
+    // 参数带有表单密码明文时 {username:'xxx', password:'xxx'} 时， 密码进行加密处理，防止数据库明文保存密码信息
+    protected function early_checks()
+    {
+        parent::early_checks(); // 调用父类中被本方法覆盖掉的方法
+
+        $this->_args['password'] = md5($this->_args['password']); // 明文密码加密处理, 在原有的功能基础上多加一点功能
+    }
+  
     public function index_get()
     {
         $this->load->view('login_view');
     }
 
-    //签发Token
+    // 签发Token
     public function issue_get()
     {
         var_dump(JWT::$leeway);
