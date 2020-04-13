@@ -27,9 +27,11 @@ class User extends RestController
     {
         parent::early_checks(); // 调用父类中被本方法覆盖掉的方法
 
-        $this->_args['password'] = md5($this->_args['password']); // 明文密码加密处理, 在原有的功能基础上多加一点功能
+        if (array_key_exists('password', $this->_args)) {
+            $this->_args['password'] = md5($this->_args['password']); // 明文密码加密处理, 在原有的功能基础上多加一点功能
+        }
     }
-  
+
     public function index_get()
     {
         $this->load->view('login_view');
