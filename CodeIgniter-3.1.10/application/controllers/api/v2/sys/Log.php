@@ -102,6 +102,7 @@ class Log extends RestController
         // 必要时可剔除 params 字段再返回前端
         foreach ($data as $k => $v) {
             $currentParms = (config_item('rest_logs_json_params') === true) ? json_decode($v['params'], true) : unserialize($v['params']);
+            $data[$k]['params'] = $currentParms;
             $data[$k]['ip'] = Arrays::get($currentParms, 'X-Real-IP', $v['ip_address']);
             $data[$k]['time'] = date('Y-m-d H:i:s', $v['time']);
             if (array_key_exists('X-Token', $currentParms)) {

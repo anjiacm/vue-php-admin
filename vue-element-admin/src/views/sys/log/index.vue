@@ -39,7 +39,19 @@
         :key="title.label"
         :sortable="title.sortable"
       />
+      <el-table-column label="请求参数" min-width="100px">
+        <template slot-scope="scope">
+          <el-button class="pan-btn green-btn" @click="handleDetail(scope.row)">更多</el-button>
+        </template>
+      </el-table-column>
     </data-tables-server>
+
+    <el-dialog :visible.sync="dialogFormVisible" title="详细">
+      <json-view :data="reqParams" :closed="false" :deep="1" />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -49,13 +61,17 @@ import perm from '@/directive/perm/index.js' // 权限判断指令
 import { getLogList } from '@/api/log'
 import _ from 'lodash'
 import timestamp from 'unix-timestamp'
+import jsonView from 'vue-json-views'
 
 export default {
   name: 'SysLog',
   // 所以在编写路由 router 和路由对应的 view component 的时候一定要确保 两者的 name 是完全一致的。
   directives: { waves, perm },
+  components: { jsonView },
   data() {
     return {
+      reqParams: {},
+      dialogFormVisible: false,
       searchDef: {
         show: true,
         debounce: 3000
@@ -216,6 +232,10 @@ export default {
         this.total = res.data.total
         this.listLoading = false
       })
+    },
+    handleDetail(row) {
+      this.dialogFormVisible = true
+      this.reqParams = row.params
     }
   }
 }

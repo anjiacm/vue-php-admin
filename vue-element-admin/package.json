@@ -63,6 +63,7 @@
     "vue-count-to": "1.0.13",
     "vue-data-tables": "^3.4.5",
     "vue-i18n": "7.3.2",
+    "vue-json-views": "^1.1.0",
     "vue-password-validator": "^0.1.8",
     "vue-qr": "^2.2.1",
     "vue-router": "3.0.2",
