@@ -3,17 +3,12 @@
 
 # vue-php-admin 项目说明
 
-通用后台角色权限管理系统, 基于 vue-element-admin 和 PHP CodeIgniter RESTful 实现，
-采用前后端分离架构的权限管理系统，PHP快速开发平台，目标是搭建一
-套简洁易用的快速解决方案，可以帮助用户有效降低项目开发难度和成本。
+通用后台角色权限管理系统, 基于 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin/) 和 [PHP CodeIgniter 3.1.10 RESTful](https://github.com/chriskacerguis/codeigniter-restserver) 实现，
+采用前后端分离架构的权限管理系统，PHP快速开发平台，目标是搭建一套简洁易用的快速解决方案，可以帮助用户有效降低项目开发难度和成本。
 
-以vue-element-admin@3.10.0 前端模板为基础， **修改动态路由部分，实现菜单路由可根据后端角色进行动态加载.** 
-后端路由权限基于 `php-jwt` 使用 `php CI hook` 做token及权限认证
+以vue-element-admin@3.10.0 前端模板为基础， **修改动态路由部分，实现菜单路由可根据后端角色进行动态加载.** 后端路由权限基于 `php-jwt` 使用 `php CI hook` 做token及权限认证
 
-
-将vue-element-admin前端原来样例模板除首页、文档外，其余样例模板
-归档集中在 **样例模板** 菜单下，见 @router/index.js constantRouterMap，
-其余组件如 tags-views等，全部未做变化，可根据需要具体需求进行删减。 
+将vue-element-admin前端原来样例模板除首页、文档外，其余样例模板归档集中在 `样例模板` 菜单下，见 @router/index.js constantRouterMap，其余组件如 tags-views等，全部未做变化，可根据需要具体需求进行删减。 
 
 动态切换角色实现见 [vue-php-admin-V3](https://github.com/emacle/vue-php-admin-V3.git)
 
@@ -29,17 +24,10 @@
 - [X] 9. **以 restful 风格重新构建代码 20200401 ,GET/POST/PUT/DELETE**
 - [ ] 10. 界面主题优化
 - [ ] 11. **完全弃用 CI 自带数据库操作，使用 catfan/medoo 进行数据库操作**
+- [X] 12. 系统日志： [PHP CodeIgniter 3.1.10 RESTful](https://github.com/chriskacerguis/codeigniter-restserver) 后端生成 `logs` 表
 
-## 开发环境
-- phpstudy_pro `php 7.3.4nts` + `Apache 2.4.39`
-- vue.js
-
-## 开发框架 
- - 后端 [PHP CI 3.1.10 RESTful](https://github.com/chriskacerguis/codeigniter-restserver)
- - 前端 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin/)
- 
-## RESTful 风格
- - restful风格增删改查完整示例 见 [Article.php 控制器](https://github.com/emacle/vue-php-admin/blob/master/CodeIgniter-3.1.10/application/controllers/api/v2/Article.php)
+## RESTful 规范
+ - restful规范增删改查完整示例 见 [Article.php 控制器](https://github.com/emacle/vue-php-admin/blob/master/CodeIgniter-3.1.10/application/controllers/api/v2/Article.php)
  - 引入了 catfan/medoo 包数据库操作，替换CI框架的部分model， TODO: 使用medoo 完全替换CI的数据库的操作
  - 使用 catfan/medoo 实现 **复杂分页过滤排序** 见 [article_get()](https://github.com/emacle/vue-php-admin/blob/master/CodeIgniter-3.1.10/application/controllers/api/v2/Article.php) 及 [users_get()](https://github.com/emacle/vue-php-admin/blob/master/CodeIgniter-3.1.10/application/controllers/api/v2/sys/User.php#L176) 与 [vue前端 GET 请求构造参数](https://github.com/emacle/vue-php-admin/blob/master/vue-element-admin/src/views/sys/user/index.vue#L321)
     
@@ -54,36 +42,6 @@
     fileds: 指定要获取的显示字段 => 降低网络流量
     query:  支持多个参数 &query=~author,title => author like 模糊查询， title精确查询 &author=888&title=world 需要配合query参数才有意义
     ```
-
-## 角色权限说明
-1. 这里将权限抽象成三种权限（可扩展更多），菜单类权限（包括控件按钮），角色类权限（用户可分配的角色），部门数据类权限（用户可查看的部门数据），参考 [角色权限组+资源分配](https://blog.csdn.net/qiuziqiqi/article/details/65437123)
-2. 前端添加菜单，角色，部门的时候，后端生成对应的权限，写入 `sys_perm` 表，系统的超级管理员角色自动拥有了所有权限（也可根据需要）
-3. 用户->角色->权限
-4. 数据权限： 实际开发中，需要设置用户只能查看哪些部门的数据，这种情况一般称为数据权限。数据权限需要在对应的业务类型表里加入部门数据字段来进行sql条件限制
-   在（系统管理-角色管理）设置需要数据权限的角色, 添加了角色授权范围 
-   全部数据权限/部门数据权限/部门及以下数据权限/仅本人数据权限/自定数据权限
-   业务代码逻辑可先根据授权范围，来处理来判断角色拥有的部门数据权限，全部数据权限则sql语句不做限制，
-   部门数据及以下数据权限，及本人数据需要对sql语句做限制，自定义数据权限，则sql语句加入自定义的部门限制条件即可
-
- ![角色权限](vue-element-admin/static/screenshot/role_perm.png)
-
-## 数据库表说明
-
-| Tables_in_vueadminv2 | 说明                                      |
-|---------------------:|----------------------------------------- |
-| keys                 | PHP CI RESTful apikey可config.php开启关闭  |
-| logs                 | PHP CI RESTful 日志表可config.php开启关闭   |
-| sys_dept             | 系统部门表                                 |
-| sys_menu             | 系统菜单表                                 |
-| sys_perm             | 系统权限表                                 |
-| sys_perm_type        | 权限类型（暂时未用到）                       |
-| sys_role             | 系统角色表                                 |
-| sys_role_perm        | 角色权限关系表                              |
-| sys_user             | 系统用户表                                 |
-| sys_user_dept        | 用户所属部门表（可一对多）                    |
-| sys_user_role        | 用户角色对应关系                            |
-| sys_user_token       | 使用JWT token此表无用                       |
-| upload_tbl           | 业务测试表                                  |
 
 ## 使用说明
 
@@ -155,7 +113,6 @@
     composer require nette/http
     composer require catfan/medoo
     ```
-
     
 5. 使用 phpstudy 配置站点域名管理, 同时修改hosts文件（可选）
 
@@ -181,15 +138,9 @@
         '/sys/user/testapi/get',
     ]
     ```
-    ~~request header 配置 X-API-KEY: oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks~~ 默认禁用API-KEY 可在CodeIgniter-3.1.10/config/rest.php中
-    ```php
-    cat CodeIgniter-3.1.10/config/rest.php
-    
-    $config['rest_enable_keys'] = TRUE
-    ```
+
     后端php 接口uri带有 index.php 若要去掉 修改根目录下 `CodeIgniter-3.1.10/.htaccess` 文件(Apache), 注意不是 `CodeIgniter-3.1.10/application/` 目录下
-    Nginx的话需要修改nginx对应的配置
-    
+
     `cat CodeIgniter-3.1.10/.htaccess`
     
     ```html
@@ -200,10 +151,42 @@
         RewriteRule ^(.*)$ /index.php?/$1 [QSA,PT,L]
       </IfModule>
     ```
+    Nginx的话需要修改nginx对应的配置
 
-## 编辑器
- - phpstrom
- - vscode
+## 角色权限说明
+1. 这里将权限抽象成三种权限（可扩展更多），菜单类权限（包括控件按钮），角色类权限（用户可分配的角色），部门数据类权限（用户可查看的部门数据），参考 [角色权限组+资源分配](https://blog.csdn.net/qiuziqiqi/article/details/65437123)
+2. 前端添加菜单，角色，部门的时候，后端生成对应的权限，写入 `sys_perm` 表，系统的超级管理员角色自动拥有了所有权限（也可根据具体业务需要进行设计）
+3. 用户->角色->权限
+4. 数据权限： 实际开发中，需要设置用户只能查看哪些部门的数据，这种情况一般称为数据权限。数据权限需要在对应的业务类型表里加入部门数据字段来进行sql条件限制
+   在（系统管理-角色管理）设置需要数据权限的角色, 添加了角色授权范围 
+   全部数据权限/部门数据权限/部门及以下数据权限/仅本人数据权限/自定数据权限
+   业务代码逻辑可先根据授权范围，来处理来判断角色拥有的部门数据权限，全部数据权限则sql语句不做限制，
+   部门数据及以下数据权限，及本人数据需要对sql语句做限制，自定义数据权限，则sql语句加入自定义的部门限制条件即可
+
+ ![角色权限](vue-element-admin/static/screenshot/role_perm.png)
+
+## 数据库表说明
+
+| Tables_in_vueadminv2 | 说明                                      |
+|---------------------:|----------------------------------------- |
+| keys                 | PHP CI RESTful apikey可config.php开启关闭  |
+| logs                 | PHP CI RESTful 日志表可config.php开启关闭   |
+| sys_dept             | 系统部门表                                 |
+| sys_menu             | 系统菜单表                                 |
+| sys_perm             | 系统权限表                                 |
+| sys_perm_type        | 权限类型（暂时未用到）                       |
+| sys_role             | 系统角色表                                 |
+| sys_role_perm        | 角色权限关系表                              |
+| sys_user             | 系统用户表                                 |
+| sys_user_dept        | 用户所属部门表（可一对多）                    |
+| sys_user_role        | 用户角色对应关系                            |
+| sys_user_token       | 使用JWT token此表无用                       |
+| upload_tbl           | 业务测试表                                  |
+
+## 开发环境/编辑器
+- phpstudy_pro `php 7.3.4nts` + `Apache 2.4.39`
+- vue.js
+- vscode
 
 ## jwt无缝刷新测试配置
 
@@ -213,7 +196,6 @@ CodeIgniter-3.1.10\application\config\config.php   // `access_token/refresh_toke
 $config['jwt_access_token_exp'] = 15; // 单位秒
 $config['jwt_refresh_token_exp'] = 180; // 单位秒
 ```
-
 
 ## jwt无缝刷新效果
  ![删除](vue-element-admin/static/screenshot/del_jwt.gif)
