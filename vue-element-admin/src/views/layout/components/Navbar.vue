@@ -1,19 +1,26 @@
 <template>
   <div class="navbar">
-    <hamburger :toggle-click="toggleSideBar" :is-active="sidebar.opened" class="hamburger-container" />
+    <hamburger
+      :toggle-click="toggleSideBar"
+      :is-active="sidebar.opened"
+      class="hamburger-container"
+    />
 
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
-
       <template v-if="device!=='mobile'">
         <!-- <el-select v-model="value" placeholder="请选择" @change="roleChange()">
           <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
-        </el-select> -->
+        </el-select>-->
         <search class="right-menu-item" />
 
         <error-log class="errLog-container right-menu-item hover-effect" />
+
+        <el-tooltip content="源码文档" effect="dark" placement="bottom">
+          <github-doc id="github-doc" class="right-menu-item hover-effect" />
+        </el-tooltip>
 
         <screenfull class="right-menu-item hover-effect" />
 
@@ -35,19 +42,13 @@
         </div>
         <el-dropdown-menu slot="dropdown">
           <router-link to="/">
-            <el-dropdown-item>
-              {{ $t('navbar.dashboard') }}
-            </el-dropdown-item>
+            <el-dropdown-item>{{ $t('navbar.dashboard') }}</el-dropdown-item>
           </router-link>
           <router-link to="/profile/index">
-            <el-dropdown-item>
-              个人中心
-            </el-dropdown-item>
+            <el-dropdown-item>个人中心</el-dropdown-item>
           </router-link>
           <a target="_blank" href="https://github.com/PanJiaChen/vue-element-admin/">
-            <el-dropdown-item>
-              {{ $t('navbar.github') }}
-            </el-dropdown-item>
+            <el-dropdown-item>{{ $t('navbar.github') }}</el-dropdown-item>
           </a>
           <el-dropdown-item divided>
             <span style="display:block;" @click="logout">{{ $t('navbar.logOut') }}</span>
@@ -68,6 +69,7 @@ import SizeSelect from '@/components/SizeSelect'
 import LangSelect from '@/components/LangSelect'
 import ThemePicker from '@/components/ThemePicker'
 import Search from '@/components/HeaderSearch'
+import GithubDoc from '@/components/GithubDoc'
 
 export default {
   components: {
@@ -78,27 +80,26 @@ export default {
     SizeSelect,
     LangSelect,
     ThemePicker,
-    Search
+    Search,
+    GithubDoc
   },
   data() {
     return {
-      options: [{
-        value: '1',
-        label: '超级管理员'
-      }, {
-        value: '2',
-        label: '测试角色'
-      }],
+      options: [
+        {
+          value: '1',
+          label: '超级管理员'
+        },
+        {
+          value: '2',
+          label: '测试角色'
+        }
+      ],
       value: '1'
     }
   },
   computed: {
-    ...mapGetters([
-      'sidebar',
-      'name',
-      'avatar',
-      'device'
-    ])
+    ...mapGetters(['sidebar', 'name', 'avatar', 'device'])
   },
   methods: {
     toggleSideBar() {
@@ -106,7 +107,7 @@ export default {
     },
     logout() {
       this.$store.dispatch('LogOut').then(() => {
-        location.reload()// In order to re-instantiate the vue-router object to avoid bugs
+        location.reload() // In order to re-instantiate the vue-router object to avoid bugs
       })
     }
     // roleChange() {
