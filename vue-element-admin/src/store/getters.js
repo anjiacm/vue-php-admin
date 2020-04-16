@@ -1,6 +1,5 @@
 const getters = {
   sidebar: state => state.app.sidebar,
-  language: state => state.app.language,
   size: state => state.app.size,
   device: state => state.app.device,
   visitedViews: state => state.tagsView.visitedViews,
@@ -9,15 +8,16 @@ const getters = {
   avatar: state => state.user.avatar,
   name: state => state.user.name,
   introduction: state => state.user.introduction,
-  status: state => state.user.status,
   roles: state => state.user.roles,
-  setting: state => state.user.setting,
-  permission_routers: state => state.permission.routers,
-  addRouters: state => state.permission.addRouters,
+  permission_routes: state => state.permission.routes,
+  addRoutes: state => state.permission.addRoutes,
   errorLogs: state => state.errorLog.logs,
+
+  status: state => state.user.status,
   phone: state => state.user.phone,
   identify: state => state.user.identify,
   ctrlperm: state => state.user.ctrlperm,
+
   // 获取商品总价 getters 与 state 都是 store 里面的关键字 作用不同，state 存储固定数据，getters 返回动态计算数据
   totalPrice: state => {
     let totalPrice = 0

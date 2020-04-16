@@ -2,15 +2,15 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-        v-perm="['/sys/user/users/get']"
         v-model="filters[0].value"
+        v-perm="['/sys/user/users/get']"
         placeholder="用户名"
         style="width: 200px;"
         class="filter-item"
       />
       <el-select
-        v-perm="['/sys/user/users/get']"
         v-model="filters[1].value"
+        v-perm="['/sys/user/users/get']"
         clearable
         class="filter-item"
       >
@@ -41,9 +41,9 @@
     >
       <el-table-column
         v-for="title in titles"
+        :key="title.label"
         :prop="title.prop"
         :label="title.label"
-        :key="title.label"
         sortable="custom"
       />
       <el-table-column label="状态" min-width="100px">

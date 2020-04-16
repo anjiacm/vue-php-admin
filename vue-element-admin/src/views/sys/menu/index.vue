@@ -2,9 +2,9 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-        v-perm="['/sys/menu/menus/get']"
         ref="filterText"
         v-model.trim="filterText"
+        v-perm="['/sys/menu/menus/get']"
         placeholder="菜单名称"
         style="width: 200px;"
         class="filter-item"
@@ -21,8 +21,8 @@
     <!-- tableData.filter( data => !filterText || filterData(data, function(item){return item.title.includes(filterText) })) -->
     <!-- 可配置树型数据折叠图标 icon="el-icon-caret-right"  el-icon-arrow-right -->
     <i-tree-table
-      v-loading="listLoading"
       ref="TreeTable"
+      v-loading="listLoading"
       :data="tableData"
       :columns="columns"
       id-key="id"
@@ -107,7 +107,7 @@
       >
         <el-form-item label="菜单类型" prop="type">
           <el-radio-group v-model="temp.type">
-            <el-radio v-for="(type, index) in menuTypeList" :label="index" :key="index">{{ type }}</el-radio>
+            <el-radio v-for="(type, index) in menuTypeList" :key="index" :label="index">{{ type }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="menuTypeList[temp.type] + '名称'" prop="title">

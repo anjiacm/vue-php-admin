@@ -99,4 +99,3 @@ export function saveRolePerms(roleId, rolePerms, roleScope) {
     data: { roleId, rolePerms, roleScope }
   })
 }
-

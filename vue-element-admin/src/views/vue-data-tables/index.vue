@@ -85,9 +85,9 @@
       <el-table-column type="selection" width="55" />
       <el-table-column
         v-for="title in titles"
+        :key="title.prop"
         :prop="title.prop"
         :label="title.label"
-        :key="title.prop"
         sortable="custom"
       />
     </data-tables>
@@ -98,9 +98,9 @@
       <el-table-column type="selection" width="55" />
       <el-table-column
         v-for="title in rtitles"
+        :key="title.prop"
         :prop="title.prop"
         :label="title.label"
-        :key="title.prop"
         sortable="custom"
       />
     </data-tables>
@@ -277,7 +277,7 @@ export default {
   },
   methods: {
     closeCurrentTab() {
-      this.$store.dispatch('delCurrentView', {
+      this.$store.dispatch('tagsView/delCurrentView', {
         view: this.$route,
         $router: this.$router
       })
@@ -329,7 +329,7 @@ export default {
       const c = document.getElementById('box') // 获取canvas画布 画布大小和canvas大小一致
       const picName = '测试图片' + id
       const ctx = c.getContext('2d')
-      c.height = c.height // 清空画布，重新绘制
+      // c.height = c.height // 清空画布，重新绘制
       let div = null // 设置div变量
       console.log(id, type)
       // 判断类型：single 单张  batch  批量

@@ -34,14 +34,14 @@
     >
       <el-table-column
         v-for="title in titles"
+        :key="title.label"
         :prop="title.prop"
         :label="title.label"
-        :key="title.label"
         :sortable="title.sortable"
       />
       <el-table-column label="请求参数" min-width="100px">
         <template slot-scope="scope">
-          <el-button class="pan-btn green-btn" @click="handleDetail(scope.row)">更多</el-button>
+          <el-button v-waves type="primary" size="mini" @click="handleDetail(scope.row)">更多...</el-button>
         </template>
       </el-table-column>
     </data-tables-server>
@@ -131,8 +131,7 @@ export default {
         },
         {
           prop: 'response_code',
-          label: '响应code',
-          sortable: 'custom'
+          label: '响应code'
         }
       ],
       tableProps: {

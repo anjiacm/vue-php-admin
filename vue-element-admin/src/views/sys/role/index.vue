@@ -19,7 +19,7 @@
         type="primary"
         icon="el-icon-plus"
         @click="handleCreate"
-      >{{ $t('table.add') }}</el-button>
+      >添加</el-button>
     </div>
 
     <data-tables
@@ -33,9 +33,9 @@
     >
       <el-table-column
         v-for="title in titles"
+        :key="title.label"
         :prop="title.prop"
         :label="title.label"
-        :key="title.label"
         sortable="custom"
       />
 
@@ -121,8 +121,8 @@
       <el-tabs v-model="activeName" tab-position="top" type="card" @tab-click="handleTabClick">
         <el-tab-pane label="菜单类" name="menu">
           <el-tree
-            v-loading="menuLoading"
             ref="menuTree"
+            v-loading="menuLoading"
             :data="menuData"
             :props="defaultProps"
             :render-content="renderContent"
@@ -146,9 +146,9 @@
             <el-table-column type="selection" width="55" />
             <el-table-column
               v-for="title in rtitles"
+              :key="title.label"
               :prop="title.prop"
               :label="title.label"
-              :key="title.label"
               sortable="custom"
             />
             <el-table-column label="状态" min-width="100px">
@@ -179,8 +179,8 @@
               <el-col v-show="dataPermScope == 4" :span="12">
                 <el-form-item label="部门数据" prop="dept">
                   <el-tree
-                    v-loading="deptLoading"
                     ref="deptTree"
+                    v-loading="deptLoading"
                     :data="deptData"
                     :props="defaultDeptProps"
                     :check-strictly="!checkJianlian"

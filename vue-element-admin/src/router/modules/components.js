@@ -1,16 +1,17 @@
-/** When your routing table is too long, you can split it into small modules**/
+/** When your routing table is too long, you can split it into small modules **/
 
-// import Layout from '@/views/layout/Layout'
+import Blank from '@/views/blank'
 
 const componentsRouter = {
   path: '/components',
-  // component: Layout,
-  // 作为二级嵌套路由指定上 具体组件， Layout与父组件冲突
-  component: () => import('@/views/components-demo/index'),
-  redirect: 'noredirect',
+  // 嵌套路由菜单一级指定component为Layout,
+  // 非叶子节点 **必须** 指定一个空白路由页面 @/views/blank/index.vue 前端添加菜单时需要指定 blank/index
+  // 叶子节点指定具体组件页
+  component: Blank, // component: () => import('@/views/blank/index.vue'), 效果一样
+  redirect: 'noRedirect',
   name: 'ComponentDemo',
   meta: {
-    title: 'components',
+    title: '组件',
     icon: 'component'
   },
   children: [
@@ -18,85 +19,85 @@ const componentsRouter = {
       path: 'tinymce',
       component: () => import('@/views/components-demo/tinymce'),
       name: 'TinymceDemo',
-      meta: { title: 'tinymce' }
+      meta: { title: '富文本编辑器' }
     },
     {
       path: 'markdown',
       component: () => import('@/views/components-demo/markdown'),
       name: 'MarkdownDemo',
-      meta: { title: 'markdown' }
+      meta: { title: 'Markdown' }
     },
     {
       path: 'json-editor',
-      component: () => import('@/views/components-demo/jsonEditor'),
+      component: () => import('@/views/components-demo/json-editor'),
       name: 'JsonEditorDemo',
-      meta: { title: 'jsonEditor' }
+      meta: { title: 'JSON编辑器' }
     },
     {
-      path: 'splitpane',
-      component: () => import('@/views/components-demo/splitpane'),
+      path: 'split-pane',
+      component: () => import('@/views/components-demo/split-pane'),
       name: 'SplitpaneDemo',
-      meta: { title: 'splitPane' }
+      meta: { title: 'SplitPane' }
     },
     {
       path: 'avatar-upload',
-      component: () => import('@/views/components-demo/avatarUpload'),
+      component: () => import('@/views/components-demo/avatar-upload'),
       name: 'AvatarUploadDemo',
-      meta: { title: 'avatarUpload' }
+      meta: { title: '头像上传' }
     },
     {
       path: 'dropzone',
       component: () => import('@/views/components-demo/dropzone'),
       name: 'DropzoneDemo',
-      meta: { title: 'dropzone' }
+      meta: { title: 'Dropzone' }
     },
     {
       path: 'sticky',
       component: () => import('@/views/components-demo/sticky'),
       name: 'StickyDemo',
-      meta: { title: 'sticky' }
+      meta: { title: 'Sticky' }
     },
     {
       path: 'count-to',
-      component: () => import('@/views/components-demo/countTo'),
+      component: () => import('@/views/components-demo/count-to'),
       name: 'CountToDemo',
-      meta: { title: 'countTo' }
+      meta: { title: 'Count To' }
     },
     {
       path: 'mixin',
       component: () => import('@/views/components-demo/mixin'),
       name: 'ComponentMixinDemo',
-      meta: { title: 'componentMixin' }
+      meta: { title: '小组件' }
     },
     {
       path: 'back-to-top',
-      component: () => import('@/views/components-demo/backToTop'),
+      component: () => import('@/views/components-demo/back-to-top'),
       name: 'BackToTopDemo',
-      meta: { title: 'backToTop' }
+      meta: { title: 'Back To Top' }
     },
     {
       path: 'drag-dialog',
-      component: () => import('@/views/components-demo/dragDialog'),
+      component: () => import('@/views/components-demo/drag-dialog'),
       name: 'DragDialogDemo',
-      meta: { title: 'dragDialog' }
+      meta: { title: '拖拽 Dialog' }
     },
     {
       path: 'drag-select',
-      component: () => import('@/views/components-demo/dragSelect'),
+      component: () => import('@/views/components-demo/drag-select'),
       name: 'DragSelectDemo',
-      meta: { title: 'dragSelect' }
+      meta: { title: '拖拽 Select' }
     },
     {
       path: 'dnd-list',
-      component: () => import('@/views/components-demo/dndList'),
+      component: () => import('@/views/components-demo/dnd-list'),
       name: 'DndListDemo',
-      meta: { title: 'dndList' }
+      meta: { title: '列表拖拽' }
     },
     {
       path: 'drag-kanban',
-      component: () => import('@/views/components-demo/dragKanban'),
+      component: () => import('@/views/components-demo/drag-kanban'),
       name: 'DragKanbanDemo',
-      meta: { title: 'dragKanban' }
+      meta: { title: '可拖拽看板' }
     }
   ]
 }

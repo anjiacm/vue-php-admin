@@ -1,82 +1,73 @@
 <template>
   <div class="login-container">
-    <el-form
-      ref="loginForm"
-      :model="loginForm"
-      :rules="loginRules"
-      class="login-form"
-      auto-complete="on"
-      label-position="left"
-    >
+    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
+
       <div class="title-container">
-        <h3 class="title">{{ $t('login.title') }}</h3>
-        <lang-select class="set-language" />
+        <h3 class="title">系统登录</h3>
       </div>
-      <el-form-item v-if="!thirdLogin" prop="username">
+
+      <el-form-item prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input
+          ref="username"
           v-model="loginForm.username"
-          :placeholder="$t('login.username')"
+          placeholder="Username"
           name="username"
           type="text"
-          auto-complete="on"
+          tabindex="1"
+          autocomplete="on"
         />
       </el-form-item>
 
-      <el-form-item v-if="!thirdLogin" prop="password">
-        <span class="svg-container">
-          <svg-icon icon-class="password" />
-        </span>
-        <el-input
-          v-model="loginForm.password"
-          :type="passwordType"
-          :placeholder="$t('login.password')"
-          name="password"
-          auto-complete="on"
-          @keyup.enter.native="handleLogin"
-        />
-        <span class="show-pwd" @click="showPwd">
-          <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-        </span>
-      </el-form-item>
+      <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
+        <el-form-item prop="password">
+          <span class="svg-container">
+            <svg-icon icon-class="password" />
+          </span>
+          <el-input
+            :key="passwordType"
+            ref="password"
+            v-model="loginForm.password"
+            :type="passwordType"
+            placeholder="Password"
+            name="password"
+            tabindex="2"
+            autocomplete="on"
+            @keyup.native="checkCapslock"
+            @blur="capsTooltip = false"
+            @keyup.enter.native="handleLogin"
+          />
+          <span class="show-pwd" @click="showPwd">
+            <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
+          </span>
+        </el-form-item>
+      </el-tooltip>
 
-      <el-button
-        v-if="!thirdLogin"
-        :loading="loading"
-        type="primary"
-        style="width:100%;margin-bottom:30px;"
-        @click.native.prevent="handleLogin"
-      >{{ $t('login.logIn') }}</el-button>
+      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
 
       <div style="position:relative">
         <div class="tips">
-          <span>超级{{ $t('login.username') }} : admin</span>
-          <!-- <span>{{ $t('login.password') }} : {{ $t('login.any') }}</span> -->
-          <span>{{ $t('login.password') }} : admin</span>
+          <span>超级账号 : admin</span>
+          <span>密码 : admin</span>
         </div>
         <div class="tips">
-          <span style="margin-right:18px;">普通{{ $t('login.username') }} : editor</span>
-          <span>{{ $t('login.password') }} : editor</span>
+          <span style="margin-right:18px;">普通账号 : editor</span>
+          <span>密码 : editor</span>
         </div>
-        <el-button
-          class="thirdparty-button"
-          type="primary"
-          @click="showDialog=true"
-        >{{ $t('login.thirdparty') }}</el-button>
-        <!-- <el-link type="success" href="https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost:9527">github登录不弹子窗口方式</el-link> -->
-        <!-- 如果此href 不含有 redirect_uri参数 则回调地址为 github oauth 配置页面 Authorization callback URL 配置的 url 并且附带 &code=xxxxx99 参数 -->
-        <!-- http://localhost/get-github-code.html 微信好像需要使用这个get-code.html
-        https://github.com/login/oauth/authorize?client_id=94aae05609c96ffb7d3b&redirect_uri=http://localhost/get-github-code.html?redirect_uri=http://localhost:9527-->
+
+        <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
+          第三方登录
+        </el-button>
       </div>
     </el-form>
 
-    <el-dialog :title="$t('login.thirdparty')" :visible.sync="showDialog">
-      {{ $t('login.thirdpartyTips') }}
-      <br >
-      <br >
-      <br >
+    <el-dialog title="第三方登录" :visible.sync="showDialog">
+      本地不能模拟，请结合自己业务进行模拟！！！
+      <br>
+      <br>
+      <br>
       <social-sign />
     </el-dialog>
   </div>
@@ -84,12 +75,11 @@
 
 <script>
 import { validUsername } from '@/utils/validate'
-import LangSelect from '@/components/LangSelect'
-import SocialSign from './socialsignin'
+import SocialSign from './components/SocialSignin'
 
 export default {
   name: 'Login',
-  components: { LangSelect, SocialSign },
+  components: { SocialSign },
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
@@ -111,34 +101,42 @@ export default {
         password: 'admin'
       },
       loginRules: {
-        username: [
-          { required: true, trigger: 'blur', validator: validateUsername }
-        ],
-        password: [
-          { required: true, trigger: 'blur', validator: validatePassword }
-        ]
+        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       passwordType: 'password',
+      capsTooltip: false,
       loading: false,
       showDialog: false,
       redirect: undefined,
-      thirdLogin: false
+      otherQuery: {}
     }
   },
   watch: {
     $route: {
       handler: function(route) {
-        this.redirect = route.query && route.query.redirect
+        const query = route.query
+        if (query) {
+          this.redirect = query.redirect
+          this.otherQuery = this.getOtherQuery(query)
+        }
       },
       immediate: true
     }
   },
   created() {
-    // window.addEventListener('hashchange', this.afterQRScan)
+    // window.addEventListener('storage', this.afterQRScan)
     this.LoginByThirdparty()
   },
+  mounted() {
+    if (this.loginForm.username === '') {
+      this.$refs.username.focus()
+    } else if (this.loginForm.password === '') {
+      this.$refs.password.focus()
+    }
+  },
   destroyed() {
-    // window.removeEventListener('hashchange', this.afterQRScan)
+    // window.removeEventListener('storage', this.afterQRScan)
   },
   methods: {
     LoginByThirdparty() {
@@ -154,9 +152,8 @@ export default {
         const code = this.$route.query.code
         const state = this.$route.query.state
         const auth_type = this.$route.query.auth_type
-        console.log('thirdLogin code: ', code)
-        console.log('thirdLogin state: ', state)
-        console.log('thirdLogin auth_type: ', auth_type)
+        console.log('thirdLogin code, state, auth_type: ', code, state, auth_type)
+
         // store.state.user.code = code
         // store.state.user.code_state = state
         // console.log(store.state.user) // 该code 在store/modules/user.js 里定义有 作为第三方登录使用 参见其中 LoginByThirdparty
@@ -172,14 +169,14 @@ export default {
         const authParms = { code, state, auth_type }
         // 执行 GET githubAuth 根据 code 获取 github userinfo 结合业务逻辑生成 token / refreshtoken (jwt)
         this.$store
-          .dispatch('LoginByThirdparty', authParms)
+          .dispatch('user/LoginByThirdparty', authParms)
           .then(() => {
             this.$router.push({ path: '/' })
             loading.close()
           })
           .catch(err => {
             console.log(
-              'this.$store.dispatchLoginByThirdparty catch....',
+              'this.$store.dispatchLoginByThirdparty catch err...',
               err.response
             )
             this.thirdLogin = false
@@ -192,22 +189,28 @@ export default {
           })
       }
     },
+    checkCapslock(e) {
+      const { key } = e
+      this.capsTooltip = key && key.length === 1 && (key >= 'A' && key <= 'Z')
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
       } else {
         this.passwordType = 'password'
       }
+      this.$nextTick(() => {
+        this.$refs.password.focus()
+      })
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store
-            .dispatch('LoginByUsername', this.loginForm)
+          this.$store.dispatch('user/LoginByUsername', this.loginForm)
             .then(() => {
+              this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
               this.loading = false
-              this.$router.push({ path: this.redirect || '/' })
             })
             .catch(() => {
               this.loading = false
@@ -218,42 +221,47 @@ export default {
         }
       })
     },
-    afterQRScan() {
-      // const hash = window.location.hash.slice(1)
-      // const hashObj = getQueryObject(hash)
-      // const originUrl = window.location.origin
-      // history.replaceState({}, '', originUrl)
-      // const codeMap = {
-      //   wechat: 'code',
-      //   tencent: 'code'
-      // }
-      // const codeName = hashObj[codeMap[this.auth_type]]
-      // if (!codeName) {
-      //   alert('第三方登录失败')
-      // } else {
-      //   this.$store.dispatch('LoginByThirdparty', codeName).then(() => {
-      //     this.$router.push({ path: '/' })
-      //   })
-      // }
+    getOtherQuery(query) {
+      return Object.keys(query).reduce((acc, cur) => {
+        if (cur !== 'redirect') {
+          acc[cur] = query[cur]
+        }
+        return acc
+      }, {})
     }
+    // afterQRScan() {
+    //   if (e.key === 'x-admin-oauth-code') {
+    //     const code = getQueryObject(e.newValue)
+    //     const codeMap = {
+    //       wechat: 'code',
+    //       tencent: 'code'
+    //     }
+    //     const type = codeMap[this.auth_type]
+    //     const codeName = code[type]
+    //     if (codeName) {
+    //       this.$store.dispatch('LoginByThirdparty', codeName).then(() => {
+    //         this.$router.push({ path: this.redirect || '/' })
+    //       })
+    //     } else {
+    //       alert('第三方登录失败')
+    //     }
+    //   }
+    // }
   }
 }
 </script>
 
-<style rel="stylesheet/scss" lang="scss">
+<style lang="scss">
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
 
-$bg: #283443;
-$light_gray: #eee;
+$bg:#283443;
+$light_gray:#fff;
 $cursor: #fff;
 
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
   .login-container .el-input input {
     color: $cursor;
-    &::first-line {
-      color: $light_gray;
-    }
   }
 }
 
@@ -263,6 +271,7 @@ $cursor: #fff;
     display: inline-block;
     height: 47px;
     width: 85%;
+
     input {
       background: transparent;
       border: 0px;
@@ -272,13 +281,14 @@ $cursor: #fff;
       color: $light_gray;
       height: 47px;
       caret-color: $cursor;
+
       &:-webkit-autofill {
-        -webkit-box-shadow: 0 0 0px 1000px $bg inset !important;
+        box-shadow: 0 0 0px 1000px $bg inset !important;
         -webkit-text-fill-color: $cursor !important;
-        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1); // <- Add this to fix.
       }
     }
   }
+
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.1);
@@ -288,16 +298,17 @@ $cursor: #fff;
 }
 </style>
 
-<style rel="stylesheet/scss" lang="scss" scoped>
-$bg: #2d3a4b;
-$dark_gray: #889aa4;
-$light_gray: #eee;
+<style lang="scss" scoped>
+$bg:#2d3a4b;
+$dark_gray:#889aa4;
+$light_gray:#eee;
 
 .login-container {
   min-height: 100%;
   width: 100%;
   background-color: $bg;
   overflow: hidden;
+
   .login-form {
     position: relative;
     width: 520px;
@@ -306,16 +317,19 @@ $light_gray: #eee;
     margin: 0 auto;
     overflow: hidden;
   }
+
   .tips {
     font-size: 14px;
     color: #fff;
     margin-bottom: 10px;
+
     span {
       &:first-of-type {
         margin-right: 16px;
       }
     }
   }
+
   .svg-container {
     padding: 6px 5px 6px 15px;
     color: $dark_gray;
@@ -323,8 +337,10 @@ $light_gray: #eee;
     width: 30px;
     display: inline-block;
   }
+
   .title-container {
     position: relative;
+
     .title {
       font-size: 26px;
       color: $light_gray;
@@ -332,15 +348,8 @@ $light_gray: #eee;
       text-align: center;
       font-weight: bold;
     }
-    .set-language {
-      color: #fff;
-      position: absolute;
-      top: 3px;
-      font-size: 18px;
-      right: 0px;
-      cursor: pointer;
-    }
   }
+
   .show-pwd {
     position: absolute;
     right: 10px;
@@ -350,10 +359,17 @@ $light_gray: #eee;
     cursor: pointer;
     user-select: none;
   }
+
   .thirdparty-button {
     position: absolute;
     right: 0;
     bottom: 6px;
+  }
+
+  @media only screen and (max-width: 470px) {
+    .thirdparty-button {
+      display: none;
+    }
   }
 }
 </style>

@@ -1,13 +1,12 @@
 import axios from 'axios'
-import { Message, MessageBox } from 'element-ui'
+import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
 import { getToken, getRefreshToken } from '@/utils/auth'
-// import router from '@/router'
-// import random from 'string-random'
 
 // create an axios instance
 const service = axios.create({
-  baseURL: process.env.BASE_API, // api 的 base_url
+  baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
+  // withCredentials: true, // send cookies when cross-domain requests
   timeout: 5000, // request timeout
   headers: { 'X-API-KEY': 'oocwo8cs88g4c8w8c08ow00ss844cc4osko0s0ks' }
 })
@@ -39,7 +38,11 @@ service.interceptors.request.use(
 
 // response interceptor
 service.interceptors.response.use(
-  // response => response,
+  /**
+   * If you want to get http information such as headers or status
+   * Please return  response => response
+  */
+
   /**
    * 下面的注释为通过在response里，自定义code来标示请求状态
    * 当code返回如下情况则说明权限有问题，登出并返回到登录页
@@ -47,58 +50,14 @@ service.interceptors.response.use(
    * 以下代码均为样例，请结合自生需求加以修改，若不需要，则可删除
    */
   response => {
-    // console.log('router', router.currentRoute.fullPath)
-
     const res = response.data
+    // console.log('response interceptor', response)
     if (res.code !== 20000) {
       Message({
         message: res.message,
         type: 'error',
         duration: 5 * 1000
       })
-      // 如果 accessToken 超时
-      // if (res.code === 50014) {
-      //   const originalRequest = response.config
-      //   console.log('originalRequest', originalRequest)
-      //   if (!isAlreadyFetchingAccessToken) {
-      //     isAlreadyFetchingAccessToken = true
-      //     store.dispatch(handleCheckRefreshToken()).then((access_token) => {
-      //       isAlreadyFetchingAccessToken = false
-      //       onAccessTokenFetched(access_token)
-      //     })
-      //   }
-
-      //   const retryOriginalRequest = new Promise((resolve) => {
-      //     addSubscriber(access_token => {
-      //       originalRequest.headers['X-Token'] = access_token
-      //       resolve(axios.request(originalRequest))
-      //     })
-      //   })
-      //   return retryOriginalRequest
-
-      // store.dispatch('handleCheckRefreshToken').then(res => {
-      //   console.log('handleCheckRefreshToken res......', res)
-      //   console.log('router.currentRoute.fullPath', router.currentRoute.fullPath)
-      //   // 重新刷新当前页面
-      //   // let config = response.config
-      //   // config.headers['X-Token'] = getToken()
-      //   // axios.request(config)
-      //   // console.log('router.currentRoute.fullPath', router.currentRoute.fullPath)
-      //   // router.replace({
-      //   //   path: '/redirect' + router.currentRoute.fullPath,
-      //   //   // query: { redirect: router.currentRoute.fullPath }
-      //   //   // query: { e: random(3, { specials: false, numbers: 123456789, letters: false }) } // TODO: 任意参数,9527/#/sys/menu?e=1 保证重新取得token后会刷新当前页面
-      //   // })
-      //   // router.replace({
-      //   //   // path: router.currentRoute.fullPath ,
-      //   //   query: { redirect: '/redirect' + router.currentRoute.fullPath }//登录成功后跳入浏览的当前页面
-      //   // })
-
-      //   // history.go(0) // 浏览器自带的刷新功能，window.history.go(0)，这里的window可以省略不写
-      // }).catch(err => {
-      //   console.log(err)
-      // })
-      // }
 
       // 50008:非法的token; 50012:其他客户端登录了;  50014:Token 过期了;  50015: refresh_token过期
       if (res.code === 50008 || res.code === 50012 || res.code === 50015) {
@@ -110,12 +69,12 @@ service.interceptors.response.use(
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          store.dispatch('FedLogOut').then(() => {
+          store.dispatch('user/FedLogOut').then(() => {
             location.reload() // 为了重新实例化vue-router对象 避免bug
           })
         })
       }
-      return Promise.reject('error')
+      return Promise.reject(new Error(res.message || 'Error'))
     } else {
       return response.data
     }
@@ -163,7 +122,7 @@ service.interceptors.response.use(
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        store.dispatch('FedLogOut').then(() => {
+        store.dispatch('user/FedLogOut').then(() => {
           location.reload() // 为了重新实例化vue-router对象 避免bug
         })
       })
@@ -174,7 +133,7 @@ service.interceptors.response.use(
 ) // response 拦截结束
 
 async function againRequest(error) {
-  await store.dispatch('handleCheckRefreshToken')
+  await store.dispatch('user/handleCheckRefreshToken')
 
   const config = error.response.config
   config.headers['X-Token'] = getToken()
@@ -183,39 +142,5 @@ async function againRequest(error) {
   // console.log('againRequest...............................', res)
   return res.data // 以error.response.config重新请求返回的数据包是在函数内是 被封装在data里面
 }
-
-// let isAlreadyFetchingAccessToken = false
-// let subscribers = []
-
-// function onAccessTokenFetched(access_token) {
-//   subscribers = subscribers.filter(callback => callback(access_token))
-// }
-
-// function addSubscriber(callback) {
-//   subscribers.push(callback)
-// }
-
-// store.dispatch('handleCheckRefreshToken').then(res => {
-//   console.log('handleCheckRefreshToken res......', res)
-//   console.log('router.currentRoute.fullPath', router.currentRoute.fullPath)
-//   // 重新刷新当前页面
-//   // let config = response.config
-//   // config.headers['X-Token'] = getToken()
-//   // axios.request(config)
-//   // console.log('router.currentRoute.fullPath', router.currentRoute.fullPath)
-//   // router.replace({
-//   //   path: '/redirect' + router.currentRoute.fullPath,
-//   //   // query: { redirect: router.currentRoute.fullPath }
-//   //   // query: { e: random(3, { specials: false, numbers: 123456789, letters: false }) } // TODO: 任意参数,9527/#/sys/menu?e=1 保证重新取得token后会刷新当前页面
-//   // })
-//   // router.replace({
-//   //   // path: router.currentRoute.fullPath ,
-//   //   query: { redirect: '/redirect' + router.currentRoute.fullPath }//登录成功后跳入浏览的当前页面
-//   // })
-
-//   // history.go(0) // 浏览器自带的刷新功能，window.history.go(0)，这里的window可以省略不写
-// }).catch(err => {
-//   console.log(err)
-// })
 
 export default service

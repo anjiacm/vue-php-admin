@@ -2,9 +2,9 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-        v-perm="['/sys/dept/depts/get']"
         ref="filterText"
         v-model.trim="filterText"
+        v-perm="['/sys/dept/depts/get']"
         placeholder="机构名称"
         style="width: 200px;"
         class="filter-item"
@@ -16,12 +16,12 @@
         type="primary"
         icon="el-icon-plus"
         @click="handleCreate"
-      >{{ $t('table.add') }}</el-button>
+      >添加</el-button>
     </div>
 
     <el-tree
-      v-loading="listLoading"
       ref="tree2"
+      v-loading="listLoading"
       :data="data"
       :props="defaultProps"
       :default-expand-all="false"

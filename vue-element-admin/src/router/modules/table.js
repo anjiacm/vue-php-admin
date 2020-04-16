@@ -1,12 +1,13 @@
-/** When your routing table is too long, you can split it into small modules**/
+/** When your routing table is too long, you can split it into small modules **/
 
-// import Layout from '@/views/layout/Layout'
+import Blank from '@/views/blank'
 
 const tableRouter = {
   path: '/table',
-  // component: Layout,
-  // 作为二级嵌套路由指定上 具体组件， Layout与父组件冲突
-  component: () => import('@/views/table/index'),
+  // 嵌套路由菜单一级指定component为Layout,
+  // 非叶子节点 **必须** 指定一个空白路由页面 @/views/blank/index.vue 前端添加菜单时需要指定 blank/index
+  // 叶子节点指定具体组件页
+  component: Blank, // component: () => import('@/views/blank/index.vue'), 效果一样
   redirect: '/table/complex-table',
   name: 'Table',
   meta: {
@@ -16,27 +17,27 @@ const tableRouter = {
   children: [
     {
       path: 'dynamic-table',
-      component: () => import('@/views/table/dynamicTable/index'),
+      component: () => import('@/views/table/dynamic-table/index'),
       name: 'DynamicTable',
-      meta: { title: 'dynamicTable' }
+      meta: { title: '动态Table' }
     },
     {
       path: 'drag-table',
-      component: () => import('@/views/table/dragTable'),
+      component: () => import('@/views/table/drag-table'),
       name: 'DragTable',
-      meta: { title: 'dragTable' }
+      meta: { title: '拖拽Table' }
     },
     {
       path: 'inline-edit-table',
-      component: () => import('@/views/table/inlineEditTable'),
+      component: () => import('@/views/table/inline-edit-table'),
       name: 'InlineEditTable',
-      meta: { title: 'inlineEditTable' }
+      meta: { title: 'Table内编辑' }
     },
     {
       path: 'complex-table',
-      component: () => import('@/views/table/complexTable'),
+      component: () => import('@/views/table/complex-table'),
       name: 'ComplexTable',
-      meta: { title: 'complexTable' }
+      meta: { title: '综合Table' }
     }
   ]
 }
