@@ -70,36 +70,36 @@ class Permission
         return $children;
     }
 
-    /**
-     * 只解析 $payload 部分, 不作权限验证
-     * @param $jwt
-     * @return bool|mixed
-     *  stdClass Object
-     *   (
-     *    [iss] => http://www.helloweba.net
-     *    [aud] => http://www.helloweba.net
-     *    [iat] => 1577668094
-     *    [nbf] => 1577668094
-     *    [exp] => 1577668094
-     *   [user_id] => 2
-     *   [count] => 0
-     *  )
-     *
-     */
-    function parseJWT($jwt)
-    {
-        if (isset($jwt)) {
-            $tks = explode('.', $jwt); // jwt token . 分 第2段为 $payload
-            if (count($tks) != 3) {
-                return FALSE;
-            } else {
-                $decoded_obj = json_decode(base64_decode($tks[1]));
-                return $decoded_obj;
-            }
-        } else {
-            return FALSE;
-        }
-    }
+    // /**
+    //  * 只解析 $payload 部分, 不作权限验证
+    //  * @param $jwt
+    //  * @return bool|mixed
+    //  *  stdClass Object
+    //  *   (
+    //  *    [iss] => http://www.helloweba.net
+    //  *    [aud] => http://www.helloweba.net
+    //  *    [iat] => 1577668094
+    //  *    [nbf] => 1577668094
+    //  *    [exp] => 1577668094
+    //  *   [user_id] => 2
+    //  *   [count] => 0
+    //  *  )
+    //  *
+    //  */
+    // function parseJWT($jwt)
+    // {
+    //     if (isset($jwt)) {
+    //         $tks = explode('.', $jwt); // jwt token . 分 第2段为 $payload
+    //         if (count($tks) != 3) {
+    //             return FALSE;
+    //         } else {
+    //             $decoded_obj = json_decode(base64_decode($tks[1]));
+    //             return $decoded_obj;
+    //         }
+    //     } else {
+    //         return FALSE;
+    //     }
+    // }
 
     /**
      * 根据 $userId ， 权限类型 获取该 userid->role 对应的所有权限

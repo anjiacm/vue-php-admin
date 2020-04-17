@@ -302,7 +302,21 @@ class User extends RestController
     function getroleoptions_get()
     {
         $Token = $this->input->get_request_header('X-Token', true);
-        $jwt_object = $this->permission->parseJWT($Token);
+        try {
+            $jwt_object = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+        } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
+            $message = [
+                "code" => 50014,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_UNAUTHORIZED);
+        } catch (Exception $e) {  //其他错误
+            $message = [
+                "code" => 50015,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_UNAUTHORIZED);
+        }
 
         $RoleArr = $this->User_model->getRoleOptions($jwt_object->user_id);
         // string to boolean / number
@@ -321,8 +335,22 @@ class User extends RestController
     function getdeptoptions_get()
     {
         $Token = $this->input->get_request_header('X-Token', true);
-        $jwt_object = $this->permission->parseJWT($Token);
-
+        try {
+            $jwt_object = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+        } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
+            $message = [
+                "code" => 50014,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_UNAUTHORIZED);
+        } catch (Exception $e) {  //其他错误
+            $message = [
+                "code" => 50015,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_UNAUTHORIZED);
+        }
+        
         $DeptArr = $this->User_model->getDeptOptions($jwt_object->user_id);
         // string to boolean / number
         foreach ($DeptArr as $k => $v) {
@@ -1109,8 +1137,21 @@ class User extends RestController
     {
         // /sys/user/info 不用认证但是需要提取出 access_token 中的 user_id 来拉取用户信息
         $Token = $this->input->get_request_header('X-Token', true);
-        $jwt_obj = $this->permission->parseJWT($Token);
-
+        try {
+            $jwt_obj = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
+        } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
+            $message = [
+                "code" => 50014,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_UNAUTHORIZED);
+        } catch (Exception $e) {  //其他错误
+            $message = [
+                "code" => 50015,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_UNAUTHORIZED);
+        }
         //    $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
         //     print_r($decoded);
         //            stdClass Object
