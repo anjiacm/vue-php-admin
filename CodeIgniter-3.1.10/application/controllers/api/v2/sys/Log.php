@@ -71,12 +71,12 @@ class Log extends RestController
                         $where[$tmpKey . '[~]'] = $tmpValue;
                         $wherecnt[$tmpKey . '[~]'] = $tmpValue;
                     }
-                } else if($v == 'time') { // &time=1585670400,1586793600
+                } else if ($v == 'time') { // &time=1585670400,1586793600
                     $tmpValue = $this->get($v); // time => 1585670400,1586793600
                     if (!is_null($tmpValue)) {
                         $timeArr = explode(",", $tmpValue);  // => [1585670400,1586793600]
-                        $where[$v. '[<>]'] = $timeArr;
-                        $wherecnt[$v. '[<>]'] = $timeArr;
+                        $where[$v . '[<>]'] = $timeArr;
+                        $wherecnt[$v . '[<>]'] = $timeArr;
                     }
                 } else { // method
                     $tmpValue = $this->get($v);
@@ -98,29 +98,6 @@ class Log extends RestController
         // var_dump($this->Medoodb->log());
         // var_dump($this->Medoodb->error());
 
-        // 处理获取的数据 由params 字段 获得真实ip，用户id，格式化时间等信息
-        // 必要时可剔除 params 字段再返回前端
-        foreach ($data as $k => $v) {
-            $currentParms = (config_item('rest_logs_json_params') === true) ? json_decode($v['params'], true) : unserialize($v['params']);
-            $data[$k]['params'] = $currentParms;
-            $data[$k]['ip'] = Arrays::get($currentParms, 'X-Real-IP', $v['ip_address']);
-            $data[$k]['time'] = date('Y-m-d H:i:s', $v['time']);
-            if (array_key_exists('X-Token', $currentParms)) {
-                $jwt_object = $this->permission->parseJWT($currentParms['X-Token']);
-
-                $userArr = $this->Medoodb->select(
-                    'sys_user',
-                    'username',
-                    ['id' =>  $jwt_object->user_id]
-                );
-                $data[$k]['username'] = $userArr[0];
-            } else if (array_key_exists('username', $currentParms)) { // login
-                $data[$k]['username'] = $currentParms['username'];
-            } else {
-                $data[$k]['username'] = 'No-Token';
-            }
-        }
-
         // 捕获错误信息
         $err = $this->Medoodb->error();
         // array(3) => ["42S02", 1146, "Table 'vueadminv2.articlex' doesn't exist"]
@@ -132,6 +109,34 @@ class Log extends RestController
                 "data" => $err[2]
             ];
             $this->response($message, RestController::HTTP_BAD_REQUEST); // BAD_REQUEST (400) being the HTTP response code
+        }
+        
+        // 处理获取的数据 由params 字段 获得真实ip，用户id，格式化时间等信息
+        // 必要时可剔除 params 字段再返回前端
+        foreach ($data as $k => $v) {
+            $currentParms = (config_item('rest_logs_json_params') === true) ? json_decode($v['params'], true) : unserialize($v['params']);
+            $data[$k]['params'] = $currentParms;
+            $data[$k]['ip'] = Arrays::get($currentParms, 'X-Real-IP', $v['ip_address']);
+            $data[$k]['time'] = date('Y-m-d H:i:s', $v['time']);
+            if (array_key_exists('X-Token', $currentParms)) {
+                $tks = explode('.', $currentParms['X-Token']); // jwt token . 分 第2段为 $payload
+                if (count($tks) != 3) {
+                    $data[$k]['username'] = 'Token: ' . $currentParms['X-Token'];  // 非jwt token api测试时生成该log
+                } else {
+                    $jwt_object = json_decode(base64_decode($tks[1]));
+
+                    $userArr = $this->Medoodb->select(
+                        'sys_user',
+                        'username',
+                        ['id' =>  $jwt_object->user_id]
+                    );
+                    $data[$k]['username'] = $userArr[0];
+                }
+            } else if (array_key_exists('username', $currentParms)) { // login
+                $data[$k]['username'] = $currentParms['username'];
+            } else {
+                $data[$k]['username'] = 'No-Token';  // no token api测试时生成该log
+            }
         }
 
         $total = $this->Medoodb->count("logs",  $wherecnt);
