@@ -106,6 +106,10 @@ export default {
           label: '用户名'
         },
         {
+          prop: 'ip',
+          label: 'IP地址'
+        },
+        {
           prop: 'uri',
           label: 'uri',
           sortable: 'custom'
@@ -114,10 +118,6 @@ export default {
           prop: 'method',
           label: '请求方法',
           sortable: 'custom'
-        },
-        {
-          prop: 'ip',
-          label: 'IP'
         },
         {
           prop: 'time',
@@ -131,7 +131,8 @@ export default {
         },
         {
           prop: 'response_code',
-          label: '响应code'
+          label: '响应code',
+          sortable: 'custom'
         }
       ],
       tableProps: {
