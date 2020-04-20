@@ -2,7 +2,7 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-        v-model="filters[0].value"
+        v-model="userValue"
         v-perm="['/sys/user/users/get']"
         placeholder="用户名"
         style="width: 200px;"
@@ -201,6 +201,7 @@ export default {
     }
 
     return {
+      userValue: '',
       passwordType: 'password',
       searchDef: {
         show: true,
@@ -291,7 +292,14 @@ export default {
       }
     }
   },
-
+  watch: {
+    userValue: _.debounce(function(newV, oldV) {
+      // console.log(oldV + '=>' + newV)
+      // 使用lodash debounce 延迟防抖动，几秒后将变量值 赋值给 data-tables-server 的 filters[0].value
+      // data-tables-server watch filters 值发生变化后会立即向后台重新获取数据 等价于 filter值的延迟得到
+      this.filters[0].value = this.userValue
+    }, 500)
+  },
   created() {
     // this.fetchData()
     this.initOptions()

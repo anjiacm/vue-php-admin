@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div v-perm="['/sys/log/logs/get']" class="filter-container">
-      <el-input v-model="filters[0].value" placeholder="uri" style="width: 200px;" />
+      <el-input v-model="uriValue" placeholder="uri" style="width: 200px;" />
       <el-select v-model="filters[1].value" placeholder="请求方法" clearable>
         <el-option label="GET" value="get" />
         <el-option label="POST" value="post" />
@@ -70,6 +70,7 @@ export default {
   components: { jsonView },
   data() {
     return {
+      uriValue: '',
       reqParams: {},
       dialogFormVisible: false,
       searchDef: {
@@ -176,6 +177,14 @@ export default {
         ]
       }
     }
+  },
+  watch: {
+    uriValue: _.debounce(function(newV, oldV) {
+      // console.log(oldV + '=>' + newV)
+      // 使用lodash debounce 延迟防抖动，几秒后将变量值 赋值给 data-tables-server 的 filters[0].value
+      // data-tables-server watch filters 值发生变化后会立即向后台重新获取数据 等价于 filter值的延迟得到
+      this.filters[0].value = this.uriValue
+    }, 500)
   },
   created() {},
   methods: {
