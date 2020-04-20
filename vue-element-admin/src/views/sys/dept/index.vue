@@ -22,7 +22,7 @@
     <el-tree
       ref="tree2"
       v-loading="listLoading"
-      :data="data"
+      :data="treeData"
       :props="defaultProps"
       :default-expand-all="false"
       :default-expanded-keys="treeExpandedKeys"
@@ -164,7 +164,7 @@ export default {
           children: node.children
         }
       },
-      data: [],
+      treeData: [],
       treeExpandedKeys: [1], // 记录打开节点的数组 默认打开节点为id=1
       defaultProps: {
         children: 'children',
@@ -193,7 +193,7 @@ export default {
     fetchData() {
       this.listLoading = true
       getDeptList().then(res => {
-        this.data = res.data
+        this.treeData = res.data
         this.TreeSelectOptions = [
           {
             id: 0,

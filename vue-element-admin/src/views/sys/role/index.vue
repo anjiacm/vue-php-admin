@@ -241,10 +241,9 @@
 <script>
 import waves from '@/directive/waves' // Waves directive
 import perm from '@/directive/perm/index.js' // 权限判断指令
-// import the component
-import Treeselect from '@riophae/vue-treeselect'
-// import the styles
-import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+// import the Treeselect component and styles
+// import Treeselect from '@riophae/vue-treeselect'
+// import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 
 import {
   createRole,
@@ -266,7 +265,7 @@ export default {
   name: 'SysRole',
   // 所以在编写路由 router 和路由对应的 view component 的时候一定要确保 两者的 name 是完全一致的。
   // register the component Treeselect, TreeTable
-  components: { Treeselect },
+  components: {},
   directives: { waves, perm },
   filters: {
     statusFilter(status) {
@@ -696,7 +695,9 @@ export default {
           </span>
           <span style='text-algin:center;margin-right:200px;'>
             <el-tag
-              type={data.type === 0 ? '' : data.type === 1 ? 'success' : 'warning'}
+              type={
+                data.type === 0 ? '' : data.type === 1 ? 'success' : 'warning'
+              }
               size='small'
             >
               {data.type === 0 ? '目录' : data.type === 1 ? '菜单' : '操作'}

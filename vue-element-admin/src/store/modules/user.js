@@ -163,7 +163,7 @@ const actions = {
   },
 
   // 前端 登出
-  FedLogOut({ commit }) {
+  FedLogOut({ commit, dispatch }) {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
       commit('SET_REFRESH_TOKEN', '')
