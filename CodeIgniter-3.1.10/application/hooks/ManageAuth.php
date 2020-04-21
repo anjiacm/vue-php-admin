@@ -8,11 +8,11 @@ use Nette\Utils\Strings;
 
 class ManageAuth
 {
-    private $CI;
+    private $_ci;
     private $http_method;
     function __construct()
     {
-        $this->CI = &get_instance();  //获取CI对象
+        $this->_ci = &get_instance();  //获取CI对象
         $this->http_method = Strings::lower($_SERVER['REQUEST_METHOD']); // => get/post/put/delete
     }
 
@@ -38,7 +38,7 @@ class ManageAuth
         });
 
         if (!$in_whiteList) { // 不在白名单里需要校验 token expired etc..
-            $headers = $this->CI->input->request_headers();
+            $headers = $this->_ci->input->request_headers();
 
             // 防止在浏览器直接进入api，页面抛出异常错误
             if (!array_key_exists('X-Token', $headers)) {
@@ -46,7 +46,7 @@ class ManageAuth
                     "code" => 50015,
                     "message" => 'request_headers has not token info.'
                 ];
-                $this->CI->response($message, RestController::HTTP_FORBIDDEN);
+                $this->_ci->response($message, RestController::HTTP_FORBIDDEN);
             }
 
             $Token = $headers['X-Token'];
@@ -55,22 +55,22 @@ class ManageAuth
                 $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
                 $userId = $decoded->user_id;
 
-                $retPerm = $this->CI->permission->HasPermit($userId, uri_string(), $this->http_method);
+                $retPerm = $this->_ci->permission->HasPermit($userId, uri_string(), $this->http_method);
                 if ($retPerm['code'] != 50000) {
-                    $this->CI->response($retPerm, RestController::HTTP_OK);
+                    $this->_ci->response($retPerm, RestController::HTTP_OK);
                 }
             } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
                 $message = [
                     "code" => 50014,
                     "message" => $e->getMessage()
                 ];
-                $this->CI->response($message, RestController::HTTP_UNAUTHORIZED);
+                $this->_ci->response($message, RestController::HTTP_UNAUTHORIZED);
             } catch (Exception $e) {  //其他错误
                 $message = [
                     "code" => 50015,
                     "message" => $e->getMessage()
                 ];
-                $this->CI->response($message, RestController::HTTP_UNAUTHORIZED);
+                $this->_ci->response($message, RestController::HTTP_UNAUTHORIZED);
             }
         }
     } // auth() end
