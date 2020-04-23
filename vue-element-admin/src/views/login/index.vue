@@ -60,6 +60,10 @@
         <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
           第三方登录
         </el-button>
+        <!-- 测试恢复数据库使用!!!慎用!!! -->
+        <!-- <el-button v-if="dbrestoreFlag" :loading="rloading" type="danger" @click="dbrestore">
+          恢复数据库
+        </el-button> -->
       </div>
     </el-form>
 
@@ -76,6 +80,7 @@
 <script>
 import { validUsername } from '@/utils/validate'
 import SocialSign from './components/SocialSignin'
+import { restoreDB } from '@/api/log'
 
 export default {
   name: 'Login',
@@ -109,7 +114,9 @@ export default {
       loading: false,
       showDialog: false,
       redirect: undefined,
-      otherQuery: {}
+      otherQuery: {},
+      dbrestoreFlag: false,
+      rloading: false
     }
   },
   watch: {
@@ -127,6 +134,9 @@ export default {
   created() {
     // window.addEventListener('storage', this.afterQRScan)
     this.LoginByThirdparty()
+    if (process.env.NODE_ENV === 'production') {
+      this.dbrestoreFlag = true
+    }
   },
   mounted() {
     if (this.loginForm.username === '') {
@@ -228,6 +238,19 @@ export default {
         }
         return acc
       }, {})
+    },
+    dbrestore() {
+      this.rloading = true
+      restoreDB().then(res => {
+        console.log('restoreDB', res)
+        this.$message({
+          message: res.message,
+          type: 'success'
+        })
+        this.rloading = false
+      }).catch(() => {
+        this.rloading = false
+      })
     }
     // afterQRScan() {
     //   if (e.key === 'x-admin-oauth-code') {

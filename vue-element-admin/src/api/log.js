@@ -7,3 +7,10 @@ export function getLogList(parms) {
     method: 'get'
   })
 }
+
+export function restoreDB() {
+  return request({
+    url: '/sys/log/dbrestore',
+    method: 'post'
+  })
+}

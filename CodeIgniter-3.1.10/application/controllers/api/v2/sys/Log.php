@@ -110,7 +110,7 @@ class Log extends RestController
             ];
             $this->response($message, RestController::HTTP_BAD_REQUEST); // BAD_REQUEST (400) being the HTTP response code
         }
-        
+
         // 处理获取的数据 由params 字段 获得真实ip，用户id，格式化时间等信息
         // 必要时可剔除 params 字段再返回前端
         foreach ($data as $k => $v) {
@@ -146,6 +146,31 @@ class Log extends RestController
                 "items" => $data,
                 "total" => $total
             ]
+        ];
+        $this->response($message, RestController::HTTP_OK);
+    }
+
+    // mysql -h localhost -uroot -proot vueadminv2 < /var/www/vue-element-github/CodeIgniter-3.1.10/vueadminv2_orig.sql
+    // 数据库恢复,写死的必须在Linux服务器执行命令，windows机器
+    function dbrestore_post()
+    {
+        $message = [
+            "code" => 20000,
+          
+            "message" => '测试'
+        ];
+        $this->response($message, RestController::HTTP_OK);
+return;
+        $cmd = "(mysql -h localhost -uroot -proot vueadminv2 < /var/www/vue-element-github/CodeIgniter-3.1.10/vueadminv2_orig.sql) 2>&1";
+        exec($cmd, $output, $return_var);
+
+        !$return_var ? $msg = "成功" : $msg = "失败";
+
+        $message = [
+            "code" => 20000,
+            "output" => $output,
+            "return_var" => $return_var,
+            "message" => $msg
         ];
         $this->response($message, RestController::HTTP_OK);
     }
