@@ -493,12 +493,18 @@ class Article extends RestController
         // bluem/tree 复杂强大，对象方式， chastephp/array2tree _简单方便_
         // https://github.com/BlueM/Tree
         // 数据库取出为string类型，强制类型转换成整形，方便前端使用 medoo使用 [Int] 强制转换
+        // medoo使用Data Mapping 自定义输出 字段格式 eg. 'meta'
         $menuArr = $this->Medoodb->select(
             "sys_menu",
             [
-                'id[Int]', 'pid[Int]', 'title',  'icon', 'path',
-                'component', 'type[Int]', 'redirect', 'hidden[Int]',
-                'status[Int]', 'condition', 'listorder[Int]', 'create_time', 'update_time'
+                'id[Int]', 'pid[Int]', 'name', 'path',  'component', 'type[Int]',
+                // 'title',  'icon',
+                // Customize output data construction - Data Mapping
+                'meta' => [
+                    'title',
+                    'icon'
+                ],
+                'redirect', 'hidden[Int]', 'status[Int]', 'condition', 'listorder[Int]', 'create_time', 'update_time'
             ]
         );
         // var_dump($menuArr); // var_dump可显示变量类型
@@ -508,6 +514,44 @@ class Article extends RestController
         );
         $asynRoute = $this->_dumpBlueMTreeNodes($tree->getRootNodes());
 
+        // var_dump($asynRoute);
+        $message = [
+            "code" => 20000,
+            "data" => $asynRoute
+        ];
+        $this->response($message, RestController::HTTP_OK);
+    }
+
+    // 遍历 BlueM\Tree 树对象，生成符合 vue-router 结构的路由树或菜单树
+    private function _dumpBlueMTreeNodes($node)
+    {
+        $tree = array();
+
+        foreach ($node as $k => $v) {
+            $valArr = $v->toArray();
+
+            unset($valArr['parent']); // BlueM\Tree 对象 多余可去除
+
+            // // 构造 vue-admin 路由结构 meta 可使用 medoo data Map 功能 直接构造完成 meta
+            // $valArr['meta'] = [
+            //     'title' => $valArr['title'],
+            //     'icon' => $valArr['icon']
+            // ];
+            // unset($valArr['title']);
+            // unset($valArr['icon']);
+
+            if ($v->hasChildren()) { // 存在 children 则构造 children key，否则不添加
+                $valArr['children'] = $this->_dumpBlueMTreeNodes($v->getChildren());
+            }
+
+            $tree[] = $valArr;     // 循环数组添加元素 属于同一层级
+        }
+
+        return $tree;
+    }
+
+    public function monolog_post()
+    {
         // Create the logger
         $logger = new Logger(basename(__FILE__)); // 以当前文件名作为 channel-name 可自定义用于过滤使用
         // Now add some handlers, eg. StreamHandler 用来保存日志到文件
@@ -538,36 +582,8 @@ class Article extends RestController
         // var_dump($asynRoute);
         $message = [
             "code" => 20000,
-            "data" => $asynRoute
+            "message" => 'monolog create success!!!'
         ];
         $this->response($message, RestController::HTTP_OK);
-    }
-
-    // 遍历 BlueM\Tree 树对象，生成符合 vue-router 结构的路由树或菜单树
-    function _dumpBlueMTreeNodes($node)
-    {
-        $tree = array();
-
-        foreach ($node as $k => $v) {
-            $valArr = $v->toArray();
-
-            unset($valArr['parent']); // BlueM\Tree 对象 多余去除
-
-            // 构造 vue-admin 路由结构 meta
-            $valArr['meta'] = [
-                'title' => $valArr['title'],
-                'icon' => $valArr['icon']
-            ];
-            unset($valArr['title']);
-            unset($valArr['icon']);
-
-            if ($v->hasChildren()) { // 存在 children 则构造 children key，否则不添加
-                $valArr['children'] = $this->_dumpBlueMTreeNodes($v->getChildren());
-            }
-
-            $tree[] = $valArr;     // 循环数组添加元素 属于同一层级
-        }
-
-        return $tree;
     }
 } // class Article end
