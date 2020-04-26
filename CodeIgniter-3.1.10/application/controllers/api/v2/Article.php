@@ -5,6 +5,9 @@ use chriskacerguis\RestServer\RestController;
 use Nette\Utils\Arrays;
 use Nette\Utils\Strings;
 
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+
 // Using Medoo namespace
 use Medoo\Medoo;
 
@@ -484,7 +487,7 @@ class Article extends RestController
         // print_r(array_diff($new, $old));
 
         // print_r($new);
-        
+
 
         // 菜单树生成
         // bluem/tree 复杂强大，对象方式， chastephp/array2tree _简单方便_
@@ -504,6 +507,34 @@ class Article extends RestController
             ['rootId' => 0, 'id' => 'id', 'parent' => 'pid']
         );
         $asynRoute = $this->_dumpBlueMTreeNodes($tree->getRootNodes());
+
+        // Create the logger
+        $logger = new Logger(basename(__FILE__)); // 以当前文件名作为 channel-name 可自定义用于过滤使用
+        // Now add some handlers, eg. StreamHandler 用来保存日志到文件
+        $logger->pushHandler(new StreamHandler(APPPATH . 'logs/monolog.log', Logger::DEBUG));
+
+        // You can now use your logger
+        // 第一个参数 ，第二个参数(array), 额外数据 => 需要使用 pushProcessor 来处理
+        $logger->info('Adding a new user');
+
+        $logger->error('delete roles failed Array', [
+            'failedArr' => [
+                ['role_id' => 1, 'perm_id' => 2],
+                ['role_id' => 1, 'perm_id' => 3]
+            ],
+            'uri' => uri_string() . '/' . Strings::lower($_SERVER['REQUEST_METHOD'])
+        ]);
+
+        // 附加额外数据
+        $logger->pushProcessor(function ($entry) {
+            $entry['extra']['data'] = 'Hello world!';
+            return $entry;
+        });
+        $logger->warning('User registered', ['username' => 'pocoyo']);
+        // [2020-04-26T15:25:11.655317+08:00] Article.php.INFO: Adding a new user [] []
+        // [2020-04-26T15:25:11.656317+08:00] Article.php.ERROR: delete roles failed Array {"failed":[{"role_id":1,"perm_id":2},{"role_id":1,"perm_id":3}],"uri":"api/v2/article/arraydiff/post"} []
+        // [2020-04-26T15:25:11.657317+08:00] Article.php.WARNING: User registered {"username":"pocoyo"} {"data":"Hello world!"}
+
         // var_dump($asynRoute);
         $message = [
             "code" => 20000,
@@ -539,5 +570,4 @@ class Article extends RestController
 
         return $tree;
     }
-    
 } // class Article end
