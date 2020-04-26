@@ -463,4 +463,81 @@ class Article extends RestController
             $this->response($message, RestController::HTTP_OK);
         }
     }
+
+    public function arraydiff_post()
+    {
+        // permission->array_diff_assoc2 _权限设计时使用了二维数组 其实可以前后端均使用一维即可，比较起来比较方便 且使用php原生array_diff即可完成_
+        // [
+        //  ['role_id'=> 1, 'perm_id'=>1]，
+        //  ['role_id'=> 1, 'perm_id'=>2]，
+        // ]
+        // charliekassel/array-diff 测试 一维数组必须带key比较 比较局限
+
+        $old = [1, 2, 3];
+
+        $new = $this->Medoodb->select(
+            "sys_role_perm",
+            "perm_id",
+            ["role_id" => 2]
+        );
+        // print_r(array_diff($old, $new));
+        // print_r(array_diff($new, $old));
+
+        // print_r($new);
+        
+
+        // 菜单树生成
+        // bluem/tree 复杂强大，对象方式， chastephp/array2tree _简单方便_
+        // https://github.com/BlueM/Tree
+        // 数据库取出为string类型，强制类型转换成整形，方便前端使用 medoo使用 [Int] 强制转换
+        $menuArr = $this->Medoodb->select(
+            "sys_menu",
+            [
+                'id[Int]', 'pid[Int]', 'title',  'icon', 'path',
+                'component', 'type[Int]', 'redirect', 'hidden[Int]',
+                'status[Int]', 'condition', 'listorder[Int]', 'create_time', 'update_time'
+            ]
+        );
+        // var_dump($menuArr); // var_dump可显示变量类型
+        $tree = new BlueM\Tree(
+            $menuArr,
+            ['rootId' => 0, 'id' => 'id', 'parent' => 'pid']
+        );
+        $asynRoute = $this->_dumpBlueMTreeNodes($tree->getRootNodes());
+        // var_dump($asynRoute);
+        $message = [
+            "code" => 20000,
+            "data" => $asynRoute
+        ];
+        $this->response($message, RestController::HTTP_OK);
+    }
+
+    // 遍历 BlueM\Tree 树对象，生成符合 vue-router 结构的路由树或菜单树
+    function _dumpBlueMTreeNodes($node)
+    {
+        $tree = array();
+
+        foreach ($node as $k => $v) {
+            $valArr = $v->toArray();
+
+            unset($valArr['parent']); // BlueM\Tree 对象 多余去除
+
+            // 构造 vue-admin 路由结构 meta
+            $valArr['meta'] = [
+                'title' => $valArr['title'],
+                'icon' => $valArr['icon']
+            ];
+            unset($valArr['title']);
+            unset($valArr['icon']);
+
+            if ($v->hasChildren()) { // 存在 children 则构造 children key，否则不添加
+                $valArr['children'] = $this->_dumpBlueMTreeNodes($v->getChildren());
+            }
+
+            $tree[] = $valArr;     // 循环数组添加元素 属于同一层级
+        }
+
+        return $tree;
+    }
+    
 } // class Article end
