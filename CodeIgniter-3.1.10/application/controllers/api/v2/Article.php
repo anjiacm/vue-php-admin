@@ -8,6 +8,9 @@ use Nette\Utils\Strings;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
+use Respect\Validation\Validator as v;
+use Respect\Validation\Exceptions\ValidationException;
+
 // Using Medoo namespace
 use Medoo\Medoo;
 
@@ -583,6 +586,52 @@ class Article extends RestController
         $message = [
             "code" => 20000,
             "message" => 'monolog create success!!!'
+        ];
+        $this->response($message, RestController::HTTP_OK);
+    }
+
+    // respect/validation 校验测试
+    public function validation_post()
+    {
+
+        try {
+            // 使用check 来捕获异常信息
+            // $usernameValidator->check('alganetgagag11111');
+            v::keySet(
+                // key 3 params false 非必须字段
+                v::key('name', v::notEmpty()->alnum('# %')->noWhitespace()->lowercase()->length(5, 30), false), //  alnum Validates alphanumeric characters from a-Z and 0-9. 可额外包含 # % 字符
+                v::key('id', v::intVal()->notEmpty()->between(10, 100)), // 必须带有 id参数 且参数为整数并且在10,100之间 [10,100]
+                // 在某个取值区间内
+                v::key('method', v::in(['GET', 'POST',])),
+                // age校验
+                v::key('age', v::intVal()->between(10, 80)),
+                v::key('list', v::arrayType()->notEmpty(), false),
+
+                // 测试可用至少8位 大小写，数字，指定特殊字符 @$!%*?& 均至少一位
+                v::key('password', v::regex('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')),
+                // v::key('password', v::regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/')),
+
+                v::key('password_confirmation', v::equals($this->post('password'))),
+
+                // email校验
+                v::key('email', v::email()),
+                // ip地址或者domain 嵌套oneOf
+                v::key('host', v::oneOf(
+                    v::ip(),
+                    v::domain()
+                ))
+            )->check($this->post());
+        } catch (ValidationException $e) {
+            $message = [
+                "code" => 20000,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        $message = [
+            "code" => 20000,
+            "message" => '校验无异常'
         ];
         $this->response($message, RestController::HTTP_OK);
     }
