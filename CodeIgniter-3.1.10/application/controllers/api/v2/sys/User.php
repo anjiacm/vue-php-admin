@@ -1347,7 +1347,7 @@ class User extends RestController
                 v::key('username', v::notEmpty()),
                 v::key('password_orig', v::notEmpty()),
                 v::key('password', v::regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\S]{8,}$/')),
-                v::key('password_confirmation', v::notEmpty()),
+                v::key('password_confirmation', v::notEmpty())
             )->check($parms);
             v::keyValue('password_confirmation', 'equals', 'password')->check($parms);
         } catch (ValidationException $e) {
@@ -1378,7 +1378,7 @@ class User extends RestController
         }
 
         // 更新密码
-        $has = $this->Medoodb->update(
+        $this->Medoodb->update(
             'sys_user',
             ['password' => md5($parms['password'])],
             ['username' => $parms['username']]
