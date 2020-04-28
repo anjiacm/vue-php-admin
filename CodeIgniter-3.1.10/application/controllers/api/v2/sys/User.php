@@ -1352,7 +1352,7 @@ class User extends RestController
             v::keyValue('password_confirmation', 'equals', 'password')->check($parms);
         } catch (ValidationException $e) {
             $message = [
-                "code" => 20000,
+                "code" => 20400,
                 "type" => 'error',
                 "message" => $e->getMessage()
             ];

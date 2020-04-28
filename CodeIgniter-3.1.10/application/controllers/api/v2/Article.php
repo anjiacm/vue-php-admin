@@ -668,8 +668,26 @@ class Article extends RestController
             $this->response($message, RestController::HTTP_OK);
         }
 
+        // 校验 email 与 username 名， 存在则继续
+        $has = $this->Medoodb->has(
+            'sys_user',
+            [
+                'username' => $parms['name'],
+                'email' =>    $parms['email']
+            ]
+        );
+
+        if (!$has) {
+            $message = [
+                "code" => 20400,
+                "type" => 'error',
+                "message" => 'username/email不正确'
+            ];
+            $this->response($message, RestController::HTTP_OK); // BAD_REQUEST (400) being the HTTP response code
+        }
+
         // 生成随机密码 md5 后, 根据 email 更新入库
-        $new_passwd = Random::generate(12, '0-9a-zA-Z!@#$%^&*');      
+        $new_passwd = Random::generate(12, '0-9a-zA-Z!@#$%^&*');
         // $this->Medoodb->update(
         //     'sys_user',
         //     ['password' => md5($parms['new_passwd'])],
