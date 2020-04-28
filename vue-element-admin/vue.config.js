@@ -80,11 +80,12 @@ module.exports = {
       })
       .end()
 
-    config
-      // https://webpack.js.org/configuration/devtool/#development
-      .when(process.env.NODE_ENV === 'development',
-        config => config.devtool('cheap-source-map')
-      )
+    // fix: use vue-cli default source-map (#3097)  Apr 22, 2020
+    // config
+    //   // https://webpack.js.org/configuration/devtool/#development
+    //   .when(process.env.NODE_ENV === 'development',
+    //     config => config.devtool('cheap-source-map')
+    //   )
 
     config
       .when(process.env.NODE_ENV !== 'development',
