@@ -5,6 +5,9 @@ use \Firebase\JWT\JWT;
 use chriskacerguis\RestServer\RestController;
 use Nette\Utils\Arrays;
 use Nette\Utils\Strings;
+use Respect\Validation\Validator as v;
+use Respect\Validation\Exceptions\ValidationException;
+
 // Using Medoo namespace
 use Medoo\Medoo;
 
@@ -29,6 +32,12 @@ class User extends RestController
 
         if (array_key_exists('password', $this->_args)) {
             $this->_args['password'] = md5($this->_args['password']); // 明文密码加密处理, 在原有的功能基础上多加一点功能
+        }
+        if (array_key_exists('password_orig', $this->_args)) {
+            $this->_args['password_orig'] = md5($this->_args['password_orig']); // 明文密码加密处理, 在原有的功能基础上多加一点功能
+        }
+        if (array_key_exists('password_confirmation', $this->_args)) {
+            $this->_args['password_confirmation'] = md5($this->_args['password_confirmation']); // 明文密码加密处理, 在原有的功能基础上多加一点功能
         }
     }
 
@@ -350,7 +359,7 @@ class User extends RestController
             ];
             $this->response($message, RestController::HTTP_UNAUTHORIZED);
         }
-        
+
         $DeptArr = $this->User_model->getDeptOptions($jwt_object->user_id);
         // string to boolean / number
         foreach ($DeptArr as $k => $v) {
@@ -1325,5 +1334,70 @@ class User extends RestController
 
             $this->response($message, RestController::HTTP_OK);
         }
+    }
+
+    // 更新密码
+    function password_put()
+    {
+        $parms = $this->put();
+        // 参数检验/数据预处理
+        try {
+            // 使用check 来捕获异常信息 https://respect-validation.readthedocs.io/en/2.0/rules/AnyOf/
+            v::keySet(
+                v::key('username', v::notEmpty()),
+                v::key('password_orig', v::notEmpty()),
+                v::key('password', v::regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\S]{8,}$/')),
+                v::key('password_confirmation', v::notEmpty()),
+            )->check($parms);
+            v::keyValue('password_confirmation', 'equals', 'password')->check($parms);
+        } catch (ValidationException $e) {
+            $message = [
+                "code" => 20000,
+                "type" => 'error',
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        // 原密码校验
+        $has = $this->Medoodb->has(
+            'sys_user',
+            [
+                'username' => $parms['username'],
+                'password' =>    md5($parms['password_orig'])
+            ]
+        );
+
+        if (!$has) {
+            $message = [
+                "code" => 20400,
+                "type" => 'error',
+                "message" => '原密码不正确'
+            ];
+            $this->response($message, RestController::HTTP_OK); // BAD_REQUEST (400) being the HTTP response code
+        }
+
+        // 更新密码
+        $has = $this->Medoodb->update(
+            'sys_user',
+            ['password' => md5($parms['password'])],
+            ['username' => $parms['username']]
+        );
+        // 捕获错误信息
+        $err = $this->Medoodb->error();
+        if ($err[1]) { // 如果出错 否则为空
+            $message = [
+                "code" => 20400,
+                "data" => $err[2]
+            ];
+            $this->response($message, RestController::HTTP_BAD_REQUEST); // BAD_REQUEST (400) being the HTTP response code
+        }
+
+        $message = [
+            "code" => 20000,
+            "type" => 'success',
+            "message" => '更新成功'
+        ];
+        $this->response($message, RestController::HTTP_OK);
     }
 }

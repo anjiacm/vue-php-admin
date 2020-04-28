@@ -544,6 +544,7 @@ $config['jwt_white_list'] = [
     '/sys/user/list/get',
     '/sys/user/getroleoptions/get',
     '/sys/user/getdeptoptions/get',
+    '/sys/user/password/put',
     '/sys/role/allroles/get',
     '/sys/role/allmenus/get',
     '/sys/role/alldepts/get',

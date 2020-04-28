@@ -116,7 +116,7 @@ const actions = {
           reject('Verification failed, please login again.')
         }
 
-        const { roles, name, avatar, introduction, phone, identify, ctrlperm } = data
+        const { roles, username, avatar, introduction, phone, identify, ctrlperm } = data
 
         // console.log('GetUserInfo', roles, name, avatar)
 
@@ -126,7 +126,7 @@ const actions = {
         }
 
         commit('SET_ROLES', roles)
-        commit('SET_NAME', name)
+        commit('SET_NAME', username)
         commit('SET_AVATAR', avatar)
         commit('SET_INTRODUCTION', introduction)
         commit('SET_PHONE', phone)

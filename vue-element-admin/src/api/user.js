@@ -49,3 +49,12 @@ export function getDeptOptions(form) {
     method: 'get'
   })
 }
+
+// 更新密码
+export function updatePassword(form) {
+  return request({
+    url: '/sys/user/password',
+    method: 'put',
+    data: form
+  })
+}
