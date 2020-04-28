@@ -595,11 +595,11 @@ class Article extends RestController
     {
 
         try {
-            // 使用check 来捕获异常信息
+            // 使用check 来捕获异常信息 https://respect-validation.readthedocs.io/en/2.0/rules/AnyOf/
             // $usernameValidator->check('alganetgagag11111');
             v::keySet(
                 // key 3 params false 非必须字段
-                v::key('name', v::notEmpty()->alnum('# %')->noWhitespace()->lowercase()->length(5, 30), false), //  alnum Validates alphanumeric characters from a-Z and 0-9. 可额外包含 # % 字符
+                v::key('name', v::notEmpty()->alnum('#','%')->noWhitespace()->lowercase()->length(5, 30), false), //  alnum Validates alphanumeric characters from a-Z and 0-9. 可额外包含 # % 字符
                 v::key('id', v::intVal()->notEmpty()->between(10, 100)), // 必须带有 id参数 且参数为整数并且在10,100之间 [10,100]
                 // 在某个取值区间内
                 v::key('method', v::in(['GET', 'POST',])),
@@ -608,10 +608,11 @@ class Article extends RestController
                 v::key('list', v::arrayType()->notEmpty(), false),
 
                 // 测试可用至少8位 大小写，数字，指定特殊字符 @$!%*?& 均至少一位
-                v::key('password', v::regex('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')),
-                // v::key('password', v::regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/')),
-
-                v::key('password_confirmation', v::equals($this->post('password'))),
+                // v::key('password', v::regex('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')),
+                // 至少8位，必含有大小写，数字， 同时可包含非空白字符 \S
+                v::key('password', v::regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\S]{8,}$/')),
+                
+                v::key('password_confirmation', v::notEmpty(), false),
 
                 // email校验
                 v::key('email', v::email()),
@@ -621,6 +622,12 @@ class Article extends RestController
                     v::domain()
                 ))
             )->check($this->post());
+
+            // 修改密码时检验密码强度与一致性
+            // v::regex('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')->check($this->post()['password']);       
+            // keyValue不能在 keySet 里使用因此需要分开来进行校验
+            v::keyValue('password_confirmation', 'equals', 'password')->check($this->post());
+
         } catch (ValidationException $e) {
             $message = [
                 "code" => 20000,
