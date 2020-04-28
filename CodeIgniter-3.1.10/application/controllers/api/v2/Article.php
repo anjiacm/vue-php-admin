@@ -4,12 +4,17 @@ defined('BASEPATH') or exit('No direct script access allowed');
 use chriskacerguis\RestServer\RestController;
 use Nette\Utils\Arrays;
 use Nette\Utils\Strings;
+use Nette\Utils\Random;
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
 use Respect\Validation\Validator as v;
 use Respect\Validation\Exceptions\ValidationException;
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
 
 // Using Medoo namespace
 use Medoo\Medoo;
@@ -599,7 +604,7 @@ class Article extends RestController
             // $usernameValidator->check('alganetgagag11111');
             v::keySet(
                 // key 3 params false 非必须字段
-                v::key('name', v::notEmpty()->alnum('#','%')->noWhitespace()->lowercase()->length(5, 30), false), //  alnum Validates alphanumeric characters from a-Z and 0-9. 可额外包含 # % 字符
+                v::key('name', v::notEmpty()->alnum('#', '%')->noWhitespace()->lowercase()->length(5, 30), false), //  alnum Validates alphanumeric characters from a-Z and 0-9. 可额外包含 # % 字符
                 v::key('id', v::intVal()->notEmpty()->between(10, 100)), // 必须带有 id参数 且参数为整数并且在10,100之间 [10,100]
                 // 在某个取值区间内
                 v::key('method', v::in(['GET', 'POST',])),
@@ -611,7 +616,7 @@ class Article extends RestController
                 // v::key('password', v::regex('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')),
                 // 至少8位，必含有大小写，数字， 同时可包含非空白字符 \S
                 v::key('password', v::regex('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\S]{8,}$/')),
-                
+
                 v::key('password_confirmation', v::notEmpty(), false),
 
                 // email校验
@@ -627,7 +632,6 @@ class Article extends RestController
             // v::regex('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')->check($this->post()['password']);       
             // keyValue不能在 keySet 里使用因此需要分开来进行校验
             v::keyValue('password_confirmation', 'equals', 'password')->check($this->post());
-
         } catch (ValidationException $e) {
             $message = [
                 "code" => 20000,
@@ -641,5 +645,71 @@ class Article extends RestController
             "message" => '校验无异常'
         ];
         $this->response($message, RestController::HTTP_OK);
+    }
+
+    // phpmailer/phpmailer 测试
+    public function phpmailer_post()
+    {
+        $parms = $this->post();
+        try {
+            // 使用check 来捕获异常信息 https://respect-validation.readthedocs.io/en/2.0/rules/AnyOf/
+            v::keySet(
+                // key 3 params false 非必须字段
+                v::key('name', v::notEmpty()), //  alnum Validates alphanumeric characters from a-Z and 0-9. 可额外包含 # % 字符
+                // email校验
+                v::key('email', v::email()),
+
+            )->check($parms);
+        } catch (ValidationException $e) {
+            $message = [
+                "code" => 20000,
+                "message" => $e->getMessage()
+            ];
+            $this->response($message, RestController::HTTP_OK);
+        }
+
+        // 生成随机密码 md5 后, 根据 email 更新入库
+        $new_passwd = Random::generate(12, '0-9a-zA-Z!@#$%^&*');      
+        // $this->Medoodb->update(
+        //     'sys_user',
+        //     ['password' => md5($parms['new_passwd'])],
+        //     ['username' => $parms['name']]
+        // );
+
+        // Instantiation and passing `true` enables exceptions
+        $mail = new PHPMailer(true);
+
+        try {
+            //Server settings
+            // $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      // Enable verbose debug output
+            $mail->isSMTP();                                            // Send using SMTP
+            $mail->Host       = 'smtp.163.com';                    // Set the SMTP server to send through
+            $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+            $mail->Username   = 'ctthawg@163.com';                     // SMTP username
+            $mail->Password   = 'secret';                               // SMTP password
+            // $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+            $mail->Port       = 25;                                    // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+            //Recipients
+            $mail->setFrom('ctthawg@163.com', 'Vue-PHP-Admin');
+            // $mail->addAddress('joe@example.net', 'Joe User');     // Add a recipient
+            $mail->addAddress($parms['email']);               // Name is optional
+            // $mail->addReplyTo('info@example.com', 'Information');
+            // $mail->addCC('cc@example.com');
+            // $mail->addBCC('bcc@example.com');
+
+            // Content
+            $mail->isHTML(true);                                  // Set email format to HTML
+            $mail->Subject = '找回密码';
+
+            $mail->Body    = '用户名: ' .  $parms['name'] .  '<br>密码: ' . $new_passwd;
+
+            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+
+            $mail->send();
+            echo 'Message has been sent';
+        } catch (Exception $e) {
+            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+        }
     }
 } // class Article end

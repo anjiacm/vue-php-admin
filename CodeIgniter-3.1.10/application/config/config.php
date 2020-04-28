@@ -559,6 +559,7 @@ $config['jwt_white_list'] = [
     '/example/users/get',
     '/example/users/post',
     '/example/users/delete',
+
     '/article/articles/get', // 测试api接口不认证 http://www.cirest.com:8890/api/v2/article/articles     uri_string => api/v2/article/articles
     '/article/articles/post',
     '/article/articles/put',
@@ -566,7 +567,9 @@ $config['jwt_white_list'] = [
     '/article/upload/post',
     '/article/arraydiff/post',
     '/article/monolog/post',
-    '/article/validation/post',  
+    '/article/validation/post',
+    '/article/phpmailer/post',
+
     '/uploadimg/goods/get',
     '/uploadimg/upload/post',
     '/sys/user/testapi/get', // 测试api接口不认证 http://cirest.com:8890/api/v2/sys/user/testapi         uri_string => api/v2/sys/user/testapi

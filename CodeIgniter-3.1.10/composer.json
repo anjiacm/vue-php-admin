@@ -21,7 +21,8 @@
 		"phpoffice/phpspreadsheet": "^1.11",
 		"bluem/tree": "^3.1",
 		"monolog/monolog": "^2.0",
-		"respect/validation": "^2.0"
+		"respect/validation": "^2.0",
+		"phpmailer/phpmailer": "^6.1"
 	},
 	"suggest": {
 		"paragonie/random_compat": "Provides better randomness in PHP 5.x"
