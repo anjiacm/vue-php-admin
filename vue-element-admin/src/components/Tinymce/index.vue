@@ -149,9 +149,9 @@ export default {
           })
         },
         // perf[Tinymce]: editor try to keep these URLs intact (#3141) Commits on Apr 28, 2020
-        //it will try to keep these URLs intact
-        //https://www.tiny.cloud/docs-3x/reference/configuration/Configuration3x@convert_urls/
-        //https://stackoverflow.com/questions/5196205/disable-tinymce-absolute-to-relative-url-conversions
+        // it will try to keep these URLs intact
+        // https://www.tiny.cloud/docs-3x/reference/configuration/Configuration3x@convert_urls/
+        // https://stackoverflow.com/questions/5196205/disable-tinymce-absolute-to-relative-url-conversions
         convert_urls: false
         // 整合七牛上传
         // images_dataimg_filter(img) {
