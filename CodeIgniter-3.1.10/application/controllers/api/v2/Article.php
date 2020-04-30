@@ -29,11 +29,31 @@ use GuzzleHttp\Client;
 use Activiti\Client\Model\Group\GroupQuery;
 use Activiti\Client\Exception as ActivitiException; // 解决与 PHPMailer\PHPMailer\Exception 同名冲突
 
+use Activiti\Client\Service\DeploymentService;
+use Activiti\Client\Service\GroupService;
+use Activiti\Client\Service\HistoryService;
+use Activiti\Client\Service\ManagementService;
+use Activiti\Client\Service\ProcessDefinitionService;
+use Activiti\Client\Service\ProcessInstanceService;
+use Activiti\Client\Service\TaskService;
+use Activiti\Client\Service\UserService;
+
+
+use Activiti\Client\Model\Deployment\Deployment;
+use Activiti\Client\Model\Deployment\DeploymentList;
+use Activiti\Client\Model\Deployment\DeploymentQuery;
+
+use Activiti\Client\Model\ProcessDefinition\ProcessDefinition;
+use Activiti\Client\Model\ProcessDefinition\ProcessDefinitionList;
+use Activiti\Client\Model\ProcessDefinition\ProcessDefinitionQuery;
+
 use Activiti\Client\Model\ProcessInstance\ProcessInstanceCreate;
 use Activiti\Client\Model\ProcessInstance\ProcessInstanceQuery;
+use Activiti\Client\Model\VariableCreate;
+use Activiti\Client\Model\VariableUpdate;
+
 // use Activiti\Client\Model\VariableCreate;
 // use Activiti\Client\Model\VariableUpdate;
-use Activiti\Client\Service\ProcessInstanceService;
 
 class Article extends RestController
 {
@@ -756,43 +776,45 @@ class Article extends RestController
             ],
         ]);
 
-        $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
-        $service = $serviceFactory->createUserService();
+        // // 用户 list
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // $service = $serviceFactory->createUserService();
 
-        $query = new UserQuery();
-        $query->setSize(10); // 设置分页 setSize setStart
+        // $query = new UserQuery();
+        // $query->setSize(10); // 设置分页 setSize setStart
 
-        do {
-            $users = $service->getUsersList($query);
+        // do {
+        //     $users = $service->getUsersList($query);
 
-            foreach ($users as $i => $user) {
-                vprintf("%d. %s %s (%s) <%s>\n", [
-                    $query->getStart() + $i + 1,
-                    $user->getFirstName(),
-                    $user->getLastName(),
-                    $user->getId(),
-                    $user->getEmail(),
-                ]);
-            }
+        //     foreach ($users as $i => $user) {
+        //         vprintf("%d. %s %s (%s) <%s>\n", [
+        //             $query->getStart() + $i + 1,
+        //             $user->getFirstName(),
+        //             $user->getLastName(),
+        //             $user->getId(),
+        //             $user->getEmail(),
+        //         ]);
+        //     }
 
-            $query->setStart($query->getStart() + $query->getSize());
-        } while ($users->getTotal() > $query->getStart());
+        //     $query->setStart($query->getStart() + $query->getSize());
+        // } while ($users->getTotal() > $query->getStart());
 
-        $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
-        $service = $serviceFactory->createGroupService();
+        // // 组 list
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // $service = $serviceFactory->createGroupService();
 
-        $query = new GroupQuery();
-        $query->setSize(5); // 分页 setSize setStart
+        // $query = new GroupQuery();
+        // $query->setSize(5); // 分页 setSize setStart
 
-        do {
-            $groups = $service->getGroupList($query);
-            foreach ($groups as $i => $group) {
-                printf("%s (%s)\n", $group->getName(), $group->getType());
-            }
+        // do {
+        //     $groups = $service->getGroupList($query);
+        //     foreach ($groups as $i => $group) {
+        //         printf("%s (%s)\n", $group->getName(), $group->getType());
+        //     }
 
-            $query->setStart($query->getStart() + $query->getSize());
-            var_dump($query->getStart());
-        } while ($groups->getTotal() > $query->getStart());
+        //     $query->setStart($query->getStart() + $query->getSize());
+        //     var_dump($query->getStart());
+        // } while ($groups->getTotal() > $query->getStart());
 
         // // 创建group
         // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
@@ -878,16 +900,98 @@ class Article extends RestController
         //     var_dump($e->getMessage());
         // }
 
+
+        $client = new Client([
+            'base_uri' => 'http://localhost:8080/activiti-rest/service/',
+            'auth' => [
+                'lily', 'lily',
+            ],
+        ]);
+
+
+        // // getDeploymentList()
         // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
-        // $processInstanceId = 5120;
+        // $deployment = $serviceFactory->createDeploymentService()->getDeploymentList();
+        // var_dump($deployment->getTotal());
+        // var_dump($deployment->getIterator()[5]->getId()); // 5189
+        // var_dump($deployment->getIterator()[5]->getName());
+        // var_dump($deployment->getIterator()[5]->getUrl());
+        // // var_dump($deployment->getIterator()[5]);
 
-        // $processInstance = $serviceFactory->ProcessInstanceService->createClient(new Response(200, [], $expected));
-        // $actual = $this
-        //     ->createProcessInstanceService($client)
-        //     ->getDiagram($processInstanceId);
+        // // getDeployment($id)
+        // $deployment = $serviceFactory->createDeploymentService()->getDeployment(5189);
+        // var_dump($deployment->getId());
+        // var_dump($deployment->getName());
+        // var_dump($deployment->getUrl());
 
-        // $this->assertRequestMethod('GET');
-        // $this->assertRequestUri('runtime/process-instances/' . $processInstanceId . '/diagram');
-        // $this->assertEquals($expected, $actual);
+
+        // // getProcessDefinitionList
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // $processDefinitions = $serviceFactory->createProcessDefinitionService()->getProcessDefinitionList(new ProcessDefinitionQuery());
+
+        // var_dump($processDefinitions->getTotal()); // class ProcessDefinitionList extends AbstractList
+        // // var_dump($processDefinitions->getIterator());
+        // var_dump($processDefinitions->getIterator()[7]->getId()); // leave_model_key:2:5078
+        // var_dump($processDefinitions->getIterator()[7]->getName());
+        // var_dump($processDefinitions->getIterator()[7]->getUrl());
+        // // var_dump($processDefinitions->getIterator()[7]);
+        // // string(22) "leave_model_key:2:5078"
+        // // string(16) "请假Model_name"
+
+        // // getProcessDefinition($id)
+        // $processDefinitions = $serviceFactory->createProcessDefinitionService()->getProcessDefinition('leave_model_key:2:5078');
+        // var_dump($processDefinitions->getId());
+        // var_dump($processDefinitions->getName());
+        // var_dump($processDefinitions->getUrl());
+
+        // // getResourceData($id)
+        // $processDefinitions = $serviceFactory->createProcessDefinitionService()->getResourceData('leave_model_key:2:5078');
+        // var_dump($processDefinitions);
+
+
+
+        // getProcessInstanceList
+        $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+
+        // $query = new ProcessInstanceQuery();
+        // $processInstanceList = $serviceFactory->createProcessInstanceService()->getProcessInstanceList($query);
+        // var_dump($processInstanceList->getTotal());
+        // // var_dump($processInstanceList->getIterator());
+        // var_dump($processInstanceList->getIterator()[0]->getId()); // 5127
+        // var_dump($processInstanceList->getIterator()[0]->getUrl());
+
+        // // getProcessInstance($id)
+        // $processInstanceList = $serviceFactory->createProcessInstanceService()->getProcessInstance(5127);
+        // var_dump($processInstanceList);
+        // var_dump($processInstanceList->getId());
+        // var_dump($processInstanceList->getUrl());
+
+        // // getDiagram($id)
+        // $processInstanceList = $serviceFactory->createProcessInstanceService()->getDiagram(5127); // 生成二进制流图片 可显示流程进度
+        // var_dump($processInstanceList);
+
+        // start Process
+        $data = new ProcessInstanceCreate();
+        $data->setProcessDefinitionId('leave_model_key:2:5078');
+        $data->setBusinessKey(null);
+        $data->setVariables([
+            new VariableCreate('myVar', 'string', 'This is a variable')
+            // new VariableCreate('intProcVar', 'integer', 123)
+            // new VariableCreate('intProcVar', 'string', 123)
+        ]);
+
+        $data->setProcessDefinitionKey(null);
+        $data->setMessage(null);
+        $data->setTenantId(null);
+
+        $processInstanceList = $serviceFactory->createProcessInstanceService()->start($data);
+        var_dump($processInstanceList);
+
+
+        // http://localhost:8080/activiti-app/app/rest/task-forms/5133
+        // formId: "61472991-8aa2-11ea-9653-902b343724bb"
+        // values: {开始日期: "2020-03-31", 结束日期: "2020-04-30", 原因描述: "aaaa"}
+
+
     }
 } // class Article end
