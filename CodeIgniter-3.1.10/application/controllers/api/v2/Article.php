@@ -19,6 +19,22 @@ use PHPMailer\PHPMailer\Exception;
 // Using Medoo namespace
 use Medoo\Medoo;
 
+use Activiti\Client\ModelFactory;
+use Activiti\Client\ObjectSerializer;
+use Activiti\Client\ServiceFactory;
+use Activiti\Client\Model\User\UserQuery;
+use Activiti\Client\Model\User\UserCreate;
+use Activiti\Client\Model\User\UserUpdate;
+use GuzzleHttp\Client;
+use Activiti\Client\Model\Group\GroupQuery;
+use Activiti\Client\Exception as ActivitiException; // 解决与 PHPMailer\PHPMailer\Exception 同名冲突
+
+use Activiti\Client\Model\ProcessInstance\ProcessInstanceCreate;
+use Activiti\Client\Model\ProcessInstance\ProcessInstanceQuery;
+// use Activiti\Client\Model\VariableCreate;
+// use Activiti\Client\Model\VariableUpdate;
+use Activiti\Client\Service\ProcessInstanceService;
+
 class Article extends RestController
 {
     private $Medoodb;
@@ -704,7 +720,7 @@ class Article extends RestController
             $mail->Host       = 'smtp.163.com';                    // Set the SMTP server to send through
             $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
             $mail->Username   = 'ctthawg@163.com';                     // SMTP username
-            $mail->Password   = 'secret';                               // SMTP password
+            $mail->Password   = 'ctthawg1';                               // SMTP password
             // $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
             $mail->Port       = 25;                                    // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
 
@@ -729,5 +745,149 @@ class Article extends RestController
         } catch (Exception $e) {
             echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
         }
+    }
+
+    public function activiti_post()
+    {
+        $client = new Client([
+            'base_uri' => 'http://localhost:8080/activiti-rest/service/',
+            'auth' => [
+                'admin', 'test',
+            ],
+        ]);
+
+        $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        $service = $serviceFactory->createUserService();
+
+        $query = new UserQuery();
+        $query->setSize(10); // 设置分页 setSize setStart
+
+        do {
+            $users = $service->getUsersList($query);
+
+            foreach ($users as $i => $user) {
+                vprintf("%d. %s %s (%s) <%s>\n", [
+                    $query->getStart() + $i + 1,
+                    $user->getFirstName(),
+                    $user->getLastName(),
+                    $user->getId(),
+                    $user->getEmail(),
+                ]);
+            }
+
+            $query->setStart($query->getStart() + $query->getSize());
+        } while ($users->getTotal() > $query->getStart());
+
+        $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        $service = $serviceFactory->createGroupService();
+
+        $query = new GroupQuery();
+        $query->setSize(5); // 分页 setSize setStart
+
+        do {
+            $groups = $service->getGroupList($query);
+            foreach ($groups as $i => $group) {
+                printf("%s (%s)\n", $group->getName(), $group->getType());
+            }
+
+            $query->setStart($query->getStart() + $query->getSize());
+            var_dump($query->getStart());
+        } while ($groups->getTotal() > $query->getStart());
+
+        // // 创建group
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $group = $serviceFactory->createGroupService()->createGroup('Group A', 'Group a', 'group-a'); //  ID_, Name_, TYPE_
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // // 删除group
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $group = $serviceFactory->createGroupService()->deleteGroup('Group A'); //  ID_, Name_, TYPE_
+        //     var_dump('删除group success!');
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // // 更新group
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $group = $serviceFactory->createGroupService()->updateGroup('Group A', 'new GroupName', 'New Type'); //  ID_, Name_, TYPE_
+        //     var_dump('更新group success!');
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // // 创建 user
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $data = new UserCreate();
+        //     $data->setId('testuser');
+        //     $data->setFirstName('testName');
+        //     // $data->setLastName('McDonald');
+        //     $data->setEmail('no-reply@activiti.org'); // 必须配置邮箱 否则 activiti-app 不能登录成功
+        //     $data->setPassword('testuser');
+
+        //     $user = $serviceFactory->createUserService()->createUser($data);
+        //     var_dump('创建 用户成功');
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // // 删除 user
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $user = $serviceFactory->createUserService()->deleteUser('testuser');
+        //     var_dump('删除用户成功');
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // // 更新 user
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $data = new UserUpdate();
+        //     $data->setFirstName('testName');
+        //     // $data->setLastName('McDonald');
+        //     // $data->setEmail('no-reply@activiti.org');
+        //     $data->setPassword('testuser');
+        //     $group = $serviceFactory->createUserService()->updateUser('testuser', $data);
+
+        //     var_dump('更新group success!');
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // // 添加 group memmber addMember 
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $group = $serviceFactory->createGroupService()->addMember('user','testuser');
+        //     var_dump('addMember success');
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // // 删除 group memmber deleteMember => act_id_membership
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // try {
+        //     $group = $serviceFactory->createGroupService()->deleteMember('user','testuser');
+        //     var_dump('deleteMember success');
+        // } catch (ActivitiException\ActivitiException $e) {
+        //     var_dump($e->getMessage());
+        // }
+
+        // $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        // $processInstanceId = 5120;
+
+        // $processInstance = $serviceFactory->ProcessInstanceService->createClient(new Response(200, [], $expected));
+        // $actual = $this
+        //     ->createProcessInstanceService($client)
+        //     ->getDiagram($processInstanceId);
+
+        // $this->assertRequestMethod('GET');
+        // $this->assertRequestUri('runtime/process-instances/' . $processInstanceId . '/diagram');
+        // $this->assertEquals($expected, $actual);
     }
 } // class Article end

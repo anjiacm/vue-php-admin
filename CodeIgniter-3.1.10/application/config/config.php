@@ -569,6 +569,7 @@ $config['jwt_white_list'] = [
     '/article/monolog/post',
     '/article/validation/post',
     '/article/phpmailer/post',
+    '/article/activiti/post',
 
     '/uploadimg/goods/get',
     '/uploadimg/upload/post',
