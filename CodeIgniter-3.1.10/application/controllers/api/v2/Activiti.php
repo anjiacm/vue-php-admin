@@ -537,7 +537,7 @@ class Activiti extends RestController
         ]);
         $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
 
-        $processInstanceId = 27537;
+        $processInstanceId = 30001;
 
         $query = new HistoryQuery();
         $query->setProcessInstanceId($processInstanceId);
@@ -550,10 +550,11 @@ class Activiti extends RestController
         // var_dump($HistoryActivityInstanceList);
 
         foreach ($HistoryActivityInstanceList->getIterator() as $i => $HistoryInstance) {
+            vprintf("%s\n", ['------------------------------------------------']);
             // var_dump($HistoryInstance->getId());
 
             // var_dump($HistoryInstance->getAssignee());
-            vprintf("任务id：%s ProcessInstanceId: %s ActivityName: %s ActivityType: %s Assignee:(%s) StartTime:%s EndTime:%s 耗时: %s\n", [
+            vprintf("任务id：%s 流程实例id: %s\nActivityName: %s\nActivityType: %s\n办理人:(%s)\nStartTime:%s\nEndTime: %s\n耗时: %s\n", [
                 $HistoryInstance->getId(), // 任务id
                 $HistoryInstance->getProcessInstanceId(),
                 $HistoryInstance->getActivityName(),
@@ -561,10 +562,10 @@ class Activiti extends RestController
                 $HistoryInstance->getAssignee(),
                 // $HistoryInstance->getStartTime(),
                 // $HistoryInstance->getEndTime(),
-                // $HistoryInstance->getDurationInMillis(),
                 new Carbon($HistoryInstance->getStartTime()),
-                new Carbon($HistoryInstance->getEndTime()),
-                CarbonInterval::make($HistoryInstance->getDurationInMillis() . 's')->divide(1000)->locale('zh_CN')->forHumans(),
+                !$HistoryInstance->getEndTime() ? 'not completed' : new Carbon($HistoryInstance->getEndTime()),
+                // $HistoryInstance->getDurationInMillis(),
+                !$HistoryInstance->getDurationInMillis() ? 'not completed' :  CarbonInterval::make($HistoryInstance->getDurationInMillis() . 's')->divide(1000)->locale('zh_CN')->forHumans(),
             ]);
         }
 
@@ -593,6 +594,39 @@ class Activiti extends RestController
         // getHistoryProcessInstanceList 'GET', 'history/historic-process-instances'
         $HistoryProcessInstanceList = $serviceFactory->createHistoryService()->getHistoryProcessInstanceList($query);
         // var_dump($HistoryProcessInstanceList);
+    }
 
+    /**
+     * 查询流程状态（正在执行 or 已经执行结束）
+     */
+    public function processState_post()
+    {
+        $client = new Client([
+            'base_uri' => 'http://localhost:8080/activiti-rest/service/',
+            'auth' => [
+                'lily', 'lily', // 还是有关系的 start process 时 标注 starter 可看到
+            ],
+        ]);
+        $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+        $processInstanceId = 30001;
+
+        try {
+            $processInstance = $serviceFactory->createProcessInstanceService()->getProcessInstance($processInstanceId);
+            // var_dump($processInstance);
+            vprintf("流程id：%s\nProcessDefinitionKey: %s\nCompleted: %b\n", [
+                $processInstance->getId(), // 任务id
+                $processInstance->getProcessDefinitionKey(),
+                $processInstance->getCompleted()
+            ]);
+            echo '流程正在执行！';
+        } catch (ActivitiException\ActivitiException $e) {
+            //  流程执行结束 GET runtime/process-instances/{processInstanceId} 返回 404
+            if ($e->getCode() == 404) {
+                echo '流程已经执行结束！';
+            } else {
+                var_dump($e->getCode());
+                var_dump($e->getMessage());
+            }
+        }
     }
 } // class Article end
