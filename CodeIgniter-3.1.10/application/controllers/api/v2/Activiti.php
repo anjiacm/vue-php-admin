@@ -540,8 +540,11 @@ class Activiti extends RestController
         $processInstanceId = 30001;
 
         $query = new HistoryQuery();
-        $query->setProcessInstanceId($processInstanceId);
-
+        $query->setProcessInstanceId($processInstanceId); // 指定查询的 processInstanceId
+        // $query->setFinished(true); // 指定查询 已完成的节点
+        // $query->setActivityName('请假申请'); // 指定查询 ActivityName
+        // $query->setActivityType('userTask'); // 指定查询 节点类型 startEvent, endEvent, exclusiveGateway, userTask 几种类型
+        
         // 常用 ***重要***
         // queryHistoryInstances 'POST', 'query/historic-activity-instances'
         $HistoryActivityInstanceList = $serviceFactory->createHistoryService()->queryHistoryInstances($query);
