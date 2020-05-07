@@ -10,6 +10,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
+use Carbon\CarbonInterval;
+use Carbon\Carbon;
+
 // Using Medoo namespace
 use Medoo\Medoo;
 
@@ -47,6 +50,9 @@ use Activiti\Client\Model\ProcessDefinition\ProcessDefinitionQuery;
 use Activiti\Client\Model\ProcessInstance\ProcessInstanceCreate;
 use Activiti\Client\Model\ProcessInstance\ProcessInstanceQuery;
 use Activiti\Client\Model\Task\TaskQuery;
+use Activiti\Client\Model\History\HistoryQuery;
+use Activiti\Client\Model\History\HistoryActivityInstance;
+
 
 use Activiti\Client\Model\VariableCreate;
 use Activiti\Client\Model\VariableUpdate;
@@ -275,14 +281,14 @@ class Activiti extends RestController
         // $processInstanceVariables = $serviceFactory->createProcessInstanceService()->getVariables(2888);
         // var_dump($processInstanceVariables);
         // return;
-        $processInstanceId = 20034;
+        $processInstanceId = 27537;
         $query = new TaskQuery();
         $query->setAssignee('lily'); // query todo task by assignee and processInstanceId
         $query->setProcessInstanceId($processInstanceId);
         $taskList = $serviceFactory->createTaskService()->queryTasks($query);
-        var_dump($taskList); return; // task id 2934, processInstanceId 2927
+        // var_dump($taskList); return; // task id 2934, processInstanceId 2927
 
-        $taskId = 20049;
+        $taskId = 27552;
 
         // // 根据 taskid 创建当前任务中的变量。getVariables时会同时获得process instance中的变量
         // $taskVariables = [
@@ -296,14 +302,16 @@ class Activiti extends RestController
         // ];
         // // $serviceFactory->createTaskService()->createVariables(2934, $taskVariables);
 
+        // 打印当前任务变量，会包含流程变量(全局)?
         $variables = $serviceFactory
             ->createTaskService($client)
             ->getVariables($taskId);
         foreach ($variables as $i => $variable) {
-            printf("%s (%s) %s\n", $variable->getName(), $variable->getType(), $variable->getValue());
+            printf("%s (%s) ", $variable->getName(), $variable->getType());
+            var_dump($variable->getValue());
         }
         // delete pass 重置proccess变量 防止 驳回时 再次设置出错 不需要 complete(, $variable) 设置的变量可能重复设置
-
+        // return;
         try {
             // $serviceFactory->createTaskService()->complete($taskId, []); // json_decode error: Syntax error
             $serviceFactory->createTaskService()->complete($taskId); // json_decode error: Syntax error
@@ -340,7 +348,7 @@ class Activiti extends RestController
 
         $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
 
-        $processInstanceId = 20034;
+        $processInstanceId = 27537;
         $query = new TaskQuery();
         $query->setAssignee('boss'); // query todo task by assignee and processInstanceId
         $query->setProcessInstanceId($processInstanceId);
@@ -349,13 +357,14 @@ class Activiti extends RestController
 
         // 创建process设置的变量是全部流程
 
-        $taskId = 20051;
+        $taskId = 27554;
 
         $variables = $serviceFactory
             ->createTaskService($client)
             ->getVariables($taskId);
         foreach ($variables as $i => $variable) {
-            printf("%s (%s) %s\n", $variable->getName(), $variable->getType(), $variable->getValue());
+            printf("%s (%s) ", $variable->getName(), $variable->getType());
+            var_dump($variable->getValue());
         }
         // return;
 
@@ -364,7 +373,7 @@ class Activiti extends RestController
         $completeVar = [
             [
                 'name' => 'pass',
-                'type' => 'boolean',
+                'type' => 'boolean', // java 使用boolean， php为bool 此处需要传给activiti 需要为 boolean
                 'value' => true
             ]
             // new VariableCreate('pass', 'boolean', 'false') // {"message":"Bad request","exception":"Variable name is required"}
@@ -486,7 +495,7 @@ class Activiti extends RestController
         ]);
         $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
 
-        $processInstanceId = 20034;
+        $processInstanceId = 27537;
 
         $query = new TaskQuery();
         $query->setProcessInstanceId($processInstanceId);
@@ -511,5 +520,79 @@ class Activiti extends RestController
         } catch (ActivitiException\ActivitiException $e) {
             var_dump($e->getMessage());
         }
+    }
+
+
+    /**
+     * 历史活动查询 
+     * 历史活动包括所有节点（圆圈）和任务（矩形），而历史任务只包含任务。所以一般开发中查询历史活动比较常用。
+     */
+    public function history_post()
+    {
+        $client = new Client([
+            'base_uri' => 'http://localhost:8080/activiti-rest/service/',
+            'auth' => [
+                'lily', 'lily', // 还是有关系的 start process 时 标注 starter 可看到
+            ],
+        ]);
+        $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
+
+        $processInstanceId = 27537;
+
+        $query = new HistoryQuery();
+        $query->setProcessInstanceId($processInstanceId);
+
+        // 常用 ***重要***
+        // queryHistoryInstances 'POST', 'query/historic-activity-instances'
+        $HistoryActivityInstanceList = $serviceFactory->createHistoryService()->queryHistoryInstances($query);
+        // var_dump($HistoryActivityInstanceList->getTotal());
+        // var_dump($HistoryActivityInstanceList->getIterator());
+        // var_dump($HistoryActivityInstanceList);
+
+        foreach ($HistoryActivityInstanceList->getIterator() as $i => $HistoryInstance) {
+            // var_dump($HistoryInstance->getId());
+
+            // var_dump($HistoryInstance->getAssignee());
+            vprintf("任务id：%s ProcessInstanceId: %s ActivityName: %s ActivityType: %s Assignee:(%s) StartTime:%s EndTime:%s 耗时: %s\n", [
+                $HistoryInstance->getId(), // 任务id
+                $HistoryInstance->getProcessInstanceId(),
+                $HistoryInstance->getActivityName(),
+                $HistoryInstance->getActivityType(), // startEvent, endEvent, exclusiveGateway, userTask 几种类型           
+                $HistoryInstance->getAssignee(),
+                // $HistoryInstance->getStartTime(),
+                // $HistoryInstance->getEndTime(),
+                // $HistoryInstance->getDurationInMillis(),
+                new Carbon($HistoryInstance->getStartTime()),
+                new Carbon($HistoryInstance->getEndTime()),
+                CarbonInterval::make($HistoryInstance->getDurationInMillis() . 's')->divide(1000)->locale('zh_CN')->forHumans(),
+            ]);
+        }
+
+        // 任务id：27542 ProcessInstanceId: 27537 ActivityName: 开始 ActivityType: startEvent Assignee:() StartTime:2020-05-07 10:57:56 EndTime:2020-05-07 10:57:56 耗时: 1秒
+        // 任务id：27543 ProcessInstanceId: 27537 ActivityName: 请假申请 ActivityType: userTask Assignee:(lily) StartTime:2020-05-07 10:57:56 EndTime:2020-05-07 10:59:45 耗时: 1分钟49秒
+        // 任务id：27545 ProcessInstanceId: 27537 ActivityName: Boss审批 ActivityType: userTask Assignee:(boss) StartTime:2020-05-07 10:59:45 EndTime:2020-05-07 11:00:17 耗时: 32秒
+        // 任务id：27550 ProcessInstanceId: 27537 ActivityName: 同意？ ActivityType: exclusiveGateway Assignee:() StartTime:2020-05-07 11:00:17 EndTime:2020-05-07 11:00:17 耗时: 1秒
+        // 任务id：27551 ProcessInstanceId: 27537 ActivityName: 请假申请 ActivityType: userTask Assignee:(lily) StartTime:2020-05-07 11:00:17 EndTime:2020-05-07 11:04:12 耗时: 3分钟55秒
+        // 任务id：27553 ProcessInstanceId: 27537 ActivityName: Boss审批 ActivityType: userTask Assignee:(boss) StartTime:2020-05-07 11:04:12 EndTime:2020-05-07 11:04:38 耗时: 25秒
+        // 任务id：27556 ProcessInstanceId: 27537 ActivityName: 同意？ ActivityType: exclusiveGateway Assignee:() StartTime:2020-05-07 11:04:38 EndTime:2020-05-07 11:04:38 耗时: 1秒
+        // 任务id：27557 ProcessInstanceId: 27537 ActivityName: 结束 ActivityType: endEvent Assignee:() StartTime:2020-05-07 11:04:38 EndTime:2020-05-07 11:04:38 耗时: 1秒
+
+        // historyTask 'GET', 'history/historic-task-instances'
+        $historyTasks = $serviceFactory->createHistoryService()->historyTask($query);
+        // var_dump($historyTasks);
+        // foreach ($historyTasks as $i => $historyTask) {
+        //     vprintf("任务id： %s  任务名称: %s\n", [
+        //         $historyTask->getId(), // 任务id
+        //         $historyTask->getName(),
+        //         // $historyTask->getAssignee(),
+        //         // $historyTask->getStartTime(),
+        //         // $historyTask->getEndTime()
+        //     ]);
+        // }
+
+        // getHistoryProcessInstanceList 'GET', 'history/historic-process-instances'
+        $HistoryProcessInstanceList = $serviceFactory->createHistoryService()->getHistoryProcessInstanceList($query);
+        // var_dump($HistoryProcessInstanceList);
+
     }
 } // class Article end
