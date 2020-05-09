@@ -25,8 +25,6 @@ use Activiti\Client\Model\User\UserUpdate;
 use GuzzleHttp\Client;
 use Activiti\Client\Model\Group\GroupQuery;
 
-
-
 use Activiti\Client\Exception as ActivitiException; // 解决与 PHPMailer\PHPMailer\Exception 同名冲突
 
 use Activiti\Client\Service\DeploymentService;
@@ -37,7 +35,6 @@ use Activiti\Client\Service\ProcessDefinitionService;
 use Activiti\Client\Service\ProcessInstanceService;
 use Activiti\Client\Service\TaskService;
 use Activiti\Client\Service\UserService;
-
 
 use Activiti\Client\Model\Deployment\Deployment;
 use Activiti\Client\Model\Deployment\DeploymentList;
@@ -52,7 +49,6 @@ use Activiti\Client\Model\ProcessInstance\ProcessInstanceQuery;
 use Activiti\Client\Model\Task\TaskQuery;
 use Activiti\Client\Model\History\HistoryQuery;
 use Activiti\Client\Model\History\HistoryActivityInstance;
-
 
 use Activiti\Client\Model\VariableCreate;
 use Activiti\Client\Model\VariableUpdate;
@@ -281,14 +277,14 @@ class Activiti extends RestController
         // $processInstanceVariables = $serviceFactory->createProcessInstanceService()->getVariables(2888);
         // var_dump($processInstanceVariables);
         // return;
-        $processInstanceId = 27537;
+        $processInstanceId = 32501;
         $query = new TaskQuery();
         $query->setAssignee('lily'); // query todo task by assignee and processInstanceId
         $query->setProcessInstanceId($processInstanceId);
         $taskList = $serviceFactory->createTaskService()->queryTasks($query);
         // var_dump($taskList); return; // task id 2934, processInstanceId 2927
 
-        $taskId = 27552;
+        $taskId = 32508;
 
         // // 根据 taskid 创建当前任务中的变量。getVariables时会同时获得process instance中的变量
         // $taskVariables = [
@@ -348,7 +344,7 @@ class Activiti extends RestController
 
         $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
 
-        $processInstanceId = 27537;
+        $processInstanceId = 32501;
         $query = new TaskQuery();
         $query->setAssignee('boss'); // query todo task by assignee and processInstanceId
         $query->setProcessInstanceId($processInstanceId);
@@ -357,7 +353,7 @@ class Activiti extends RestController
 
         // 创建process设置的变量是全部流程
 
-        $taskId = 27554;
+        $taskId = 32510;
 
         $variables = $serviceFactory
             ->createTaskService($client)
@@ -495,7 +491,7 @@ class Activiti extends RestController
         ]);
         $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
 
-        $processInstanceId = 27537;
+        $processInstanceId = 32510;
 
         $query = new TaskQuery();
         $query->setProcessInstanceId($processInstanceId);
@@ -510,6 +506,9 @@ class Activiti extends RestController
                 $task->getCreateTime(),
             ]);
         }
+
+        // TODO: 获取 办理人 可催办 任务 邮件提醒？
+
         // var_dump($taskList->getIterator()[0]);
         // var_dump($taskList);
         try {
@@ -518,10 +517,14 @@ class Activiti extends RestController
             $base64 = 'data:image/png' . ';base64,' . base64_encode($diagramBinary);
             echo '<img src="' .  $base64 . '" />'; // binary image to base64 so postman can preview image
         } catch (ActivitiException\ActivitiException $e) {
-            var_dump($e->getMessage());
+            if ($e->getCode() == 404) {
+                echo '流程已结束！';
+            } else {
+                var_dump($e->getCode());
+                var_dump($e->getMessage());
+            }
         }
     }
-
 
     /**
      * 历史活动查询 
@@ -537,16 +540,16 @@ class Activiti extends RestController
         ]);
         $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
 
-        $processInstanceId = 30001;
+        $processInstanceId = 32501;
 
         $query = new HistoryQuery();
         $query->setProcessInstanceId($processInstanceId); // 指定查询的 processInstanceId
         // $query->setFinished(true); // 指定查询 已完成的节点
         // $query->setActivityName('请假申请'); // 指定查询 ActivityName
         // $query->setActivityType('userTask'); // 指定查询 节点类型 startEvent, endEvent, exclusiveGateway, userTask 几种类型
-        
+
         // 常用 ***重要***
-        // queryHistoryInstances 'POST', 'query/historic-activity-instances'
+        // 查询历史活动 queryHistoryInstances 'POST', 'query/historic-activity-instances'
         $HistoryActivityInstanceList = $serviceFactory->createHistoryService()->queryHistoryInstances($query);
         // var_dump($HistoryActivityInstanceList->getTotal());
         // var_dump($HistoryActivityInstanceList->getIterator());
@@ -566,9 +569,9 @@ class Activiti extends RestController
                 // $HistoryInstance->getStartTime(),
                 // $HistoryInstance->getEndTime(),
                 new Carbon($HistoryInstance->getStartTime()),
-                !$HistoryInstance->getEndTime() ? 'not completed' : new Carbon($HistoryInstance->getEndTime()),
+                is_null($HistoryInstance->getEndTime()) ? 'not completed' : new Carbon($HistoryInstance->getEndTime()),
                 // $HistoryInstance->getDurationInMillis(),
-                !$HistoryInstance->getDurationInMillis() ? 'not completed' :  CarbonInterval::make($HistoryInstance->getDurationInMillis() . 's')->divide(1000)->locale('zh_CN')->forHumans(),
+                is_null($HistoryInstance->getDurationInMillis()) ? 'not completed' :  CarbonInterval::make($HistoryInstance->getDurationInMillis() . 's')->divide(1000)->locale('zh_CN')->forHumans(),
             ]);
         }
 
@@ -611,7 +614,7 @@ class Activiti extends RestController
             ],
         ]);
         $serviceFactory = new ServiceFactory($client, new ModelFactory(), new ObjectSerializer());
-        $processInstanceId = 30001;
+        $processInstanceId = 32510;
 
         try {
             $processInstance = $serviceFactory->createProcessInstanceService()->getProcessInstance($processInstanceId);
@@ -632,4 +635,4 @@ class Activiti extends RestController
             }
         }
     }
-} // class Article end
+} // class Activiti end
