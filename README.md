@@ -1,5 +1,4 @@
-## Demo
-[vue-php-admin-demo](http://222.40.42.139:7001)
+# [VUE-PHP-ADMIN-DEMO](http://222.40.42.139:7001)
 
 # vue-php-admin 项目说明
 
@@ -19,7 +18,7 @@
 - [x] 4. 菜单管理：新建菜单，修改菜单，删除菜单，查询菜单
 - [x] 5. 部门管理：新建部门，修改部门，删除部门，查询部门
 - [x] 6. 图标管理：vue-element-admin 原有封装组件
-- [x] 7. **使用jwt token 前后端实现 access_token过期后无痛无缝在刷新, refreshtoken 加入计数器,在有效期内接口调用超过一定次数自动续期, CI模式使用hooks做控制器方法调用前的token及权限认证功能** 
+- [x] 7. **jwt生成访问与刷新token， access_token过期后，根据refreshtoken刷新访问token，实现无缝刷新功能。refreshtoken 加入计数器,在有效期内接口调用超过一定次数自动续期, CI模式使用hooks做控制器方法调用前的token及权限认证功能** 
 - [x] 8. 图形验证码（`gregwar/captcha` 包生成）, 企业微信扫码登录, 见 [vue-php-admin-V3](https://github.com/emacle/vue-php-admin-V3.git)
 - [X] 9. **以 restful 风格重新构建代码 20200401 ,GET/POST/PUT/DELETE**
 - [ ] 10. 界面主题优化
@@ -112,12 +111,12 @@
     
 5. 使用 phpstudy 配置站点域名管理, 同时修改hosts文件（可选）
 
-    www.cirest.com:8889  **注意与前端接口配置一致** BASE_API: '"http://www.cirest.com:8889/api/v2/"'
+    www.cirest.com:8890  **注意与前端接口配置一致** BASE_API: '"http://www.cirest.com:8890/api/v2/"'
 
     api接口调用使用示例：
     ```html    
-    http://www.cirest.com:8889/api/v2/sys/user/testapi # 免token认证测试接口正常  对应 GET 请求
-    http://www.cirest.com:8889/index.php/api/v2/sys/user/testapi
+    http://www.cirest.com:8890/api/v2/sys/user/testapi # 免token认证测试接口正常  对应 GET 请求
+    http://www.cirest.com:8890/index.php/api/v2/sys/user/testapi
     ```
 
     免token认证测试接口在 CodeIgniter-3.1.10/config/config.php 配置
