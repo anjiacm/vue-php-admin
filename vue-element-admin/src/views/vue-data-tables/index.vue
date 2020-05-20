@@ -1,5 +1,71 @@
 <template>
   <div class="app-container">
+    <el-divider content-position="left">pretty checkbox vue checkbox</el-divider>
+    <p-check name="check" color="success" v-model="check">check</p-check>
+    {{check}}
+    <p-check class="p-icon p-round p-jelly" color="primary">
+      <i slot="extra" class="icon mdi mdi-check"></i>
+      Interested
+    </p-check>
+
+    <p-check class="p-icon p-jelly" color="info-o">
+      <i slot="extra" class="icon mdi mdi-check-all"></i>
+      All
+    </p-check>
+
+    <p-check class="p-icon p-curve p-tada" color="danger">
+      <i slot="extra" class="icon mdi mdi-bug"></i>
+      Bug
+    </p-check>
+
+    <p-check class="p-icon p-round p-tada" color="primary-o">
+      <i slot="extra" class="icon mdi mdi-heart"></i>
+      Good
+    </p-check>
+
+    <p-check class="p-icon p-curve p-tada p-plain">
+      <i slot="extra" class="icon mdi mdi-weather-night"></i>
+      Night
+    </p-check>
+
+    <p-check class="p-icon p-fill p-tada" color="danger">
+      <i slot="extra" class="icon mdi mdi-skull"></i>
+      Sweetheart
+    </p-check>
+
+    <p-check class="p-icon" toggle>
+      <i class="icon mdi mdi-microphone" slot="extra"></i>
+      ON
+      <i class="icon mdi mdi-microphone" slot="off-extra"></i>
+      <label slot="off-label">OFF</label>
+    </p-check>
+    <p-check class="p-icon p-plain" color="success-o" off-color="danger-o" toggle>
+      <i class="icon mdi mdi-wifi" slot="extra"></i>
+      Wifi on
+      <i class="icon mdi mdi-wifi-off" slot="off-extra"></i>
+      <label slot="off-label">Wifi off</label>
+    </p-check>
+    <p-check class="p-icon p-plain" color="success-o" toggle>
+      <i class="icon mdi mdi-eye" slot="extra"></i>
+      Show preview
+      <i class="icon mdi mdi-eye-off" slot="off-extra"></i>
+      <label slot="off-label">Hide preview</label>
+    </p-check>
+
+    <p-check class="p-icon p-plain" off-color="warning-o" toggle>
+      <i class="icon mdi mdi-pause" slot="extra"></i>
+      Paused
+      <i class="icon mdi mdi-play" slot="off-extra"></i>
+      <label slot="off-label">Playing...</label>
+    </p-check>
+
+    <p-check class="p-icon p-plain" color="danger-o" off-color="success-o" toggle>
+      <i class="icon mdi mdi-thumb-down" slot="extra"></i>
+      Bad
+      <i class="icon mdi mdi-thumb-up" slot="off-extra"></i>
+      <label slot="off-label">Good</label>
+    </p-check>
+
     <el-divider content-position="left">关闭当前TAB页面测试</el-divider>
     <el-button type="primary" @click="closeCurrentTab">关闭</el-button>
 
@@ -146,13 +212,20 @@
 import PasswordValidator from 'vue-password-validator'
 import VueQr from 'vue-qr' // 引入VueQr
 
+import 'pretty-checkbox/src/pretty-checkbox.scss'
+import '@mdi/font/scss/materialdesignicons.scss'
+import PrettyCheck from 'pretty-checkbox-vue/check'
+
 export default {
   components: {
     PasswordValidator,
-    VueQr
+    VueQr,
+    'p-check': PrettyCheck
   },
   data() {
     return {
+      check: false,
+      radio: false,
       websockTxt: '',
       websockMsgList: [],
       dataUrls: [],
@@ -386,7 +459,7 @@ export default {
       })
     },
     onCreate100() {
-      [...new Array(100)].map(_ => {
+      ;[...new Array(100)].map(_ => {
         this.onCreate()
       })
     },
