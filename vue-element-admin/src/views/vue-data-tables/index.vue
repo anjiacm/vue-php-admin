@@ -1,69 +1,82 @@
 <template>
   <div class="app-container">
     <el-divider content-position="left">pretty checkbox vue checkbox</el-divider>
-    <p-check name="check" color="success" v-model="check">check</p-check>
-    {{check}}
+    <p-check v-model="check" name="check" color="success">check</p-check>
+    {{ check }}
     <p-check class="p-icon p-round p-jelly" color="primary">
-      <i slot="extra" class="icon mdi mdi-check"></i>
+      <i slot="extra" class="icon mdi mdi-check" />
       Interested
     </p-check>
 
     <p-check class="p-icon p-jelly" color="info-o">
-      <i slot="extra" class="icon mdi mdi-check-all"></i>
+      <i slot="extra" class="icon mdi mdi-check-all" />
       All
     </p-check>
 
     <p-check class="p-icon p-curve p-tada" color="danger">
-      <i slot="extra" class="icon mdi mdi-bug"></i>
+      <i slot="extra" class="icon mdi mdi-bug" />
       Bug
     </p-check>
 
     <p-check class="p-icon p-round p-tada" color="primary-o">
-      <i slot="extra" class="icon mdi mdi-heart"></i>
+      <i slot="extra" class="icon mdi mdi-heart" />
       Good
     </p-check>
 
     <p-check class="p-icon p-curve p-tada p-plain">
-      <i slot="extra" class="icon mdi mdi-weather-night"></i>
+      <i slot="extra" class="icon mdi mdi-weather-night" />
       Night
     </p-check>
 
     <p-check class="p-icon p-fill p-tada" color="danger">
-      <i slot="extra" class="icon mdi mdi-skull"></i>
+      <i slot="extra" class="icon mdi mdi-skull" />
       Sweetheart
     </p-check>
 
     <p-check class="p-icon" toggle>
-      <i class="icon mdi mdi-microphone" slot="extra"></i>
+      <i slot="extra" class="icon mdi mdi-microphone" />
       ON
-      <i class="icon mdi mdi-microphone" slot="off-extra"></i>
+      <i slot="off-extra" class="icon mdi mdi-microphone" />
       <label slot="off-label">OFF</label>
     </p-check>
     <p-check class="p-icon p-plain" color="success-o" off-color="danger-o" toggle>
-      <i class="icon mdi mdi-wifi" slot="extra"></i>
+      <i slot="extra" class="icon mdi mdi-wifi" />
       Wifi on
-      <i class="icon mdi mdi-wifi-off" slot="off-extra"></i>
+      <i slot="off-extra" class="icon mdi mdi-wifi-off" />
       <label slot="off-label">Wifi off</label>
     </p-check>
     <p-check class="p-icon p-plain" color="success-o" toggle>
-      <i class="icon mdi mdi-eye" slot="extra"></i>
+      <i slot="extra" class="icon mdi mdi-eye" />
       Show preview
-      <i class="icon mdi mdi-eye-off" slot="off-extra"></i>
+      <i slot="off-extra" class="icon mdi mdi-eye-off" />
       <label slot="off-label">Hide preview</label>
     </p-check>
 
+    <p-check class="p-icon p-plain" toggle>
+      <i slot="extra" class="icon mdi mdi-email-open-outline" />
+      Read
+      <i slot="off-extra" class="icon mdi mdi-email-outline" />
+      <label slot="off-label">unread</label>
+    </p-check>
+
     <p-check class="p-icon p-plain" off-color="warning-o" toggle>
-      <i class="icon mdi mdi-pause" slot="extra"></i>
+      <i slot="extra" class="icon mdi mdi-pause" />
       Paused
-      <i class="icon mdi mdi-play" slot="off-extra"></i>
+      <i slot="off-extra" class="icon mdi mdi-play" />
       <label slot="off-label">Playing...</label>
     </p-check>
 
     <p-check class="p-icon p-plain" color="danger-o" off-color="success-o" toggle>
-      <i class="icon mdi mdi-thumb-down" slot="extra"></i>
+      <i slot="extra" class="icon mdi mdi-thumb-down" />
       Bad
-      <i class="icon mdi mdi-thumb-up" slot="off-extra"></i>
+      <i slot="off-extra" class="icon mdi mdi-thumb-up" />
       <label slot="off-label">Good</label>
+    </p-check>
+    <!-- Should not remove <label> tag -->
+    <p-check class="p-icon" color="success-o" off-color="info-o" toggle>
+      <i slot="extra" class="icon mdi mdi-reply" />
+      <i slot="off-extra" class="icon mdi mdi-share" />
+      <label slot="off-label" />
     </p-check>
 
     <el-divider content-position="left">关闭当前TAB页面测试</el-divider>
@@ -459,7 +472,7 @@ export default {
       })
     },
     onCreate100() {
-      ;[...new Array(100)].map(_ => {
+      [...new Array(100)].map(_ => {
         this.onCreate()
       })
     },

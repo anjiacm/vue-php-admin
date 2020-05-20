@@ -196,15 +196,15 @@
               <el-col v-show="dataPermScope == 4" :span="16">
                 <el-form-item label="勾选级联树" prop="jilian">
                   <p-check
+                    v-model="checkJianlian"
                     class="p-default p-curve"
                     color="primary"
-                    v-model="checkJianlian"
                     :disabled="selectRole.id == null"
                     toggle
                   >
-                    <i slot="extra"></i>
+                    <i slot="extra" />
                     级联
-                    <i slot="off-extra"></i>
+                    <i slot="off-extra" />
                     <label slot="off-label">不级联</label>
                   </p-check>
                   <!-- <el-checkbox v-model="checkJianlian" :disabled="selectRole.id == null" /> -->
@@ -226,14 +226,14 @@
             <b>全选</b>
           </el-checkbox>-->
           <p-check
-            class="p-icon p-round p-jelly"
-            color="primary"
             v-if="activeName==='menu'"
             v-model="checkAll"
+            class="p-icon p-round p-jelly"
+            color="primary"
             :disabled="selectRole.id == null"
             @change="handleCheckAll"
           >
-            <i slot="extra" class="icon mdi mdi-check"></i>
+            <i slot="extra" class="icon mdi mdi-check" />
             全选
           </p-check>
         </div>
@@ -518,10 +518,10 @@ export default {
     },
     // 角色选择改变监听
     handleRoleSelectChange(val) {
-      console.log('handleRoleSelectChange', val)
       if (val === null || val.id === null) {
         this.selectRole = {}
         this.dataPermScope = ''
+        this.checkJianlian = false // 保存权限提交后重置此值
         return
       }
 
@@ -608,13 +608,10 @@ export default {
     },
     // 重置选择
     async resetSelection() {
-      await this.resetSelection1()
-      // 因为部门数据权限 父子关联时，不能直接重置，必须异步多执行一次
-      await this.resetSelection1()
-    },
-    resetSelection1() {
+      // 因为部门数据权限 父子关联时，不能直接重置，必须异步执行等待
+      await this.resetcheckJianlian()
+
       this.checkAll = false
-      this.checkJianlian = false
       // 重置当前菜单类权限
       this.$refs.menuTree.setCheckedNodes(this.currentRoleMenus)
       // 重置当前角色类权限 先清空赋值
@@ -637,6 +634,9 @@ export default {
       if (this.dataPermScope === '4') {
         this.$refs.deptTree.setCheckedNodes(this.currentRoleDepts)
       }
+    },
+    resetcheckJianlian() {
+      this.checkJianlian = false
     },
     // 全选操作
     handleCheckAll() {
@@ -722,25 +722,25 @@ export default {
     },
     renderContent(h, { node, data, store }) {
       return (
-        <div class="column-container">
-          <span style="text-algin:center;margin-right:200px;">
+        <div class='column-container'>
+          <span style='text-algin:center;margin-right:200px;'>
             {data.title}
           </span>
-          <span style="text-algin:center;margin-right:200px;">
+          <span style='text-algin:center;margin-right:200px;'>
             <el-tag
               type={
                 data.type === 0 ? '' : data.type === 1 ? 'success' : 'warning'
               }
-              size="small"
+              size='small'
             >
               {data.type === 0 ? '目录' : data.type === 1 ? '菜单' : '操作'}
             </el-tag>
           </span>
-          <span style="text-algin:center;margin-right:80px;">
+          <span style='text-algin:center;margin-right:80px;'>
             {' '}
             <svg-icon icon-class={data.icon} />{' '}
           </span>
-          <span style="text-algin:center;margin-right:80px;">
+          <span style='text-algin:center;margin-right:80px;'>
             {data.path ? data.path : '\t'}
           </span>
         </div>
