@@ -195,7 +195,19 @@
               </el-col>
               <el-col v-show="dataPermScope == 4" :span="16">
                 <el-form-item label="勾选级联树" prop="jilian">
-                  <el-checkbox v-model="checkJianlian" :disabled="selectRole.id == null" />
+                  <p-check
+                    class="p-default p-curve"
+                    color="primary"
+                    v-model="checkJianlian"
+                    :disabled="selectRole.id == null"
+                    toggle
+                  >
+                    <i slot="extra"></i>
+                    级联
+                    <i slot="off-extra"></i>
+                    <label slot="off-label">不级联</label>
+                  </p-check>
+                  <!-- <el-checkbox v-model="checkJianlian" :disabled="selectRole.id == null" /> -->
                 </el-form-item>
               </el-col>
             </el-form>
@@ -205,14 +217,25 @@
         <el-tab-pane label="文件类" name="file">todo:文件类授权</el-tab-pane>
 
         <div style="float:left;padding-left:24px;padding-top:12px;padding-bottom:4px;">
-          <el-checkbox
+          <!-- <el-checkbox
             v-if="activeName==='menu'"
             v-model="checkAll"
             :disabled="selectRole.id == null"
             @change="handleCheckAll"
           >
             <b>全选</b>
-          </el-checkbox>
+          </el-checkbox>-->
+          <p-check
+            class="p-icon p-round p-jelly"
+            color="primary"
+            v-if="activeName==='menu'"
+            v-model="checkAll"
+            :disabled="selectRole.id == null"
+            @change="handleCheckAll"
+          >
+            <i slot="extra" class="icon mdi mdi-check"></i>
+            全选
+          </p-check>
         </div>
         <div style="float:right;padding-right:15px;padding-top:4px;padding-bottom:4px;">
           <el-button
@@ -245,6 +268,10 @@ import perm from '@/directive/perm/index.js' // 权限判断指令
 // import Treeselect from '@riophae/vue-treeselect'
 // import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 
+import 'pretty-checkbox/src/pretty-checkbox.scss'
+import '@mdi/font/scss/materialdesignicons.scss'
+import PrettyCheck from 'pretty-checkbox-vue/check'
+
 import {
   createRole,
   updateRole,
@@ -265,7 +292,7 @@ export default {
   name: 'SysRole',
   // 所以在编写路由 router 和路由对应的 view component 的时候一定要确保 两者的 name 是完全一致的。
   // register the component Treeselect, TreeTable
-  components: {},
+  components: { 'p-check': PrettyCheck },
   directives: { waves, perm },
   filters: {
     statusFilter(status) {
@@ -570,17 +597,24 @@ export default {
         const parentId = data.pid
         this.$refs.deptTree.setChecked(parentId, true, false)
       } else {
+        // this.$refs.deptTree.setChecked(parentId, true, false)
         // 节点取消选中时同步取消选中子节点
-        if (data.children != null) {
-          data.children.forEach(element => {
-            this.$refs.deptTree.setChecked(element.id, false, false)
-          })
-        }
+        // if (data.children != null) {
+        //   data.children.forEach(element => {
+        //     this.$refs.deptTree.setChecked(element.id, false, false)
+        //   })
+        // }
       }
     },
     // 重置选择
-    resetSelection() {
+    async resetSelection() {
+      await this.resetSelection1()
+      // 因为部门数据权限 父子关联时，不能直接重置，必须异步多执行一次
+      await this.resetSelection1()
+    },
+    resetSelection1() {
       this.checkAll = false
+      this.checkJianlian = false
       // 重置当前菜单类权限
       this.$refs.menuTree.setCheckedNodes(this.currentRoleMenus)
       // 重置当前角色类权限 先清空赋值
@@ -598,7 +632,6 @@ export default {
         }
       }
       // 重置当前部门数据类权限
-      console.log(this.selectRole, this.currentRoleDepts)
       this.dataPermScope = this.selectRole.scope
       // DONE: 从全部到自定义重置时会出错，没有找到$refs.deptTree, 使用v-show 代替v-if替换组件显示解决
       if (this.dataPermScope === '4') {
@@ -689,25 +722,25 @@ export default {
     },
     renderContent(h, { node, data, store }) {
       return (
-        <div class='column-container'>
-          <span style='text-algin:center;margin-right:200px;'>
+        <div class="column-container">
+          <span style="text-algin:center;margin-right:200px;">
             {data.title}
           </span>
-          <span style='text-algin:center;margin-right:200px;'>
+          <span style="text-algin:center;margin-right:200px;">
             <el-tag
               type={
                 data.type === 0 ? '' : data.type === 1 ? 'success' : 'warning'
               }
-              size='small'
+              size="small"
             >
               {data.type === 0 ? '目录' : data.type === 1 ? '菜单' : '操作'}
             </el-tag>
           </span>
-          <span style='text-algin:center;margin-right:80px;'>
+          <span style="text-algin:center;margin-right:80px;">
             {' '}
             <svg-icon icon-class={data.icon} />{' '}
           </span>
-          <span style='text-algin:center;margin-right:80px;'>
+          <span style="text-algin:center;margin-right:80px;">
             {data.path ? data.path : '\t'}
           </span>
         </div>
