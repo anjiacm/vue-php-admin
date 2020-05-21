@@ -118,10 +118,13 @@ class Log extends RestController
             $data[$k]['params'] = $currentParms;
             $data[$k]['ip'] = Arrays::get($currentParms, 'X-Real-IP', $v['ip_address']);
             $data[$k]['time'] = date('Y-m-d H:i:s', $v['time']);
-            if (array_key_exists('X-Token', $currentParms)) {
-                $tks = explode('.', $currentParms['X-Token']); // jwt token . 分 第2段为 $payload
+
+            if (array_key_exists('Authorization', $currentParms)) {
+                list($Token) = sscanf($currentParms['Authorization'], 'Bearer %s');
+
+                $tks = explode('.', $Token); // jwt token . 分 第2段为 $payload
                 if (count($tks) != 3) {
-                    $data[$k]['username'] = 'Token: ' . $currentParms['X-Token'];  // 非jwt token api测试时生成该log
+                    $data[$k]['username'] = 'Token: ' . $Token;  // 非jwt token api测试时生成该log
                 } else {
                     $jwt_object = json_decode(base64_decode($tks[1]));
 
@@ -156,11 +159,11 @@ class Log extends RestController
     {
         $message = [
             "code" => 20000,
-          
+
             "message" => '测试'
         ];
         $this->response($message, RestController::HTTP_OK);
-return;
+        return;
         $cmd = "(mysql -h localhost -uroot -proot vueadminv2 < /var/www/vue-element-github/CodeIgniter-3.1.10/vueadminv2_orig.sql) 2>&1";
         exec($cmd, $output, $return_var);
 

@@ -166,7 +166,9 @@ class Menu extends RestController
     // 查
     function menus_get()
     {
-        $Token = $this->input->get_request_header('X-Token', TRUE);
+        $Bearer = $this->input->get_request_header('Authorization', true);
+        list($Token) = sscanf($Bearer, 'Bearer %s');
+
         try {
             $jwt_object = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
         } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
@@ -196,7 +198,9 @@ class Menu extends RestController
     function treeoptions_get()
     {
         // 此 uri 可不做权限/token过期验证，则在菜单里，可以不加入此项路由path /sys/menu/treeoptions。
-        $Token = $this->input->get_request_header('X-Token', TRUE);
+        $Bearer = $this->input->get_request_header('Authorization', true);
+        list($Token) = sscanf($Bearer, 'Bearer %s');
+
         try {
             $jwt_obj = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
         } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期

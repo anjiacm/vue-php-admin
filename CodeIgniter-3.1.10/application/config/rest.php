@@ -565,6 +565,7 @@ $config['allowed_cors_headers'] = [
   'Access-Control-Request-Method',
   'X-API-KEY',
   'X-Token',
+  'Authorization',
   'cache-control'
 ];
 

@@ -310,7 +310,9 @@ class User extends RestController
 
     function getroleoptions_get()
     {
-        $Token = $this->input->get_request_header('X-Token', true);
+        $Bearer = $this->input->get_request_header('Authorization', true);
+        list($Token) = sscanf($Bearer, 'Bearer %s');
+
         try {
             $jwt_object = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
         } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
@@ -343,7 +345,9 @@ class User extends RestController
 
     function getdeptoptions_get()
     {
-        $Token = $this->input->get_request_header('X-Token', true);
+        $Bearer = $this->input->get_request_header('Authorization', true);
+        list($Token) = sscanf($Bearer, 'Bearer %s');
+
         try {
             $jwt_object = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
         } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期
@@ -1067,7 +1071,9 @@ class User extends RestController
     {
         // 此处 $Token 应为refresh token 在前端 request 拦截器中做了修改
         // 刷新token接口需要在控制器内作权限验证,比较特殊,不能使用hook ManageAuth来验证
-        $Token = $this->input->get_request_header('X-Token', true);
+        $Bearer = $this->input->get_request_header('Authorization', true);
+        list($Token) = sscanf($Bearer, 'Bearer %s');
+
         try {
             $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
 
@@ -1145,7 +1151,9 @@ class User extends RestController
     function info_get()
     {
         // /sys/user/info 不用认证但是需要提取出 access_token 中的 user_id 来拉取用户信息
-        $Token = $this->input->get_request_header('X-Token', true);
+        $Bearer = $this->input->get_request_header('Authorization', true);
+        list($Token) = sscanf($Bearer, 'Bearer %s');
+
         try {
             $jwt_obj = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应
         } catch (\Firebase\JWT\ExpiredException $e) {  // access_token过期

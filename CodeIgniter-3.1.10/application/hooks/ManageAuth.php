@@ -41,7 +41,7 @@ class ManageAuth
             $headers = $this->_ci->input->request_headers();
 
             // 防止在浏览器直接进入api，页面抛出异常错误
-            if (!array_key_exists('X-Token', $headers)) {
+            if (!array_key_exists('Authorization', $headers)) {
                 $message = [
                     "code" => 50015,
                     "message" => 'request_headers has not token info.'
@@ -49,7 +49,8 @@ class ManageAuth
                 $this->_ci->response($message, RestController::HTTP_FORBIDDEN);
             }
 
-            $Token = $headers['X-Token'];
+            // Extract the jwt from the Bearer
+            list($Token) = sscanf($headers['Authorization'], 'Bearer %s');
 
             try {
                 $decoded = JWT::decode($Token, config_item('jwt_key'), ['HS256']); //HS256方式，这里要和签发的时候对应

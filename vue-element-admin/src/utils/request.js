@@ -16,15 +16,15 @@ service.interceptors.request.use(
   config => {
     // Do something before request is sent
     if (store.getters.token) {
-      // 让每个请求携带token-- ['X-Token']为自定义key 请根据实际情况自行修改
-      config.headers['X-Token'] = getToken()
+      // 让每个请求携带token-- ['Authorization']为自定义key 请根据实际情况自行修改
+      config.headers['Authorization'] = 'Bearer ' + getToken()
       // console.log('getToken', getToken())
     }
     // 监听 是否 /sys/user/refreshtoken 是则重置token为刷新token
     const url = config.url
     if (url.split('/').pop() === 'refreshtoken') {
       // console.log('config.url', config.url, getRefreshToken())
-      config.headers['X-Token'] = getRefreshToken()
+      config.headers['Authorization'] = 'Bearer ' + getRefreshToken()
     }
 
     return config
@@ -136,7 +136,7 @@ async function againRequest(error) {
   await store.dispatch('user/handleCheckRefreshToken')
 
   const config = error.response.config
-  config.headers['X-Token'] = getToken()
+  config.headers['Authorization'] = 'Bearer ' + getToken()
 
   const res = await axios.request(config)
   // console.log('againRequest...............................', res)
