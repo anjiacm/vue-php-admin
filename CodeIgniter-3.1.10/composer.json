@@ -24,7 +24,8 @@
 		"respect/validation": "^2.0",
 		"phpmailer/phpmailer": "^6.1",
 		"emacle/php-activiti-api": "^0.0.7",
-		"nesbot/carbon": "^2.33"
+		"nesbot/carbon": "^2.33",
+		"yzalis/identicon": "^2.0"
 	},
 	"suggest": {
 		"paragonie/random_compat": "Provides better randomness in PHP 5.x"

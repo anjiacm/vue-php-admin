@@ -731,4 +731,24 @@ class Article extends RestController
         }
     }
 
+    // yzalis/identicon github唯一像素头像测试
+    public function identicon_get(){
+        $identicon = new \Identicon\Identicon();
+
+        // $identicon->displayImage('79464972@qq.com'); // php 直接输出显示图像
+        // $imageData = $identicon->getImageData('bar'); // png 二进制数据
+        // var_dump($imageData);
+        $imageDataUri = $identicon->getImageDataUri('79464972@qq.com'); // base64数据   
+        echo '<img src="' . $imageDataUri . '"  alt="bar Identicon" />'; // binary image to base64 so postman can preview image
+
+        $imageDataUri = $identicon->getImageDataUri('pocoyo'); // base64数据   
+        echo '<img src="' . $imageDataUri . '"  alt="pocoyo Identicon" />';
+
+        $imageDataUri = $identicon->getImageDataUri('foo'); // base64数据   
+        echo '<img src="' . $imageDataUri . '"  alt="foo Identicon" />';
+
+        $imageDataUri = $identicon->getImageDataUri('bar', 128, 'A87EDF'); // base64数据   
+        echo '<img src="' . $imageDataUri . '"  alt="bar Identicon" />';
+    }
+
 } // class Article end
