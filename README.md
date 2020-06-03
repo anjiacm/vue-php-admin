@@ -33,7 +33,7 @@
     前端GET请求参数与使用的 table 组件有关 这里使用 [vue-data-tables](https://www.njleonzhang.com/vue-data-tables/#/) 组件
 
     ```
-    GET /articles?offset=1&limit=30&sort=-id&author=888&title=&fields=id,title,author&query=~author,title&author=888&title=world
+    GET /articles?offset=1&limit=30&sort=-id&fields=id,title,author&query=~author,title&author=888&title=world
 
     limit:  每页记录数，后台会配置默认值
     offset: 第几页，后台会配置默认值
