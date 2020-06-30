@@ -99,12 +99,14 @@
             <el-option v-for="item in roleOptions" :key="item.id" :label="item.name" :value="item.id" :disabled="item.disabled" />
           </el-select>-->
           <treeselect
+            ref="treeSelect"
             v-model="temp.role"
             :multiple="true"
             :clearable="false"
             :normalizer="normalizer"
             :options="roleOptions"
             placeholder="请选择角色..."
+            @input="roleChange"
           />
         </el-form-item>
         <el-form-item label="部门" prop="dept">
@@ -199,6 +201,20 @@ export default {
         callback()
       }
     }
+    const validateRole = (rule, value, callback) => {
+      console.log(rule, value)
+      if (!value.length) {
+        this.$refs.treeSelect.$el.getElementsByClassName(
+          'vue-treeselect__control'
+        )[0].style.borderColor = 'red'
+        callback(new Error('请选择角色'))
+      } else {
+        this.$refs.treeSelect.$el.getElementsByClassName(
+          'vue-treeselect__control'
+        )[0].style.borderColor = ''
+        callback()
+      }
+    }
 
     return {
       userValue: '',
@@ -287,7 +303,7 @@ export default {
         password: [
           { required: true, trigger: 'blur', validator: validatePassword }
         ],
-        role: [{ required: true, message: '请选择角色', trigger: 'blur' }]
+        role: [{ required: true, validator: validateRole, trigger: 'blur' }]
         // dept: [{ required: true, message: '请选择部门', trigger: 'blur' }]
       }
     }
@@ -305,6 +321,9 @@ export default {
     this.initOptions()
   },
   methods: {
+    roleChange() {
+      this.$refs['dataForm'].validateField('role')
+    },
     removeTag(args) {
       console.log('removeTag...')
       console.log(args)
@@ -397,7 +416,11 @@ export default {
       this.dialogStatus = 'create'
       this.dialogFormVisible = true
       this.$nextTick(() => {
+        // 进入dialog时清空所有校验状态css
         this.$refs['dataForm'].clearValidate()
+        this.$refs.treeSelect.$el.getElementsByClassName(
+          'vue-treeselect__control'
+        )[0].style.borderColor = ''
       })
     },
     createData() {
