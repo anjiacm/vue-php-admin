@@ -99,3 +99,26 @@ export function saveRolePerms(roleId, rolePerms, roleScope) {
     data: { roleId, rolePerms, roleScope }
   })
 }
+
+// 下面三个api vue-element-admin 框架自带角色权限页面,可考虑删除，角色权限测试页面里引用 @src/permission/role.vue
+export function getRoutes() {
+  return request({
+    url: '/vue-element-admin/routes',
+    method: 'get'
+  })
+}
+
+export function getRoles() {
+  return request({
+    url: '/vue-element-admin/roles',
+    method: 'get'
+  })
+}
+
+export function addRole(data) {
+  return request({
+    url: '/vue-element-admin/role',
+    method: 'post',
+    data
+  })
+}

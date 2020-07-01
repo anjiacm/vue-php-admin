@@ -1,7 +1,13 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
-
+    <el-form
+      ref="loginForm"
+      :model="loginForm"
+      :rules="loginRules"
+      class="login-form"
+      autocomplete="on"
+      label-position="left"
+    >
       <div class="title-container">
         <h3 class="title">系统登录</h3>
       </div>
@@ -45,7 +51,12 @@
         </el-form-item>
       </el-tooltip>
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
+      <el-button
+        :loading="loading"
+        type="primary"
+        style="width:100%;margin-bottom:30px;"
+        @click.native.prevent="handleLogin"
+      >登录</el-button>
 
       <div style="position:relative">
         <div class="tips">
@@ -57,13 +68,11 @@
           <span>密码 : editor</span>
         </div>
 
-        <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
-          第三方登录
-        </el-button>
+        <el-button class="thirdparty-button" type="primary" @click="showDialog=true">第三方登录</el-button>
         <!-- 测试恢复数据库使用!!!慎用!!! -->
         <!-- <el-button v-if="dbrestoreFlag" :loading="rloading" type="danger" @click="dbrestore">
           恢复数据库
-        </el-button> -->
+        </el-button>-->
       </div>
     </el-form>
 
@@ -99,7 +108,9 @@ export default {
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur' }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+        password: [
+          { required: true, trigger: 'blur', validator: validatePassword }
+        ]
       },
       passwordType: 'password',
       capsTooltip: false,
@@ -147,14 +158,19 @@ export default {
       // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
       // 如果路由存在code 与 state 参数，如http://localhost:9527/login?code=8789d613d1fa9a19732a&state=xyz
       if (
-        this.$route.query.hasOwnProperty('code') &&
-        this.$route.query.hasOwnProperty('state')
+        Object.prototype.hasOwnProperty.call(this.$route.query, 'bar') &&
+        Object.prototype.hasOwnProperty.call(this.$route.query, 'state')
       ) {
         // this.$route.query 如果存在 code 则为三方登录则写入store 变量
         const code = this.$route.query.code
         const state = this.$route.query.state
         const auth_type = this.$route.query.auth_type
-        console.log('thirdLogin code, state, auth_type: ', code, state, auth_type)
+        console.log(
+          'thirdLogin code, state, auth_type: ',
+          code,
+          state,
+          auth_type
+        )
 
         // store.state.user.code = code
         // store.state.user.code_state = state
@@ -193,7 +209,7 @@ export default {
     },
     checkCapslock(e) {
       const { key } = e
-      this.capsTooltip = key && key.length === 1 && (key >= 'A' && key <= 'Z')
+      this.capsTooltip = key && key.length === 1 && key >= 'A' && key <= 'Z'
     },
     showPwd() {
       if (this.passwordType === 'password') {
@@ -209,9 +225,13 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('user/LoginByUsername', this.loginForm)
+          this.$store
+            .dispatch('user/LoginByUsername', this.loginForm)
             .then(() => {
-              this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
+              this.$router.push({
+                path: this.redirect || '/',
+                query: this.otherQuery
+              })
               this.loading = false
             })
             .catch(() => {
@@ -233,16 +253,18 @@ export default {
     },
     dbrestore() {
       this.rloading = true
-      restoreDB().then(res => {
-        console.log('restoreDB', res)
-        this.$message({
-          message: res.message,
-          type: 'success'
+      restoreDB()
+        .then(res => {
+          console.log('restoreDB', res)
+          this.$message({
+            message: res.message,
+            type: 'success'
+          })
+          this.rloading = false
         })
-        this.rloading = false
-      }).catch(() => {
-        this.rloading = false
-      })
+        .catch(() => {
+          this.rloading = false
+        })
     }
     // afterQRScan() {
     //   if (e.key === 'x-admin-oauth-code') {
@@ -270,8 +292,8 @@ export default {
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
 
-$bg:#283443;
-$light_gray:#fff;
+$bg: #283443;
+$light_gray: #fff;
 $cursor: #fff;
 
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
@@ -314,9 +336,9 @@ $cursor: #fff;
 </style>
 
 <style lang="scss" scoped>
-$bg:#2d3a4b;
-$dark_gray:#889aa4;
-$light_gray:#eee;
+$bg: #2d3a4b;
+$dark_gray: #889aa4;
+$light_gray: #eee;
 
 .login-container {
   min-height: 100%;
