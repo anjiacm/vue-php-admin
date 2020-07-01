@@ -49,7 +49,7 @@ class User extends RestController
     // 签发Token
     public function issue_get()
     {
-        var_dump(JWT::$leeway);
+        // var_dump(JWT::$leeway);
         $key = '344'; //key
         $time = time(); //当前时间
         $payload = [
@@ -57,7 +57,7 @@ class User extends RestController
             'aud' => 'http://www.helloweba.net', //接收该JWT的一方，可选
             'iat' => $time, //签发时间
             'nbf' => $time, //(Not Before)：某个时间点后才能访问，比如设置time+30，表示当前时间30秒后才能使用
-            'exp' => $time, //过期时间,这里设置2个小时
+            'exp' => $time + 2 * 60 * 60, //过期时间,这里设置2个小时
             'data' => [ //自定义信息，不要定义敏感信息
                 'userid' => 2,
                 'username' => '李小龙'
@@ -68,10 +68,26 @@ class User extends RestController
 
     public function verification_get()
     {
-        $key = '344'; //key要和签发的时候一样
-
+        $key = '123456'; //key要和签发的时候一样
+        var_dump($key);
         //签发的Token header.payload.signature 前两部分可以base64解密
-        $jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC93d3cuaGVsbG93ZWJhLm5ldCIsImF1ZCI6Imh0dHA6XC9cL3d3dy5oZWxsb3dlYmEubmV0IiwiaWF0IjoxNTc3NjY4MDk0LCJuYmYiOjE1Nzc2NjgwOTQsImV4cCI6MTU3NzY2ODA5NCwiZGF0YSI6eyJ1c2VyaWQiOjIsInVzZXJuYW1lIjoiXHU2NzRlXHU1YzBmXHU5Zjk5In19.EM9G8aW7DCpRYW7L0vjTgTt7UevwIyocVaouq0rdn0I";
+        // $jwt = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC93d3cuaGVsbG93ZWJhLm5ldCIsImF1ZCI6Imh0dHA6XC9cL3d3dy5oZWxsb3dlYmEubmV0IiwiaWF0IjoxNTc3NjY4MDk0LCJuYmYiOjE1Nzc2NjgwOTQsImV4cCI6MTU3NzY2ODA5NCwiZGF0YSI6eyJ1c2VyaWQiOjIsInVzZXJuYW1lIjoiXHU2NzRlXHU1YzBmXHU5Zjk5In19.EM9G8aW7DCpRYW7L0vjTgTt7UevwIyocVaouq0rdn0I";
+
+        $jwt = $this->get('token');
+        var_dump(sscanf('Bearer ' . $jwt, 'Bearer %s'));
+        var_dump($jwt);
+        $tks = explode('.', $jwt);
+        if (count($tks) != 3) {
+            throw new UnexpectedValueException('Wrong number of segments');
+        }
+        list($headb64, $bodyb64, $cryptob64) = $tks;
+        var_dump($bodyb64);
+        $arr = json_decode(base64_decode($bodyb64),true);
+        var_dump($arr);
+        var_dump($arr['exp']);
+        var_dump(time());
+        var_dump($arr['exp']>time());
+
         //        $arr = explode('.', $jwt);
         //        var_dump($arr);
         //        var_dump(base64_decode($arr[1]));

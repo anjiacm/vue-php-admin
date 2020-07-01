@@ -19,6 +19,10 @@ use PHPMailer\PHPMailer\Exception;
 // Using Medoo namespace
 use Medoo\Medoo;
 
+// use Sinergi\BrowserDetector\Browser;
+// use Sinergi\BrowserDetector\Device;
+// use Sinergi\BrowserDetector\Language;
+
 class Article extends RestController
 {
     private $Medoodb;
@@ -732,7 +736,8 @@ class Article extends RestController
     }
 
     // yzalis/identicon github唯一像素头像测试
-    public function identicon_get(){
+    public function identicon_get()
+    {
         $identicon = new \Identicon\Identicon();
 
         // $identicon->displayImage('79464972@qq.com'); // php 直接输出显示图像
@@ -750,5 +755,19 @@ class Article extends RestController
         $imageDataUri = $identicon->getImageDataUri('bar', 128, 'A87EDF'); // base64数据   
         echo '<img src="' . $imageDataUri . '"  alt="bar Identicon" />';
     }
+    // // composer require sinergi/browser-detector 测试
+    // public function browser_get()
+    // {
 
+    //     $browser = new Browser();
+    //     var_dump($browser->getName());
+    //     // var_dump($browser);
+
+    //     $device = new Device();
+    //     var_dump($device->getName());
+    //     // var_dump($device);
+    //     $language = new Language();
+    //     var_dump($language->getLanguage());
+    //     // var_dump($language);
+    // }
 } // class Article end
