@@ -158,7 +158,7 @@ export default {
       // 更可靠稳定的获取code方法 使用 vue router to 对象来获取
       // 如果路由存在code 与 state 参数，如http://localhost:9527/login?code=8789d613d1fa9a19732a&state=xyz
       if (
-        Object.prototype.hasOwnProperty.call(this.$route.query, 'bar') &&
+        Object.prototype.hasOwnProperty.call(this.$route.query, 'code') &&
         Object.prototype.hasOwnProperty.call(this.$route.query, 'state')
       ) {
         // this.$route.query 如果存在 code 则为三方登录则写入store 变量

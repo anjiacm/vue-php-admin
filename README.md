@@ -5,7 +5,7 @@
 通用后台角色权限管理系统, 基于 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin/) 和 [PHP CodeIgniter 3.1.10 RESTful](https://github.com/chriskacerguis/codeigniter-restserver) 实现，
 采用前后端分离架构的权限管理系统，PHP快速开发平台，目标是搭建一套简洁易用的快速解决方案，可以帮助用户有效降低项目开发难度和成本。
 
-以vue-element-admin@4.2.1 前端模板为基础， **修改动态路由部分，实现菜单路由可根据后端角色进行动态加载.** 后端路由权限基于 `php-jwt` 使用 `php CI hook` 做token及权限认证
+以vue-element-admin@4.4.0 前端模板为基础， **修改动态路由部分，实现菜单路由可根据后端角色进行动态加载.** 后端路由权限基于 `php-jwt` 使用 `php CI hook` 做token及权限认证
 
 将vue-element-admin前端原来样例模板除首页、文档外，其余样例模板归档集中在 `样例模板` 菜单下，见 @router/index.js constantRouterMap，其余组件如 tags-views等，全部未做变化，可根据需要具体需求进行删减。 
 
