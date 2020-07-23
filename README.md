@@ -1,3 +1,5 @@
+# [VUE-PHP-ADMIN-DEMO](http://172.93.43.131:10000)
+
 # vue-php-admin 项目说明
 
 通用后台角色权限管理系统, 基于 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin/) 和 [PHP CodeIgniter 3.1.10 RESTful](https://github.com/chriskacerguis/codeigniter-restserver) 实现，
