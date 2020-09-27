@@ -4,10 +4,14 @@
       <el-input
         v-model="filters[0].value"
         placeholder="角色名"
-        style="width: 200px;"
+        style="width: 200px"
         class="filter-item"
       />
-      <el-select v-model="filters[1].value" class="filter-item" multiple="multiple">
+      <el-select
+        v-model="filters[1].value"
+        class="filter-item"
+        multiple="multiple"
+      >
         <el-option label="启用" value="1" />
         <el-option label="禁用" value="0" />
       </el-select>
@@ -15,7 +19,7 @@
         v-waves
         v-perm="['/sys/role/roles/post']"
         class="filter-item"
-        style="margin-left: 10px;"
+        style="margin-left: 10px"
         type="primary"
         icon="el-icon-plus"
         @click="handleCreate"
@@ -27,7 +31,7 @@
       :filters="filters"
       :loading="listLoading"
       :table-props="tableProps"
-      :pagination-props="{ pageSizes: [5, 10, 15,20] }"
+      :pagination-props="{ pageSizes: [5, 10, 15, 20] }"
       layout="table,pagination"
       @current-change="handleRoleSelectChange"
     >
@@ -41,10 +45,9 @@
 
       <el-table-column label="状态" min-width="100px">
         <template slot-scope="scope">
-          <el-tag
-            :type="scope.row.status | statusFilter"
-            size="small"
-          >{{ scope.row.status | statusChange }}</el-tag>
+          <el-tag :type="scope.row.status | statusFilter" size="small">{{
+            scope.row.status | statusChange
+          }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" min-width="100px">
@@ -72,7 +75,7 @@
         :model="temp"
         label-position
         label-width="90px"
-        style="width: 400px; margin-left:50px;"
+        style="width: 400px; margin-left: 50px"
       >
         <el-form-item label="角色名称" prop="name">
           <el-input v-model.trim="temp.name" placeholder="请输入角色名" />
@@ -103,7 +106,7 @@
         <el-button
           :loading="updateLoading"
           type="primary"
-          @click="dialogStatus==='create'?createData():updateData()"
+          @click="dialogStatus === 'create' ? createData() : updateData()"
         >确定</el-button>
       </div>
     </el-dialog>
@@ -114,11 +117,19 @@
         <span>
           <h2>
             角色授权
-            <span v-if="selectRole.id != null" class="menu-role">: {{ selectRole.name }}</span>
+            <span
+              v-if="selectRole.id != null"
+              class="menu-role"
+            >: {{ selectRole.name }}</span>
           </h2>
         </span>
       </div>
-      <el-tabs v-model="activeName" tab-position="top" type="card" @tab-click="handleTabClick">
+      <el-tabs
+        v-model="activeName"
+        tab-position="top"
+        type="card"
+        @tab-click="handleTabClick"
+      >
         <el-tab-pane label="菜单类" name="menu">
           <el-tree
             ref="menuTree"
@@ -130,7 +141,7 @@
             show-checkbox
             node-key="id"
             size="mini"
-            style="width: 100%;pading-top:20px;"
+            style="width: 100%; pading-top: 20px"
             element-loading-text="拼命加载中"
             @check-change="handleMenuCheckChange"
           />
@@ -141,7 +152,7 @@
             :data="roleData"
             :table-props="tableProps"
             :loading="roleLoading"
-            :pagination-props="{ pageSizes: [10,20] }"
+            :pagination-props="{ pageSizes: [10, 20] }"
           >
             <el-table-column type="selection" width="55" />
             <el-table-column
@@ -153,10 +164,9 @@
             />
             <el-table-column label="状态" min-width="100px">
               <template slot-scope="scope">
-                <el-tag
-                  :type="scope.row.status | statusFilter"
-                  size="small"
-                >{{ scope.row.status | statusChange }}</el-tag>
+                <el-tag :type="scope.row.status | statusFilter" size="small">{{
+                  scope.row.status | statusChange
+                }}</el-tag>
               </template>
             </el-table-column>
           </data-tables>
@@ -187,7 +197,7 @@
                     show-checkbox
                     node-key="id"
                     size="mini"
-                    style="width: 100%;pading-top:20px;"
+                    style="width: 100%; pading-top: 20px"
                     element-loading-text="拼命加载中"
                   />
                   <!-- @check-change="handleDeptCheckChange" -->
@@ -216,7 +226,14 @@
 
         <el-tab-pane label="文件类" name="file">todo:文件类授权</el-tab-pane>
 
-        <div style="float:left;padding-left:24px;padding-top:12px;padding-bottom:4px;">
+        <div
+          style="
+            float: left;
+            padding-left: 24px;
+            padding-top: 12px;
+            padding-bottom: 4px;
+          "
+        >
           <!-- <el-checkbox
             v-if="activeName==='menu'"
             v-model="checkAll"
@@ -226,7 +243,7 @@
             <b>全选</b>
           </el-checkbox>-->
           <p-check
-            v-if="activeName==='menu'"
+            v-if="activeName === 'menu'"
             v-model="checkAll"
             class="p-icon p-round p-jelly"
             color="primary"
@@ -237,7 +254,14 @@
             全选
           </p-check>
         </div>
-        <div style="float:right;padding-right:15px;padding-top:4px;padding-bottom:4px;">
+        <div
+          style="
+            float: right;
+            padding-right: 15px;
+            padding-top: 4px;
+            padding-bottom: 4px;
+          "
+        >
           <el-button
             v-perm="['/sys/role/roles/put']"
             v-waves
@@ -539,7 +563,7 @@ export default {
           this.$refs.menuTree.setCheckedNodes(res.data)
           this.menuLoading = false
         })
-        .catch(() => {})
+        .catch(() => { })
 
       getRoleRole({ roleId: this.selectRole.id })
         .then(res => {
@@ -563,7 +587,7 @@ export default {
             }
           }
         })
-        .catch(() => {})
+        .catch(() => { })
 
       getRoleDept({ roleId: this.selectRole.id })
         .then(res => {
@@ -573,7 +597,7 @@ export default {
           this.currentRoleDepts = res.data
           this.$refs.deptTree.setCheckedNodes(res.data)
         })
-        .catch(() => {})
+        .catch(() => { })
     },
     // 树节点选择监听
     handleMenuCheckChange(data, check, subCheck) {
@@ -873,7 +897,7 @@ export default {
 </script>
  <style scoped>
 .menu-container {
-  margin-top: 10px;
+  margin-top: 100px;
 }
 .menu-header {
   padding-left: 8px;
@@ -884,5 +908,34 @@ export default {
 }
 .menu-role {
   color: rgb(211, 66, 22);
+}
+/deep/ .el-checkbox__inner {
+  display: inline-block;
+  position: relative;
+  border: 1px solid #dcdfe6;
+  border-radius: 2px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  z-index: 1;
+  -webkit-transition: none !important;
+  transition: none !important;
+}
+/deep/ .el-checkbox__input.is-indeterminate .el-checkbox__inner::before {
+  content: "";
+  position: absolute;
+  display: block;
+  background-color: #1890ff;
+  height: 2px;
+  -webkit-transform: scale(0.5);
+  transform: scale(0.5);
+  left: 0;
+  right: 0;
+  top: 5px;
+}
+/deep/ .el-checkbox__input.is-indeterminate .el-checkbox__inner::after {
+  display: block !important;
+  transform: rotate(45deg) scaleY(1);
 }
 </style>
