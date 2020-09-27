@@ -748,7 +748,7 @@ export default {
       return (
         <div class='column-container'>
           <span style='text-algin:center;margin-right:200px;'>
-            {data.title}
+            <svg-icon icon-class={data.icon} /> {data.title}
           </span>
           <span style='text-algin:center;margin-right:200px;'>
             <el-tag
@@ -759,10 +759,6 @@ export default {
             >
               {data.type === 0 ? '目录' : data.type === 1 ? '菜单' : '操作'}
             </el-tag>
-          </span>
-          <span style='text-algin:center;margin-right:80px;'>
-            {' '}
-            <svg-icon icon-class={data.icon} />{' '}
           </span>
           <span style='text-algin:center;margin-right:80px;'>
             {data.path ? data.path : '\t'}
