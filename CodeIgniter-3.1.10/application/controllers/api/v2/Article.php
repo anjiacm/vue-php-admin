@@ -23,6 +23,10 @@ use Medoo\Medoo;
 // use Sinergi\BrowserDetector\Device;
 // use Sinergi\BrowserDetector\Language;
 
+use PandoraUna\Paillier\Paillier;
+use PandoraUna\Paillier\PrivateKey;
+use PandoraUna\Paillier\PublicKey;
+
 class Article extends RestController
 {
     private $Medoodb;
@@ -755,6 +759,7 @@ class Article extends RestController
         $imageDataUri = $identicon->getImageDataUri('bar', 128, 'A87EDF'); // base64数据   
         echo '<img src="' . $imageDataUri . '"  alt="bar Identicon" />';
     }
+    
     // // composer require sinergi/browser-detector 测试
     // public function browser_get()
     // {
@@ -770,4 +775,170 @@ class Article extends RestController
     //     var_dump($language->getLanguage());
     //     // var_dump($language);
     // }
+    
+    // paillier 同态加密测试
+    public function paillier_get()
+    {
+        // $paillier = new Paillier();
+        // // 生成私钥
+        // var_dump($paillier->getPrivateKey());
+        // var_dump('---------------\n');
+        // // 生成公钥
+        // var_dump($paillier->getPublicKey());
+
+
+        $paillier = new Paillier();
+        $prikey = $paillier->getPrivateKey();
+
+        var_dump('==============================\n');
+        var_dump($prikey->getMu());
+
+        var_dump(gmp_intval($prikey->getMu()));
+        var_dump($prikey->getLambda());
+        var_dump($prikey->getN());
+ 
+  return;
+        // $m1 = 1;
+        // $m2 = 2;
+        // $m3 = 3;
+
+        // // var_dump($paillier->getPublicKey());
+        // $e1 = $paillier->getPublicKey()->encrypt($m1);
+        // $e2 = $paillier->getPublicKey()->encrypt($m2);
+        // $e3 = $paillier->getPublicKey()->encrypt($m3);
+
+        // // var_dump($encript);
+        // // $msgDecript = $paillier->getPrivateKey()->decrypt($encript);
+        // // var_dump($msgDecript);
+
+        // $message = [
+        //     'Bertrand' => $e1,
+        //     'Lynn' => $e2,
+        //     'pocoyo' => $e3
+        // ];
+
+        // $v1 = 10;
+        // $e1 = $paillier->getPublicKey()->encrypt($v1);
+                
+        // $v2 = 15;
+        // $e2 = $paillier->getPublicKey()->encrypt($v2);
+        
+        // $v3 = 3;
+        // $e3 = $paillier->getPublicKey()->encrypt($v3);
+        
+
+        // $res = Paillier::sum($e1,$e2,$e3);
+      
+
+        // $dec = $paillier->getPrivateKey()->decrypt($res);
+        // var_dump($dec);
+
+        // $xx = $paillier->getPrivateKey()->decrypt($e1);
+        // var_dump($xx);
+        
+
+        //   $this->response($message, RestController::HTTP_OK); // BAD_REQUEST (400) being the HTTP response code
+    }
+
+    // flowjs/flow-php-server 大文件上传测试，前端使用flow.js
+    // get 与 post 必须同时存在？
+    public function upload1_get()
+    {
+        var_dump('aaaaaaaaaaaaaaaaaaaaaa');
+
+        $config = new \Flow\Config();
+        // echo FCPATH . 'upload'. "\n"; // D:\Q\code\vue\vue-php-admin\CodeIgniter-3.1.10\upload
+        $config->setTempDir(FCPATH . 'upload/chunks_temp_folder');
+        $request = new \Flow\Request();
+        // var_dump($config);
+        $uploadFolder = FCPATH . 'upload/final_file_destination/'; // Folder where the file will be stored
+        $uploadFileName = uniqid()."_". $request->getFileName(); // The name the file will have on the server
+        $uploadPath = $uploadFolder.$uploadFileName;
+        // var_dump($uploadPath);
+
+        if (\Flow\Basic::save($uploadPath, $config, $request)) {
+            // file saved successfully and can be accessed at $uploadPath
+          } else {
+            // This is not a final chunk or request is invalid, continue to upload.
+          }
+    }
+    public function upload1_post()
+    {
+        $config = new \Flow\Config();
+        // echo FCPATH . 'upload'. "\n"; // D:\Q\code\vue\vue-php-admin\CodeIgniter-3.1.10\upload
+        $config->setTempDir(FCPATH . 'upload/chunks_temp_folder');
+        $request = new \Flow\Request();
+        // var_dump($config);
+        $uploadFolder = FCPATH . 'upload/final_file_destination/'; // Folder where the file will be stored
+        $uploadFileName = uniqid()."_". $request->getFileName(); // The name the file will have on the server
+        $uploadPath = $uploadFolder.$uploadFileName;
+    
+        if (\Flow\Basic::save($uploadPath, $config, $request)) {
+            // file saved successfully and can be accessed at $uploadPath
+          } else {
+            // This is not a final chunk or request is invalid, continue to upload.
+          }
+    }
+    // flowjs/flow-php-server  前端页面demo
+    // <!DOCTYPE html>
+    // <html lang="ja">
+    // <head>
+    //   <meta charset="UTF-8">
+    //   <script src="https://cdn.bootcdn.net/ajax/libs/flow.js/2.9.0/flow.js"></script>
+    //   Flow.jsのテスト
+    // <style>
+    // /*プログレスバーのスタイル(仮)*/
+    // .progress{
+    //   width:100%;
+    //   border:1px solid #000;
+    //   box-sizing: border-box;
+    //   margin:30px 0;
+    // }
+    // .bar{
+    //   height:30px;
+    //   width:0;
+    //   background:rgb(96, 112, 202);
+    // }
+    // </style>
+    // </head>
+    // <body>
+    
+    //   <button id="browseButton">upload</button>
+    //   <div class="progress"><div class="bar"></div></div>
+    //   <div class="img-box"></div>
+    
+    // <script>
+    // var flow = new Flow({
+    //   target:'http://www.cirest.com:8890/api/v2/article/upload1',
+    //   chunkSize:1*1028*1028, //チャンクサイズ(小分けにするサイズです)
+    // });
+    // var flowfile= flow.files;
+    
+    // flow.assignBrowse(document.getElementById('browseButton'));
+    // flow.on('fileSuccess', function(file,message){
+    //   // アップロード完了したときの処理
+    //   alert("アップロード完了");//今回はメッセージを表示します。
+    // });
+    // flow.on('filesSubmitted', function(file) {
+    //   // アップロード実行
+    //   flow.upload();
+    // });
+    // flow.on('progress',function(){
+    //   //プログレスバーの実行
+    //   //flow.progress() で進捗が取得できるのでそれを利用してプログレスバーを設定
+    //   $('.bar').css({width:Math.floor(flow.progress()*100) + '%'});
+    // });
+    // flow.on('fileSuccess',function(file){
+    //   // アップロードが完了したときの処理
+    //   // ....
+    // });
+    // </script>
+    
+    
+    //   <button onclick="flow.resume(); return(false);">再開</a>
+    //   <button onclick="flow.pause(); return(false);">停止</a>
+    
+    // </body>
+    // </html>
+
 } // class Article end
